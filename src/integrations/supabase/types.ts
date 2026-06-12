@@ -14,7 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          created_at: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          service_address: string | null
+          site_notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          email?: string | null
+          full_name: string
+          id?: string
+          phone?: string | null
+          service_address?: string | null
+          site_notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          service_address?: string | null
+          site_notes?: string | null
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          quote_amount: number
+          service_date: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          quote_amount?: number
+          service_date?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          quote_amount?: number
+          service_date?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +114,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      customer_type: "Residential" | "Commercial" | "HOA"
+      job_status: "Quoted" | "Scheduled" | "Completed" | "Paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +242,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      customer_type: ["Residential", "Commercial", "HOA"],
+      job_status: ["Quoted", "Scheduled", "Completed", "Paid"],
+    },
   },
 } as const
