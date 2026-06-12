@@ -91,6 +91,11 @@ export async function createJob(input: NewJob): Promise<Job> {
   return data as Job;
 }
 
+export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
+  const { error } = await db.from("jobs").update({ status }).eq("id", id);
+  if (error) throw error;
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
