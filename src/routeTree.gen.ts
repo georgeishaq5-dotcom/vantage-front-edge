@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -41,6 +42,11 @@ const CustomersRoute = CustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampaignsRoute = CampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
@@ -76,16 +85,25 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/campaigns'
     | '/customers'
     | '/jobs'
     | '/ledger'
     | '/settings'
     | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/customers' | '/jobs' | '/ledger' | '/settings' | '/sitemap.xml'
+  to:
+    | '/'
+    | '/campaigns'
+    | '/customers'
+    | '/jobs'
+    | '/ledger'
+    | '/settings'
+    | '/sitemap.xml'
   id:
     | '__root__'
     | '/'
+    | '/campaigns'
     | '/customers'
     | '/jobs'
     | '/ledger'
@@ -95,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
@@ -139,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns': {
+      id: '/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -151,6 +177,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
@@ -160,3 +187,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
