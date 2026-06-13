@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AddressAutocomplete } from "@/components/AddressAutocomplete";
 import { createCustomer, CUSTOMER_TYPES, type CustomerType } from "@/lib/fsm";
 
 const schema = z.object({
