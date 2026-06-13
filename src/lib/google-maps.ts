@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 // Lightweight loader for the Google Maps JavaScript API (Places library).
 // Uses the referrer-restricted browser key injected by the connector.
 
