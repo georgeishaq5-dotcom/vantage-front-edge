@@ -194,3 +194,84 @@ export function adjacentAddresses(base: string | null, count = 5): string[] {
     .slice(0, count)
     .map((o) => `${Math.max(1, num + o)} ${street}`);
 }
+
+// ============= Marketing campaign analytics (simulated) =============
+
+export type CampaignStatus = "Sent" | "Delivered" | "Link Clicked" | "Job Booked";
+
+export const CAMPAIGN_FUNNEL: CampaignStatus[] = [
+  "Sent",
+  "Delivered",
+  "Link Clicked",
+  "Job Booked",
+];
+
+export interface PromoText {
+  id: string;
+  recipient: string;
+  address: string;
+  campaign: string;
+  sentAt: number;
+  status: CampaignStatus;
+}
+
+export const CAMPAIGN_STATUS_STYLES: Record<CampaignStatus, string> = {
+  Sent: "bg-secondary text-secondary-foreground border border-border",
+  Delivered: "bg-sky-50 text-sky-700 border border-sky-200",
+  "Link Clicked": "bg-amber-50 text-amber-700 border border-amber-200",
+  "Job Booked": "bg-revenue-muted text-revenue border border-revenue/30",
+};
+
+const PROMO_CAMPAIGNS = [
+  "Spring Tune-Up Promo",
+  "Neighbor Referral Bonus",
+  "Proximity Flash Offer",
+  "Seasonal Maintenance Push",
+];
+
+const PROMO_NAMES = [
+  "Avery Collins",
+  "Jordan Reyes",
+  "Priya Nair",
+  "Marcus Webb",
+  "Elena Sokolova",
+  "Tomás Herrera",
+  "Hannah Bauer",
+  "Wei Chen",
+  "Olivia Grant",
+  "Devon Brooks",
+];
+
+// Build a deterministic set of recent promo texts, optionally seeded from
+// real customer addresses for the Neighbor Hook proximity campaigns.
+export function buildPromoTexts(addresses: string[] = []): PromoText[] {
+  const now = Date.now();
+  return PROMO_NAMES.map((name, i) => {
+    const baseAddr = addresses[i % Math.max(1, addresses.length)] ?? null;
+    const neighbor = adjacentAddresses(baseAddr, 5)[i % 5];
+    return {
+      id: `promo-${i}`,
+      recipient: name,
+      address: neighbor,
+      campaign: PROMO_CAMPAIGNS[i % PROMO_CAMPAIGNS.length],
+      sentAt: now - i * 7 * 60_000,
+      status: "Sent" as CampaignStatus,
+    };
+  });
+}
+
+export function nextCampaignStatus(status: CampaignStatus): CampaignStatus | null {
+  const idx = CAMPAIGN_FUNNEL.indexOf(status);
+  if (idx < 0 || idx >= CAMPAIGN_FUNNEL.length - 1) return null;
+  return CAMPAIGN_FUNNEL[idx + 1];
+}
+
+export function formatRelativeTime(ts: number): string {
+  const diff = Math.round((Date.now() - ts) / 60_000);
+  if (diff < 1) return "just now";
+  if (diff < 60) return `${diff}m ago`;
+  const h = Math.round(diff / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
+}
+
