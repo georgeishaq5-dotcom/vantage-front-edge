@@ -135,13 +135,15 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
           </div>
 
           <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="service_address">Service Address</Label>
-            <Input
+            <Label htmlFor="service_address">Property Address</Label>
+            <AddressAutocomplete
               id="service_address"
-              placeholder="123 Main St, City, State"
-              {...register("service_address")}
+              value={watch("service_address") ?? ""}
+              onChange={(v) => setValue("service_address", v)}
+              placeholder="Start typing a street address…"
             />
           </div>
+
 
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="site_notes">Site Notes &amp; Gate Codes</Label>
