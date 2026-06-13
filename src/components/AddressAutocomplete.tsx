@@ -32,7 +32,7 @@ export function AddressAutocomplete({
   const sessionTokenRef = useRef<any>(null);
   const placesLibRef = useRef<any>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const configured = isMapsConfigured();
 
