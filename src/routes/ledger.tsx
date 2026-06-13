@@ -234,7 +234,7 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
         Target neighbors within a 0.2 mile radius of this account.
       </p>
 
-      <div className="relative mt-4 flex h-32 items-center justify-center rounded-md border border-sidebar-border bg-[radial-gradient(circle,theme(colors.slate.700)_1px,transparent_1px)] [background-size:16px_16px]">
+      <div className="relative mt-4 flex h-32 items-center justify-center rounded-md border border-sidebar-border bg-[radial-gradient(circle,rgba(148,163,184,0.25)_1px,transparent_1px)] [background-size:16px_16px]">
         <span className="absolute h-24 w-24 animate-none rounded-full border border-revenue/40 bg-revenue/5" />
         <span className="absolute h-16 w-16 rounded-full border border-revenue/60 bg-revenue/10" />
         <MapPin className="relative h-6 w-6 text-revenue" />
