@@ -220,6 +220,37 @@ export function collectOverdue(entries: LedgerEntry[]): OverdueInvoice[] {
     .sort((a, b) => b.hoursLate - a.hoursLate);
 }
 
+// ============= Invoice history (derived from jobs) =============
+
+export type InvoiceStatus = "Paid" | "Outstanding" | "Draft";
+
+export interface Invoice {
+  id: string;
+  date: string | null;
+  title: string;
+  amount: number;
+  status: InvoiceStatus;
+}
+
+export function buildInvoiceHistory(jobs: Job[]): Invoice[] {
+  return jobs
+    .map<Invoice>((j) => ({
+      id: j.id,
+      date: j.service_date,
+      title: j.title,
+      amount: Number(j.quote_amount),
+      status:
+        j.status === "Paid" ? "Paid" : j.status === "Completed" ? "Outstanding" : "Draft",
+    }))
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+}
+
+export const INVOICE_STATUS_STYLES: Record<InvoiceStatus, string> = {
+  Paid: "bg-revenue-muted text-revenue border border-revenue/30",
+  Outstanding: "bg-amber-50 text-amber-700 border border-amber-200",
+  Draft: "bg-secondary text-secondary-foreground border border-border",
+};
+
 // Simulated address generation for the Neighbor Hook proximity module.
 export function adjacentAddresses(base: string | null, count = 5): string[] {
   const fallback = "Field Service Area";
