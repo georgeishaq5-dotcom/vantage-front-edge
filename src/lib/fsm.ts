@@ -96,6 +96,47 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
   if (error) throw error;
 }
 
+export interface CustomerUpdate {
+  full_name?: string;
+  phone?: string | null;
+  service_address?: string | null;
+  site_notes?: string | null;
+}
+
+export async function updateCustomer(id: string, input: CustomerUpdate): Promise<Customer> {
+  const { data, error } = await db
+    .from("customers")
+    .update(input)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Customer;
+}
+
+// ============= Phone number formatting =============
+
+// Frontend mask: format raw digits into US (XXX) XXX-XXXX as the user types.
+export function formatUSPhoneInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  const len = digits.length;
+  if (len === 0) return "";
+  if (len < 4) return `(${digits}`;
+  if (len < 7) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+// Strip spaces/dashes and prepend +1 to match Twilio's E.164 requirement.
+export function toE164US(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (trimmed.startsWith("+")) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return `+${digits}`;
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
