@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
-import { createCustomer, CUSTOMER_TYPES, type CustomerType } from "@/lib/fsm";
+import { createCustomer, CUSTOMER_TYPES, formatUSPhoneInput, toE164US, type CustomerType } from "@/lib/fsm";
 
 const schema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(120),
@@ -57,7 +57,7 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
       createCustomer({
         full_name: values.full_name,
         email: values.email || null,
-        phone: values.phone || null,
+        phone: values.phone ? toE164US(values.phone) : null,
         customer_type: (values.customer_type as CustomerType) || null,
         service_address: values.service_address || null,
         site_notes: values.site_notes || null,
@@ -112,8 +112,15 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
 
           <div className="space-y-1.5">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" placeholder="(555) 000-0000" {...register("phone")} />
+            <Input
+              id="phone"
+              placeholder="(555) 000-0000"
+              inputMode="tel"
+              value={watch("phone") ?? ""}
+              onChange={(e) => setValue("phone", formatUSPhoneInput(e.target.value))}
+            />
           </div>
+
 
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="customer_type">Customer Type</Label>

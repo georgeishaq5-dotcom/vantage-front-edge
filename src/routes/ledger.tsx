@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   ChevronDown,
+  FileText,
   Loader2,
   MapPin,
   Send,
@@ -15,6 +16,9 @@ import {
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EditCustomerModal } from "@/components/EditCustomerModal";
 import { sendPromoSms } from "@/lib/sms.functions";
 import {
   Sheet,
@@ -27,15 +31,20 @@ import {
 import { cn } from "@/lib/utils";
 import {
   adjacentAddresses,
+  buildInvoiceHistory,
   buildLedger,
   collectOverdue,
   fetchCustomers,
   fetchJobs,
   formatCurrency,
   formatDate,
+  INVOICE_STATUS_STYLES,
+  toE164US,
+  updateCustomer,
   type ARStatus,
   type LedgerEntry,
 } from "@/lib/fsm";
+
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
@@ -186,34 +195,153 @@ function LedgerRow({
 function ClientProfile({ entry }: { entry: LedgerEntry }) {
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h3 className="text-sm font-semibold text-foreground">Account Overview</h3>
-        <dl className="mt-3 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Outstanding AR</dt>
-            <dd className="font-semibold text-foreground">{formatCurrency(entry.outstanding)}</dd>
+      <div className="space-y-5">
+        <div className="rounded-lg border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Account Overview</h3>
+            <EditCustomerModal customer={entry.customer} />
           </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Total Jobs</dt>
-            <dd className="font-medium text-foreground">{entry.jobs.length}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Service Address</dt>
-            <dd className="text-right font-medium text-foreground">
-              {entry.customer.service_address || "—"}
-            </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Contact</dt>
-            <dd className="font-medium text-foreground">{entry.customer.phone || entry.customer.email || "—"}</dd>
-          </div>
-        </dl>
+          <dl className="mt-3 space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Outstanding AR</dt>
+              <dd className="font-semibold text-foreground">{formatCurrency(entry.outstanding)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Total Jobs</dt>
+              <dd className="font-medium text-foreground">{entry.jobs.length}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Service Address</dt>
+              <dd className="text-right font-medium text-foreground">
+                {entry.customer.service_address || "—"}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Contact</dt>
+              <dd className="font-medium text-foreground">{entry.customer.phone || entry.customer.email || "—"}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <SiteNotes entry={entry} />
       </div>
 
-      <NeighborHook entry={entry} />
+      <Tabs defaultValue="promo">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="promo">Proximity Promo</TabsTrigger>
+          <TabsTrigger value="invoices">Invoice History</TabsTrigger>
+        </TabsList>
+        <TabsContent value="promo" className="mt-3">
+          <NeighborHook entry={entry} />
+        </TabsContent>
+        <TabsContent value="invoices" className="mt-3">
+          <InvoiceHistory entry={entry} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+
+function SiteNotes({ entry }: { entry: LedgerEntry }) {
+  const queryClient = useQueryClient();
+  const [notes, setNotes] = useState(entry.customer.site_notes ?? "");
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      updateCustomer(entry.customer.id, { site_notes: notes.trim() || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      toast.success("Site note saved");
+    },
+    onError: () => toast.error("Could not save note. Please try again."),
+  });
+
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-5">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-amber-600" />
+        <h3 className="text-sm font-semibold text-foreground">Site Notes &amp; Hazards</h3>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Persistent warnings for the crew (e.g. gate codes, pets, parking).
+      </p>
+      <Textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={3}
+        maxLength={2000}
+        placeholder="e.g. Gate code is 1234. Beware of dog in the back yard."
+        className="mt-3 bg-card"
+      />
+      <Button
+        variant="revenue"
+        size="sm"
+        className="mt-3"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+      >
+        {mutation.isPending ? "Saving…" : "Save Note"}
+      </Button>
+    </div>
+  );
+}
+
+function InvoiceHistory({ entry }: { entry: LedgerEntry }) {
+  const invoices = useMemo(() => buildInvoiceHistory(entry.jobs), [entry.jobs]);
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5">
+      <div className="flex items-center gap-2">
+        <FileText className="h-4 w-4 text-foreground" />
+        <h3 className="text-sm font-semibold text-foreground">Invoice History</h3>
+      </div>
+      <div className="mt-3 space-y-2">
+        {invoices.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">No invoices yet.</p>
+        ) : (
+          invoices.map((inv) => (
+            <div
+              key={inv.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 px-3 py-2.5"
+            >
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-foreground">{inv.title}</div>
+                <div className="text-xs text-muted-foreground">{formatDate(inv.date)}</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <span className="text-sm font-semibold text-revenue">
+                  {formatCurrency(inv.amount)}
+                </span>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-xs font-semibold",
+                    INVOICE_STATUS_STYLES[inv.status],
+                  )}
+                >
+                  {inv.status}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() =>
+                    toast.info("PDF generation coming soon", {
+                      description: `Invoice for ${inv.title} will be available as a PDF.`,
+                    })
+                  }
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  Generate PDF Invoice
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 function NeighborHook({ entry }: { entry: LedgerEntry }) {
   const neighbors = useMemo(
@@ -224,6 +352,7 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
   const [sending, setSending] = useState(false);
 
   const testNumber = entry.customer.phone;
+  const e164Number = toE164US(testNumber);
 
   async function deploy() {
     if (!testNumber) {
@@ -236,13 +365,14 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
     try {
       const result = await sendSms({
         data: {
-          to: testNumber,
+          to: e164Number,
           message: `Hi from Vantage FSM! We're running a neighborhood promo near ${entry.customer.service_address || "your area"}. Reply YES to claim your spot.`,
         },
       });
       toast.success("Promo SMS delivered", {
-        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${testNumber}.`,
+        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${e164Number}.`,
       });
+
     } catch (err) {
       toast.error("Failed to send promo SMS", {
         description: err instanceof Error ? err.message : "Unknown error",

@@ -96,6 +96,47 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
   if (error) throw error;
 }
 
+export interface CustomerUpdate {
+  full_name?: string;
+  phone?: string | null;
+  service_address?: string | null;
+  site_notes?: string | null;
+}
+
+export async function updateCustomer(id: string, input: CustomerUpdate): Promise<Customer> {
+  const { data, error } = await db
+    .from("customers")
+    .update(input)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Customer;
+}
+
+// ============= Phone number formatting =============
+
+// Frontend mask: format raw digits into US (XXX) XXX-XXXX as the user types.
+export function formatUSPhoneInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  const len = digits.length;
+  if (len === 0) return "";
+  if (len < 4) return `(${digits}`;
+  if (len < 7) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+// Strip spaces/dashes and prepend +1 to match Twilio's E.164 requirement.
+export function toE164US(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, "");
+  if (trimmed.startsWith("+")) return `+${digits}`;
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return `+${digits}`;
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -178,6 +219,37 @@ export function collectOverdue(entries: LedgerEntry[]): OverdueInvoice[] {
     .flatMap((e) => e.overdueInvoices)
     .sort((a, b) => b.hoursLate - a.hoursLate);
 }
+
+// ============= Invoice history (derived from jobs) =============
+
+export type InvoiceStatus = "Paid" | "Outstanding" | "Draft";
+
+export interface Invoice {
+  id: string;
+  date: string | null;
+  title: string;
+  amount: number;
+  status: InvoiceStatus;
+}
+
+export function buildInvoiceHistory(jobs: Job[]): Invoice[] {
+  return jobs
+    .map<Invoice>((j) => ({
+      id: j.id,
+      date: j.service_date,
+      title: j.title,
+      amount: Number(j.quote_amount),
+      status:
+        j.status === "Paid" ? "Paid" : j.status === "Completed" ? "Outstanding" : "Draft",
+    }))
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+}
+
+export const INVOICE_STATUS_STYLES: Record<InvoiceStatus, string> = {
+  Paid: "bg-revenue-muted text-revenue border border-revenue/30",
+  Outstanding: "bg-amber-50 text-amber-700 border border-amber-200",
+  Draft: "bg-secondary text-secondary-foreground border border-border",
+};
 
 // Simulated address generation for the Neighbor Hook proximity module.
 export function adjacentAddresses(base: string | null, count = 5): string[] {
