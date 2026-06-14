@@ -112,8 +112,15 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
 
           <div className="space-y-1.5">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" placeholder="(555) 000-0000" {...register("phone")} />
+            <Input
+              id="phone"
+              placeholder="(555) 000-0000"
+              inputMode="tel"
+              value={watch("phone") ?? ""}
+              onChange={(e) => setValue("phone", formatUSPhoneInput(e.target.value))}
+            />
           </div>
+
 
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="customer_type">Customer Type</Label>
