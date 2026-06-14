@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   ChevronDown,
+  Loader2,
   MapPin,
   Send,
   Radar,
@@ -13,6 +15,7 @@ import {
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { sendPromoSms } from "@/lib/sms.functions";
 import {
   Sheet,
   SheetContent,
@@ -217,12 +220,38 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
     () => adjacentAddresses(entry.customer.service_address),
     [entry.customer.service_address],
   );
+  const sendSms = useServerFn(sendPromoSms);
+  const [sending, setSending] = useState(false);
 
-  function deploy() {
-    toast.success("Proximity promo drafted", {
-      description: `Promotional text queued for ${neighbors.length} adjacent addresses near ${entry.customer.full_name}.`,
-    });
+  const testNumber = entry.customer.phone;
+
+  async function deploy() {
+    if (!testNumber) {
+      toast.error("No contact phone number on file", {
+        description: "Add a contact phone to this account before deploying.",
+      });
+      return;
+    }
+    setSending(true);
+    try {
+      const result = await sendSms({
+        data: {
+          to: testNumber,
+          message: `Hi from Vantage FSM! We're running a neighborhood promo near ${entry.customer.service_address || "your area"}. Reply YES to claim your spot.`,
+        },
+      });
+      toast.success("Promo SMS delivered", {
+        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${testNumber}.`,
+      });
+    } catch (err) {
+      toast.error("Failed to send promo SMS", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setSending(false);
+    }
   }
+
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-sidebar/40 bg-sidebar p-5 text-sidebar-foreground">
@@ -249,10 +278,20 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
         ))}
       </ul>
 
-      <Button variant="revenue" className="mt-4 w-full" onClick={deploy}>
-        <Send className="h-4 w-4" />
-        Draft Promo to {neighbors.length} Neighbors
+      <Button
+        variant="revenue"
+        className="mt-4 w-full"
+        onClick={deploy}
+        disabled={sending}
+      >
+        {sending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
+        {sending ? "Sending…" : `Send Promo to Test Number`}
       </Button>
+
     </div>
   );
 }
