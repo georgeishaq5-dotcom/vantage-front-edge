@@ -57,7 +57,7 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
       createCustomer({
         full_name: values.full_name,
         email: values.email || null,
-        phone: values.phone || null,
+        phone: values.phone ? toE164US(values.phone) : null,
         customer_type: (values.customer_type as CustomerType) || null,
         service_address: values.service_address || null,
         site_notes: values.site_notes || null,
