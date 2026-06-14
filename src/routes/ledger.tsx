@@ -220,12 +220,38 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
     () => adjacentAddresses(entry.customer.service_address),
     [entry.customer.service_address],
   );
+  const sendSms = useServerFn(sendPromoSms);
+  const [sending, setSending] = useState(false);
 
-  function deploy() {
-    toast.success("Proximity promo drafted", {
-      description: `Promotional text queued for ${neighbors.length} adjacent addresses near ${entry.customer.full_name}.`,
-    });
+  const testNumber = entry.customer.phone;
+
+  async function deploy() {
+    if (!testNumber) {
+      toast.error("No contact phone number on file", {
+        description: "Add a contact phone to this account before deploying.",
+      });
+      return;
+    }
+    setSending(true);
+    try {
+      const result = await sendSms({
+        data: {
+          to: testNumber,
+          message: `Hi from Vantage FSM! We're running a neighborhood promo near ${entry.customer.service_address || "your area"}. Reply YES to claim your spot.`,
+        },
+      });
+      toast.success("Promo SMS delivered", {
+        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${testNumber}.`,
+      });
+    } catch (err) {
+      toast.error("Failed to send promo SMS", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    } finally {
+      setSending(false);
+    }
   }
+
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-sidebar/40 bg-sidebar p-5 text-sidebar-foreground">
