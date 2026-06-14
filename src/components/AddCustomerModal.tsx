@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
-import { createCustomer, CUSTOMER_TYPES, type CustomerType } from "@/lib/fsm";
+import { createCustomer, CUSTOMER_TYPES, formatUSPhoneInput, toE164US, type CustomerType } from "@/lib/fsm";
 
 const schema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(120),
