@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   ChevronDown,
+  FileText,
   Loader2,
   MapPin,
   Send,
@@ -15,6 +16,9 @@ import {
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EditCustomerModal } from "@/components/EditCustomerModal";
 import { sendPromoSms } from "@/lib/sms.functions";
 import {
   Sheet,
@@ -27,15 +31,20 @@ import {
 import { cn } from "@/lib/utils";
 import {
   adjacentAddresses,
+  buildInvoiceHistory,
   buildLedger,
   collectOverdue,
   fetchCustomers,
   fetchJobs,
   formatCurrency,
   formatDate,
+  INVOICE_STATUS_STYLES,
+  toE164US,
+  updateCustomer,
   type ARStatus,
   type LedgerEntry,
 } from "@/lib/fsm";
+
 
 export const Route = createFileRoute("/ledger")({
   head: () => ({
