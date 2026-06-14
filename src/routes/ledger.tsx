@@ -352,6 +352,7 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
   const [sending, setSending] = useState(false);
 
   const testNumber = entry.customer.phone;
+  const e164Number = toE164US(testNumber);
 
   async function deploy() {
     if (!testNumber) {
@@ -364,13 +365,14 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
     try {
       const result = await sendSms({
         data: {
-          to: testNumber,
+          to: e164Number,
           message: `Hi from Vantage FSM! We're running a neighborhood promo near ${entry.customer.service_address || "your area"}. Reply YES to claim your spot.`,
         },
       });
       toast.success("Promo SMS delivered", {
-        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${testNumber}.`,
+        description: `Twilio confirmed message ${result.sid} (${result.status}) to ${e164Number}.`,
       });
+
     } catch (err) {
       toast.error("Failed to send promo SMS", {
         description: err instanceof Error ? err.message : "Unknown error",
