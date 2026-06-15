@@ -121,6 +121,17 @@ function CustomersPage() {
                     </td>
                     <td className="px-6 py-3.5 text-muted-foreground">{c.service_address || "—"}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{formatDate(c.created_at)}</td>
+                    <td className="px-6 py-3.5 text-right">
+                      <EditCustomerModal
+                        customer={c}
+                        trigger={
+                          <Button variant="secondary" size="sm" className="gap-1.5">
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                    </td>
                   </tr>
                 ))
               )}
