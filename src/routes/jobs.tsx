@@ -157,6 +157,7 @@ function JobsPage() {
                         job={job}
                         draggable
                         isDragging={draggingId === job.id}
+                        onOpen={() => setActiveOrder(job)}
                         onDragStart={() => setDraggingId(job.id)}
                         onDragEnd={() => {
                           setDraggingId(null);
