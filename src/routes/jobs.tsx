@@ -176,7 +176,15 @@ function JobsPage() {
   );
 }
 
-function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading: boolean }) {
+function MobileJobList({
+  jobs,
+  isLoading,
+  onOpen,
+}: {
+  jobs: JobWithCustomer[];
+  isLoading: boolean;
+  onOpen: (job: JobWithCustomer) => void;
+}) {
   if (isLoading) {
     return <p className="mt-8 text-center text-sm text-muted-foreground">Loading…</p>;
   }
@@ -196,7 +204,7 @@ function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading
             </div>
             <div className="space-y-3">
               {columnJobs.map((job) => (
-                <JobCard key={job.id} job={job} showStatus />
+                <JobCard key={job.id} job={job} showStatus onOpen={() => onOpen(job)} />
               ))}
             </div>
           </section>
@@ -205,6 +213,7 @@ function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading
     </div>
   );
 }
+
 
 function JobCard({
   job,
