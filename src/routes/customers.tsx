@@ -5,7 +5,10 @@ import { Search } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { AddCustomerModal } from "@/components/AddCustomerModal";
+import { EditCustomerModal } from "@/components/EditCustomerModal";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { fetchCustomers, formatDate } from "@/lib/fsm";
 
 export const Route = createFileRoute("/customers")({
