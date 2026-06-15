@@ -220,6 +220,7 @@ function JobCard({
   draggable,
   isDragging,
   showStatus,
+  onOpen,
   onDragStart,
   onDragEnd,
 }: {
@@ -227,6 +228,7 @@ function JobCard({
   draggable?: boolean;
   isDragging?: boolean;
   showStatus?: boolean;
+  onOpen?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }) {
@@ -235,9 +237,10 @@ function JobCard({
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      onClick={onOpen}
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm",
-        draggable && "cursor-grab active:cursor-grabbing",
+        "rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-revenue/50",
+        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         isDragging && "opacity-40",
       )}
     >
