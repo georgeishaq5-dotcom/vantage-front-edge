@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
 import { StatusBadge } from "@/components/StatusBadge";
+import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithCustomers,
