@@ -101,7 +101,8 @@ function JobsPage() {
       />
 
       {isMobile ? (
-        <MobileJobList jobs={jobs} isLoading={isLoading} />
+        <MobileJobList jobs={jobs} isLoading={isLoading} onOpen={setActiveOrder} />
+
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {JOB_STATUSES.map((status) => {
