@@ -172,6 +172,12 @@ function JobsPage() {
           })}
         </div>
       )}
+
+      <WorkOrderSheet
+        job={activeOrder}
+        open={!!activeOrder}
+        onOpenChange={(o) => !o && setActiveOrder(null)}
+      />
     </div>
   );
 }
