@@ -52,6 +52,8 @@ function JobsPage() {
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<JobStatus | null>(null);
+  const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
+
 
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: JobStatus }) =>
