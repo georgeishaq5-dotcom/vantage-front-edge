@@ -82,18 +82,19 @@ function CustomersPage() {
                 <th className="px-6 py-3 font-semibold">Contact</th>
                 <th className="px-6 py-3 font-semibold">Service Address</th>
                 <th className="px-6 py-3 font-semibold">Added</th>
+                <th className="px-6 py-3 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                     Loading customers…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                     No customers match your search.
                   </td>
                 </tr>
