@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
 import { StatusBadge } from "@/components/StatusBadge";
+import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithCustomers,
@@ -51,6 +52,8 @@ function JobsPage() {
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<JobStatus | null>(null);
+  const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
+
 
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: JobStatus }) =>
@@ -98,7 +101,8 @@ function JobsPage() {
       />
 
       {isMobile ? (
-        <MobileJobList jobs={jobs} isLoading={isLoading} />
+        <MobileJobList jobs={jobs} isLoading={isLoading} onOpen={setActiveOrder} />
+
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
           {JOB_STATUSES.map((status) => {
@@ -153,6 +157,7 @@ function JobsPage() {
                         job={job}
                         draggable
                         isDragging={draggingId === job.id}
+                        onOpen={() => setActiveOrder(job)}
                         onDragStart={() => setDraggingId(job.id)}
                         onDragEnd={() => {
                           setDraggingId(null);
@@ -167,11 +172,25 @@ function JobsPage() {
           })}
         </div>
       )}
+
+      <WorkOrderSheet
+        job={activeOrder}
+        open={!!activeOrder}
+        onOpenChange={(o) => !o && setActiveOrder(null)}
+      />
     </div>
   );
 }
 
-function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading: boolean }) {
+function MobileJobList({
+  jobs,
+  isLoading,
+  onOpen,
+}: {
+  jobs: JobWithCustomer[];
+  isLoading: boolean;
+  onOpen: (job: JobWithCustomer) => void;
+}) {
   if (isLoading) {
     return <p className="mt-8 text-center text-sm text-muted-foreground">Loading…</p>;
   }
@@ -191,7 +210,7 @@ function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading
             </div>
             <div className="space-y-3">
               {columnJobs.map((job) => (
-                <JobCard key={job.id} job={job} showStatus />
+                <JobCard key={job.id} job={job} showStatus onOpen={() => onOpen(job)} />
               ))}
             </div>
           </section>
@@ -201,11 +220,13 @@ function MobileJobList({ jobs, isLoading }: { jobs: JobWithCustomer[]; isLoading
   );
 }
 
+
 function JobCard({
   job,
   draggable,
   isDragging,
   showStatus,
+  onOpen,
   onDragStart,
   onDragEnd,
 }: {
@@ -213,6 +234,7 @@ function JobCard({
   draggable?: boolean;
   isDragging?: boolean;
   showStatus?: boolean;
+  onOpen?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }) {
@@ -221,9 +243,10 @@ function JobCard({
       draggable={draggable}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      onClick={onOpen}
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm",
-        draggable && "cursor-grab active:cursor-grabbing",
+        "rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-revenue/50",
+        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         isDragging && "opacity-40",
       )}
     >
