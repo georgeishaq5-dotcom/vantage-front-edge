@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -17,6 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -24,94 +26,105 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createJob, fetchCustomers, JOB_STATUSES, type JobStatus } from "@/lib/fsm";
-
-const schema = z.object({
-  title: z.string().trim().min(1, "Job title is required").max(160),
-  customer_id: z.string().optional(),
-  status: z.enum(["Quoted", "Scheduled", "Completed", "Paid"]),
-  service_date: z.string().optional().or(z.literal("")),
-  quote_amount: z.coerce.number().min(0).max(10_000_000),
-});
-
-type FormValues = z.infer<typeof schema>;
+import { cn } from "@/lib/utils";
+import {
+  createJob,
+  fetchCustomers,
+  updateCustomer,
+} from "@/lib/fsm";
 
 export function CreateJobModal() {
   const [open, setOpen] = useState(false);
+  const [customerId, setCustomerId] = useState<string>("");
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState<Date | undefined>();
+  const [siteNotes, setSiteNotes] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: customers } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { status: "Quoted", quote_amount: 0 },
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers"],
+    queryFn: fetchCustomers,
   });
 
+  function resetForm() {
+    setCustomerId("");
+    setTitle("");
+    setDate(undefined);
+    setSiteNotes("");
+  }
+
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      createJob({
-        title: values.title,
-        customer_id: values.customer_id || null,
-        status: values.status,
-        service_date: values.service_date || null,
-        quote_amount: values.quote_amount,
-      }),
+    mutationFn: async () => {
+      const customer = customers.find((c) => c.id === customerId) || null;
+      const serviceDate = date ? format(date, "yyyy-MM-dd") : null;
+      const jobTitle =
+        title.trim() ||
+        (customer ? `${customer.full_name} — Service` : "Service Job");
+
+      await createJob({
+        title: jobTitle,
+        customer_id: customerId || null,
+        // Date present -> scheduled, otherwise unscheduled.
+        status: serviceDate ? "Scheduled" : "Quoted",
+        service_date: serviceDate,
+        quote_amount: 0,
+      });
+
+      // Persist site notes onto the linked customer so crews see them everywhere.
+      if (customer && siteNotes.trim()) {
+        await updateCustomer(customer.id, { site_notes: siteNotes.trim() });
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      toast.success("Job created successfully");
-      reset({ status: "Quoted", quote_amount: 0 });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      toast.success("Job created and added to the dispatch board");
+      resetForm();
       setOpen(false);
     },
     onError: () => toast.error("Could not create job. Please try again."),
   });
-
-  const status = watch("status");
-  const customerId = watch("customer_id");
 
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (!o) reset({ status: "Quoted", quote_amount: 0 });
+        if (!o) resetForm();
       }}
     >
       <DialogTrigger asChild>
         <Button variant="revenue">Create New Job</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>Create New Job</DialogTitle>
-          <DialogDescription>Add a job to the board and track it to completion.</DialogDescription>
+          <DialogDescription>
+            Dispatch a job to the board. Add a date to schedule it for the crew.
+          </DialogDescription>
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit((v) => mutation.mutate(v))}
-          className="grid grid-cols-2 gap-x-4 gap-y-5 py-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!customerId) {
+              toast.error("Please select a customer");
+              return;
+            }
+            mutation.mutate();
+          }}
+          className="space-y-5 py-2"
         >
-          <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="title">
-              Job Title <span className="text-destructive">*</span>
+          <div className="space-y-1.5">
+            <Label htmlFor="job_customer">
+              Customer <span className="text-destructive">*</span>
             </Label>
-            <Input id="title" placeholder="e.g. Quarterly HVAC inspection" {...register("title")} />
-            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
-          </div>
-
-          <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="customer_id">Customer</Label>
-            <Select value={customerId} onValueChange={(v) => setValue("customer_id", v)}>
-              <SelectTrigger id="customer_id">
-                <SelectValue placeholder="Link a customer" />
+            <Select value={customerId} onValueChange={setCustomerId}>
+              <SelectTrigger id="job_customer">
+                <SelectValue placeholder="Select an existing customer" />
               </SelectTrigger>
               <SelectContent>
-                {(customers ?? []).map((c) => (
+                {customers.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.full_name}
                   </SelectItem>
@@ -121,32 +134,55 @@ export function CreateJobModal() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="status">Status</Label>
-            <Select value={status} onValueChange={(v) => setValue("status", v as JobStatus)}>
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {JOB_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="job_title">Job Title</Label>
+            <Input
+              id="job_title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Quarterly HVAC inspection (optional)"
+            />
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="service_date">Service Date</Label>
-            <Input id="service_date" type="date" {...register("service_date")} />
+            <Label>Service Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !date && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date (leave blank for unscheduled)</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
-          <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="quote_amount">Quote Amount (USD)</Label>
-            <Input id="quote_amount" type="number" step="0.01" min="0" {...register("quote_amount")} />
+          <div className="space-y-1.5">
+            <Label htmlFor="job_site_notes">Site Notes</Label>
+            <Textarea
+              id="job_site_notes"
+              rows={3}
+              value={siteNotes}
+              onChange={(e) => setSiteNotes(e.target.value)}
+              placeholder="Access instructions, gate codes, pets, parking…"
+            />
           </div>
 
-          <DialogFooter className="col-span-2 mt-2">
+          <DialogFooter className="mt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>

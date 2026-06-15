@@ -98,7 +98,9 @@ export async function updateJobStatus(id: string, status: JobStatus): Promise<vo
 
 export interface CustomerUpdate {
   full_name?: string;
+  email?: string | null;
   phone?: string | null;
+  customer_type?: CustomerType | null;
   service_address?: string | null;
   site_notes?: string | null;
 }
@@ -112,6 +114,63 @@ export async function updateCustomer(id: string, input: CustomerUpdate): Promise
     .single();
   if (error) throw error;
   return data as Customer;
+}
+
+export interface JobUpdate {
+  status?: JobStatus;
+  service_date?: string | null;
+  title?: string;
+}
+
+export async function updateJob(id: string, input: JobUpdate): Promise<void> {
+  const { error } = await db.from("jobs").update(input).eq("id", id);
+  if (error) throw error;
+}
+
+// ============= Dispatch board =============
+
+export type DispatchLane = "Unscheduled" | "Scheduled Today" | "Completed";
+
+export const DISPATCH_LANES: DispatchLane[] = [
+  "Unscheduled",
+  "Scheduled Today",
+  "Completed",
+];
+
+export function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Determine which dispatch lane a job belongs to.
+export function jobLane(job: Job): DispatchLane {
+  if (job.status === "Completed" || job.status === "Paid") return "Completed";
+  if (job.service_date) return "Scheduled Today";
+  return "Unscheduled";
+}
+
+// The job mutation needed to move a job into a target lane.
+export function laneTransition(lane: DispatchLane): JobUpdate {
+  switch (lane) {
+    case "Unscheduled":
+      return { status: "Quoted", service_date: null };
+    case "Scheduled Today":
+      return { status: "Scheduled", service_date: todayISO() };
+    case "Completed":
+      return { status: "Completed" };
+  }
+}
+
+export interface JobWithFullCustomer extends Job {
+  customer: Customer | null;
+}
+
+export async function fetchJobsWithFullCustomers(): Promise<JobWithFullCustomer[]> {
+  const [jobs, customers] = await Promise.all([fetchJobs(), fetchCustomers()]);
+  const map = new Map(customers.map((c) => [c.id, c]));
+  return jobs.map((j) => ({
+    ...j,
+    customer: (j.customer_id && map.get(j.customer_id)) || null,
+  }));
 }
 
 // ============= Phone number formatting =============

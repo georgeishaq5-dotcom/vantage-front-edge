@@ -5,7 +5,10 @@ import { Search } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { AddCustomerModal } from "@/components/AddCustomerModal";
+import { EditCustomerModal } from "@/components/EditCustomerModal";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { fetchCustomers, formatDate } from "@/lib/fsm";
 
 export const Route = createFileRoute("/customers")({
@@ -79,18 +82,19 @@ function CustomersPage() {
                 <th className="px-6 py-3 font-semibold">Contact</th>
                 <th className="px-6 py-3 font-semibold">Service Address</th>
                 <th className="px-6 py-3 font-semibold">Added</th>
+                <th className="px-6 py-3 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                     Loading customers…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-10 text-center text-muted-foreground">
                     No customers match your search.
                   </td>
                 </tr>
@@ -117,6 +121,17 @@ function CustomersPage() {
                     </td>
                     <td className="px-6 py-3.5 text-muted-foreground">{c.service_address || "—"}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{formatDate(c.created_at)}</td>
+                    <td className="px-6 py-3.5 text-right">
+                      <EditCustomerModal
+                        customer={c}
+                        trigger={
+                          <Button variant="secondary" size="sm" className="gap-1.5">
+                            <Pencil className="h-3.5 w-3.5" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                    </td>
                   </tr>
                 ))
               )}

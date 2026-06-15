@@ -2,176 +2,164 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { MapPin, StickyNote } from "lucide-react";
 
-import { useIsMobile } from "@/hooks/use-mobile";
 import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
-import { StatusBadge } from "@/components/StatusBadge";
 import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { cn } from "@/lib/utils";
 import {
-  fetchJobsWithCustomers,
-  updateJobStatus,
-  formatCurrency,
-  formatDate,
-  JOB_STATUSES,
-  type JobStatus,
+  fetchJobsWithFullCustomers,
+  updateJob,
+  laneTransition,
+  jobLane,
+  DISPATCH_LANES,
+  type DispatchLane,
+  type JobWithFullCustomer,
   type JobWithCustomer,
 } from "@/lib/fsm";
 
 export const Route = createFileRoute("/jobs")({
   head: () => ({
     meta: [
-      { title: "Jobs — Vantage FSM" },
+      { title: "Dispatch Board — Vantage FSM" },
       {
         name: "description",
-        content: "Track every job across Quoted, Scheduled, Completed, and Paid on a clean Kanban board.",
+        content:
+          "Drag-and-drop dispatch board to assign field service jobs across Unscheduled, Scheduled Today, and Completed.",
       },
-      { property: "og:title", content: "Jobs — Vantage FSM" },
-      { property: "og:description", content: "Kanban board for field service jobs." },
+      { property: "og:title", content: "Dispatch Board — Vantage FSM" },
+      { property: "og:description", content: "Drag-and-drop dispatch board for field crews." },
     ],
   }),
   component: JobsPage,
 });
 
-const COLUMN_ACCENT: Record<JobStatus, string> = {
-  Quoted: "bg-muted-foreground/40",
-  Scheduled: "bg-sky-500",
-  Completed: "bg-amber-500",
-  Paid: "bg-revenue",
+const LANE_ACCENT: Record<DispatchLane, string> = {
+  Unscheduled: "bg-muted-foreground/40",
+  "Scheduled Today": "bg-sky-500",
+  Completed: "bg-revenue",
+};
+
+const TYPE_STYLES: Record<string, string> = {
+  Residential: "bg-sky-50 text-sky-700 border border-sky-200",
+  Commercial: "bg-secondary text-secondary-foreground border border-border",
+  HOA: "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
 function JobsPage() {
-  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
-    queryFn: fetchJobsWithCustomers,
+    queryFn: fetchJobsWithFullCustomers,
   });
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [dragOverColumn, setDragOverColumn] = useState<JobStatus | null>(null);
+  const [dragOverLane, setDragOverLane] = useState<DispatchLane | null>(null);
   const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
 
-
   const mutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: JobStatus }) =>
-      updateJobStatus(id, status),
-    onMutate: async ({ id, status }) => {
+    mutationFn: ({ id, lane }: { id: string; lane: DispatchLane }) =>
+      updateJob(id, laneTransition(lane)),
+    onMutate: async ({ id, lane }) => {
       await queryClient.cancelQueries({ queryKey: ["jobs"] });
-      const previous = queryClient.getQueryData<JobWithCustomer[]>(["jobs"]);
-      queryClient.setQueryData<JobWithCustomer[]>(["jobs"], (old = []) =>
-        old.map((j) => (j.id === id ? { ...j, status } : j)),
+      const previous = queryClient.getQueryData<JobWithFullCustomer[]>(["jobs"]);
+      const patch = laneTransition(lane);
+      queryClient.setQueryData<JobWithFullCustomer[]>(["jobs"], (old = []) =>
+        old.map((j) => (j.id === id ? { ...j, ...patch } : j)),
       );
       return { previous };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (_e, _v, ctx) => {
       if (ctx?.previous) queryClient.setQueryData(["jobs"], ctx.previous);
-      toast.error("Failed to update job status");
+      toast.error("Failed to move job");
     },
-    onSuccess: (_data, { status }) => {
-      toast.success(`Job moved to ${status}`);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
-    },
+    onSuccess: (_d, { lane }) => toast.success(`Job moved to ${lane}`),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["jobs"] }),
   });
 
-  function handleDrop(status: JobStatus) {
+  function handleDrop(lane: DispatchLane) {
     const id = draggingId;
     setDraggingId(null);
-    setDragOverColumn(null);
+    setDragOverLane(null);
     if (!id) return;
     const job = jobs.find((j) => j.id === id);
-    if (!job || job.status === status) return;
-    mutation.mutate({ id, status });
+    if (!job || jobLane(job) === lane) return;
+    mutation.mutate({ id, lane });
+  }
+
+  function openOrder(job: JobWithFullCustomer) {
+    setActiveOrder({
+      ...job,
+      customer_name: job.customer?.full_name ?? "Unassigned",
+    });
   }
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-8 sm:py-8">
       <PageHeader
-        title="Jobs"
-        description={
-          isMobile
-            ? "Your jobs, grouped by stage."
-            : "Drag a card between columns to update its status."
-        }
+        title="Dispatch Board"
+        description="Drag jobs between lanes to dispatch your crews."
         action={<CreateJobModal />}
       />
 
-      {isMobile ? (
-        <MobileJobList jobs={jobs} isLoading={isLoading} onOpen={setActiveOrder} />
-
-      ) : (
-        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {JOB_STATUSES.map((status) => {
-            const columnJobs = jobs.filter((j) => j.status === status);
-            const total = columnJobs.reduce((s, j) => s + Number(j.quote_amount), 0);
-            return (
-              <div
-                key={status}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragOverColumn(status);
-                }}
-                onDragLeave={() => setDragOverColumn((c) => (c === status ? null : c))}
-                onDrop={() => handleDrop(status)}
-                className={cn(
-                  "flex flex-col rounded-xl border bg-secondary/40 transition-colors",
-                  dragOverColumn === status
-                    ? "border-revenue ring-2 ring-revenue/30"
-                    : "border-border",
-                )}
-              >
-                <div className="flex items-center justify-between rounded-t-xl border-b border-border bg-card px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${COLUMN_ACCENT[status]}`} />
-                    <span className="text-sm font-semibold text-foreground">{status}</span>
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                      {columnJobs.length}
-                    </span>
-                  </div>
-                  <span
-                    className={
-                      status === "Paid"
-                        ? "text-xs font-semibold text-revenue"
-                        : "text-xs font-medium text-muted-foreground"
-                    }
-                  >
-                    {formatCurrency(total)}
-                  </span>
+      <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+        {DISPATCH_LANES.map((lane) => {
+          const laneJobs = jobs.filter((j) => jobLane(j) === lane);
+          return (
+            <div
+              key={lane}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverLane(lane);
+              }}
+              onDragLeave={() => setDragOverLane((c) => (c === lane ? null : c))}
+              onDrop={() => handleDrop(lane)}
+              className={cn(
+                "flex flex-col rounded-xl border bg-secondary/40 transition-colors",
+                dragOverLane === lane
+                  ? "border-revenue ring-2 ring-revenue/30"
+                  : "border-border",
+              )}
+            >
+              <div className="flex items-center justify-between rounded-t-xl border-b border-border bg-card px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${LANE_ACCENT[lane]}`} />
+                  <span className="text-sm font-semibold text-foreground">{lane}</span>
                 </div>
-
-                <div className="flex flex-1 flex-col gap-3 p-3">
-                  {isLoading ? (
-                    <p className="py-6 text-center text-xs text-muted-foreground">Loading…</p>
-                  ) : columnJobs.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
-                      Drop jobs here
-                    </p>
-                  ) : (
-                    columnJobs.map((job) => (
-                      <JobCard
-                        key={job.id}
-                        job={job}
-                        draggable
-                        isDragging={draggingId === job.id}
-                        onOpen={() => setActiveOrder(job)}
-                        onDragStart={() => setDraggingId(job.id)}
-                        onDragEnd={() => {
-                          setDraggingId(null);
-                          setDragOverColumn(null);
-                        }}
-                      />
-                    ))
-                  )}
-                </div>
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {laneJobs.length}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      )}
+
+              <div className="flex flex-1 flex-col gap-3 p-3">
+                {isLoading ? (
+                  <p className="py-6 text-center text-xs text-muted-foreground">Loading…</p>
+                ) : laneJobs.length === 0 ? (
+                  <p className="rounded-lg border border-dashed border-border py-8 text-center text-xs text-muted-foreground">
+                    Drop jobs here
+                  </p>
+                ) : (
+                  laneJobs.map((job) => (
+                    <DispatchCard
+                      key={job.id}
+                      job={job}
+                      isDragging={draggingId === job.id}
+                      onOpen={() => openOrder(job)}
+                      onDragStart={() => setDraggingId(job.id)}
+                      onDragEnd={() => {
+                        setDraggingId(null);
+                        setDragOverLane(null);
+                      }}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       <WorkOrderSheet
         job={activeOrder}
@@ -182,93 +170,63 @@ function JobsPage() {
   );
 }
 
-function MobileJobList({
-  jobs,
-  isLoading,
-  onOpen,
-}: {
-  jobs: JobWithCustomer[];
-  isLoading: boolean;
-  onOpen: (job: JobWithCustomer) => void;
-}) {
-  if (isLoading) {
-    return <p className="mt-8 text-center text-sm text-muted-foreground">Loading…</p>;
-  }
-  return (
-    <div className="mt-5 space-y-6">
-      {JOB_STATUSES.map((status) => {
-        const columnJobs = jobs.filter((j) => j.status === status);
-        if (columnJobs.length === 0) return null;
-        return (
-          <section key={status}>
-            <div className="mb-2 flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${COLUMN_ACCENT[status]}`} />
-              <h2 className="text-sm font-semibold text-foreground">{status}</h2>
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {columnJobs.length}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {columnJobs.map((job) => (
-                <JobCard key={job.id} job={job} showStatus onOpen={() => onOpen(job)} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </div>
-  );
-}
-
-
-function JobCard({
+function DispatchCard({
   job,
-  draggable,
   isDragging,
-  showStatus,
   onOpen,
   onDragStart,
   onDragEnd,
 }: {
-  job: JobWithCustomer;
-  draggable?: boolean;
+  job: JobWithFullCustomer;
   isDragging?: boolean;
-  showStatus?: boolean;
   onOpen?: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }) {
+  const customer = job.customer;
+  const type = customer?.customer_type;
   return (
     <div
-      draggable={draggable}
+      draggable
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onOpen}
       className={cn(
-        "rounded-lg border border-border bg-card p-4 shadow-sm transition-colors hover:border-revenue/50",
-        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
-        isDragging && "opacity-40",
+        "cursor-grab rounded-lg border border-border bg-card p-4 shadow-sm transition-all hover:border-revenue/50 hover:shadow-md active:cursor-grabbing active:scale-[0.98]",
+        isDragging && "rotate-1 opacity-50",
       )}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-foreground">{job.customer_name}</div>
+          <div className="truncate text-sm font-semibold text-foreground">
+            {customer?.full_name ?? "Unassigned"}
+          </div>
           <div className="mt-0.5 truncate text-xs text-muted-foreground">{job.title}</div>
         </div>
-        {showStatus && <StatusBadge status={job.status} className="shrink-0" />}
+        {type && (
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              TYPE_STYLES[type] ?? "bg-secondary text-secondary-foreground"
+            }`}
+          >
+            {type}
+          </span>
+        )}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-        <span className="text-xs text-muted-foreground">{formatDate(job.service_date)}</span>
-        <span
-          className={
-            job.status === "Paid"
-              ? "text-sm font-bold text-revenue"
-              : "text-sm font-bold text-revenue"
-          }
-        >
-          {formatCurrency(Number(job.quote_amount))}
-        </span>
-      </div>
+
+      {customer?.service_address && (
+        <div className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span className="line-clamp-1">{customer.service_address}</span>
+        </div>
+      )}
+
+      {customer?.site_notes && (
+        <div className="mt-2 flex items-start gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-700">
+          <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span className="line-clamp-2">{customer.site_notes}</span>
+        </div>
+      )}
     </div>
   );
 }
