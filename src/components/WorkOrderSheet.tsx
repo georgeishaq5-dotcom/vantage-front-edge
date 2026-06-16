@@ -264,18 +264,24 @@ function WorkOrderBody({
         <Button
           variant="revenue"
           className="h-14 w-full text-base"
-          disabled={completing || mutation.isPending}
+          disabled={completing || mutation.isPending || lockedByOther}
           onClick={() => {
             setCompleting(true);
             mutation.mutate();
           }}
         >
-          {mutation.isPending ? (
+          {lockedByOther ? (
+            <Lock className="h-5 w-5" />
+          ) : mutation.isPending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <CheckCircle2 className="h-5 w-5" />
           )}
-          {mutation.isPending ? "Completing…" : "Complete Job & Generate Invoice"}
+          {lockedByOther
+            ? "Locked — another user is editing"
+            : mutation.isPending
+              ? "Completing…"
+              : "Complete Job & Generate Invoice"}
         </Button>
       </div>
     </div>
