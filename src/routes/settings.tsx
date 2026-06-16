@@ -140,6 +140,5 @@ function SettingsPage() {
         <JobberImport />
       </div>
     </div>
-    </div>
   );
 }
