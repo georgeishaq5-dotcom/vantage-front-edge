@@ -1,13 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, KanbanSquare, BookOpen, Megaphone, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Bot,
+  KanbanSquare,
+  CalendarDays,
+  Users,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
-  { label: "Customers", to: "/customers", icon: Users },
-  { label: "Jobs", to: "/jobs", icon: KanbanSquare },
-  { label: "Ledger", to: "/ledger", icon: BookOpen },
-  { label: "Campaigns", to: "/campaigns", icon: Megaphone },
+  { label: "Van's AI Hub", to: "/ai-hub", icon: Bot },
+  { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
+  { label: "Calendar", to: "/calendar", icon: CalendarDays },
+  { label: "My Team", to: "/team", icon: Users },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
