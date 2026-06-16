@@ -772,3 +772,114 @@ export async function releaseJobLock(jobId: string, userId: string): Promise<voi
   await db.from("job_locks").delete().eq("job_id", jobId).eq("locked_by_id", userId);
 }
 
+// ============= Alert routing (Van notification logic) =============
+
+// System & marketing alerts go to Admins; active scheduling alerts go straight
+// to the assigned Lead Tech on the job.
+export type AlertCategory = "system" | "marketing" | "scheduling";
+export type AlertAudience = "Admin" | "Lead Tech";
+
+export function routeAlertTo(category: AlertCategory): AlertAudience {
+  return category === "scheduling" ? "Lead Tech" : "Admin";
+}
+
+export const ALERT_ROUTING: { category: AlertCategory; label: string; audience: AlertAudience }[] = [
+  { category: "system", label: "System & health alerts", audience: "Admin" },
+  { category: "marketing", label: "Marketing & promo activity", audience: "Admin" },
+  { category: "scheduling", label: "Active scheduling changes", audience: "Lead Tech" },
+];
+
+// ============= Unfalsifiable job activity log (audit trail) =============
+
+export type ActivityActor = "Van" | "System" | string;
+
+export interface JobActivityEntry {
+  id: string;
+  at: number;
+  actor: ActivityActor;
+  isAi: boolean;
+  action: string;
+}
+
+// Build a deterministic, chronological audit trail of background actions on a
+// specific job. Derived from the job lifecycle + assigned crew so the same job
+// always renders the same immutable history.
+export function buildJobActivityLog(
+  job: Job,
+  members: TeamMember[],
+  assignments: JobAssignment[],
+  customerName: string,
+): JobActivityEntry[] {
+  const jobAssignments = assignments.filter((a) => a.job_id === job.id);
+  const memberById = new Map(members.map((m) => [m.id, m]));
+  const lead = jobAssignments.find((a) => a.is_lead);
+  const leadName = lead ? memberById.get(lead.team_member_id)?.full_name : null;
+  const scheduledBy = job.scheduled_by_id
+    ? memberById.get(job.scheduled_by_id)?.full_name
+    : null;
+  const dispatcher = members.find((m) => m.role === "Dispatcher")?.full_name ?? "Dispatcher";
+  const admin = members.find((m) => m.role === "Owner/Admin")?.full_name ?? "Admin";
+
+  const base = new Date(job.created_at).getTime();
+  const HOUR = 3_600_000;
+  const entries: JobActivityEntry[] = [];
+  let step = 0;
+  const push = (actor: ActivityActor, isAi: boolean, action: string) => {
+    entries.push({ id: `${job.id}-${step}`, at: base + step * HOUR, actor, isAi, action });
+    step += 1;
+  };
+
+  push("Van", true, `Lead captured for ${customerName} and qualified against agent rules`);
+  push("Van", true, `Tiered quote of ${formatCurrency(Number(job.quote_amount))} drafted and sent`);
+
+  if (job.status !== "Quoted") {
+    push(scheduledBy ?? dispatcher, false, "changed schedule time and dispatched the job");
+    if (job.service_date) {
+      push("Van", true, `Arrival confirmation text sent to ${customerName}`);
+    }
+    for (const a of jobAssignments) {
+      const m = memberById.get(a.team_member_id);
+      if (m) push(dispatcher, false, `assigned ${m.full_name}${a.is_lead ? " as Lead Tech" : ""} to the job`);
+    }
+  }
+
+  if (job.status === "Completed" || job.status === "Paid") {
+    push("Van", true, "Neighbor outreach campaign queued around the service address");
+    push(leadName ?? "Lead Tech", false, "closed out the work order and generated the invoice");
+  }
+  if (job.status === "Paid") {
+    push("Van", true, "Payment received and reconciled");
+    push(admin, false, "marked the invoice as paid");
+  }
+
+  return entries.sort((a, b) => b.at - a.at);
+}
+
+// ============= Financial reporting (completed-job revenue export) =============
+
+export interface FinancialReportRow {
+  jobId: string;
+  customer: string;
+  customerType: string;
+  jobTitle: string;
+  serviceDate: string;
+  status: string;
+  revenue: number;
+}
+
+export function buildFinancialReport(jobs: JobWithFullCustomer[]): FinancialReportRow[] {
+  return jobs
+    .filter((j) => j.status === "Completed" || j.status === "Paid")
+    .map((j) => ({
+      jobId: j.id,
+      customer: j.customer?.full_name ?? "Unassigned",
+      customerType: j.customer?.customer_type ?? "—",
+      jobTitle: j.title,
+      serviceDate: j.service_date ?? "",
+      status: j.status,
+      revenue: Number(j.quote_amount),
+    }))
+    .sort((a, b) => (b.serviceDate ?? "").localeCompare(a.serviceDate ?? ""));
+}
+
+

@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FinancialReports } from "@/components/FinancialReports";
+import { JobberImport } from "@/components/JobberImport";
 import { CreditCard, Users, Plug } from "lucide-react";
 
 
@@ -132,6 +134,10 @@ function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <FinancialReports />
+
+        <JobberImport />
       </div>
     </div>
   );
