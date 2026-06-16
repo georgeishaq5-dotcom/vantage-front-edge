@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_rules: {
+        Row: {
+          created_at: string
+          id: string
+          min_profit_margin: number
+          target_zip_codes: string[]
+          updated_at: string
+          veto_level: Database["public"]["Enums"]["veto_level"]
+          voice_tone: Database["public"]["Enums"]["voice_tone"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          min_profit_margin?: number
+          target_zip_codes?: string[]
+          updated_at?: string
+          veto_level?: Database["public"]["Enums"]["veto_level"]
+          voice_tone?: Database["public"]["Enums"]["voice_tone"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          min_profit_margin?: number
+          target_zip_codes?: string[]
+          updated_at?: string
+          veto_level?: Database["public"]["Enums"]["veto_level"]
+          voice_tone?: Database["public"]["Enums"]["voice_tone"]
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
@@ -85,6 +115,44 @@ export type Database = {
           },
         ]
       }
+      neighbor_outreach: {
+        Row: {
+          cost: number
+          created_at: string
+          id: string
+          job_id: string | null
+          neighbor_addresses: string[]
+          status: Database["public"]["Enums"]["outreach_status"]
+          updated_at: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          neighbor_addresses?: string[]
+          status?: Database["public"]["Enums"]["outreach_status"]
+          updated_at?: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          neighbor_addresses?: string[]
+          status?: Database["public"]["Enums"]["outreach_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighbor_outreach_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -116,6 +184,9 @@ export type Database = {
     Enums: {
       customer_type: "Residential" | "Commercial" | "HOA"
       job_status: "Quoted" | "Scheduled" | "Completed" | "Paid"
+      outreach_status: "Pending" | "Approved" | "Vetoed"
+      veto_level: "Full Manual Review" | "Semi-Autonomous"
+      voice_tone: "Enthusiastic" | "Professional" | "Direct"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -245,6 +316,9 @@ export const Constants = {
     Enums: {
       customer_type: ["Residential", "Commercial", "HOA"],
       job_status: ["Quoted", "Scheduled", "Completed", "Paid"],
+      outreach_status: ["Pending", "Approved", "Vetoed"],
+      veto_level: ["Full Manual Review", "Semi-Autonomous"],
+      voice_tone: ["Enthusiastic", "Professional", "Direct"],
     },
   },
 } as const
