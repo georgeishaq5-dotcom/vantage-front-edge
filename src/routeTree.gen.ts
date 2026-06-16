@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CustomersRouteImport } from './routes/customers'
@@ -33,6 +34,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuotesRoute = QuotesRouteImport.update({
+  id: '/quotes',
+  path: '/quotes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LedgerRoute = LedgerRouteImport.update({
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/jobs'
     | '/ledger'
+    | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/jobs'
     | '/ledger'
+    | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/customers'
     | '/jobs'
     | '/ledger'
+    | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   CustomersRoute: typeof CustomersRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
+  QuotesRoute: typeof QuotesRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quotes': {
+      id: '/quotes'
+      path: '/quotes'
+      fullPath: '/quotes'
+      preLoaderRoute: typeof QuotesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ledger': {
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersRoute: CustomersRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
+  QuotesRoute: QuotesRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock, Info, Sparkles } from "lucide-react";
+import { DollarSign, FileClock, CalendarClock, Info, Sparkles, TrendingUp, MessageSquare, CloudRain, Sun, Snowflake } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
