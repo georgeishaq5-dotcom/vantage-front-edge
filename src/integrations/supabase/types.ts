@@ -16,31 +16,61 @@ export type Database = {
     Tables: {
       agent_rules: {
         Row: {
+          auto_approve_limit: number
           created_at: string
+          follow_up_trigger: string
+          handoff_keyword: string
           id: string
+          lead_strictness: number
+          max_autonomous_discount: number
           min_profit_margin: number
+          outreach_end_hour: number
+          outreach_start_hour: number
           target_zip_codes: string[]
           updated_at: string
           veto_level: Database["public"]["Enums"]["veto_level"]
           voice_tone: Database["public"]["Enums"]["voice_tone"]
+          weather_freeze: boolean
+          weather_heat: boolean
+          weather_rain: boolean
         }
         Insert: {
+          auto_approve_limit?: number
           created_at?: string
+          follow_up_trigger?: string
+          handoff_keyword?: string
           id?: string
+          lead_strictness?: number
+          max_autonomous_discount?: number
           min_profit_margin?: number
+          outreach_end_hour?: number
+          outreach_start_hour?: number
           target_zip_codes?: string[]
           updated_at?: string
           veto_level?: Database["public"]["Enums"]["veto_level"]
           voice_tone?: Database["public"]["Enums"]["voice_tone"]
+          weather_freeze?: boolean
+          weather_heat?: boolean
+          weather_rain?: boolean
         }
         Update: {
+          auto_approve_limit?: number
           created_at?: string
+          follow_up_trigger?: string
+          handoff_keyword?: string
           id?: string
+          lead_strictness?: number
+          max_autonomous_discount?: number
           min_profit_margin?: number
+          outreach_end_hour?: number
+          outreach_start_hour?: number
           target_zip_codes?: string[]
           updated_at?: string
           veto_level?: Database["public"]["Enums"]["veto_level"]
           voice_tone?: Database["public"]["Enums"]["voice_tone"]
+          weather_freeze?: boolean
+          weather_heat?: boolean
+          weather_rain?: boolean
         }
         Relationships: []
       }

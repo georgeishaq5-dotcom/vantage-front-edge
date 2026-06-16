@@ -412,9 +412,11 @@ export function formatRelativeTime(ts: number): string {
 
 export type VoiceTone = "Enthusiastic" | "Professional" | "Direct";
 export type VetoLevel = "Full Manual Review" | "Semi-Autonomous";
+export type FollowUpTrigger = "Every 3 Days" | "Every 5 Days" | "Weekly";
 
 export const VOICE_TONES: VoiceTone[] = ["Enthusiastic", "Professional", "Direct"];
 export const VETO_LEVELS: VetoLevel[] = ["Full Manual Review", "Semi-Autonomous"];
+export const FOLLOW_UP_TRIGGERS: FollowUpTrigger[] = ["Every 3 Days", "Every 5 Days", "Weekly"];
 
 export interface AgentRules {
   id: string;
@@ -422,6 +424,16 @@ export interface AgentRules {
   min_profit_margin: number;
   voice_tone: VoiceTone;
   veto_level: VetoLevel;
+  outreach_start_hour: number;
+  outreach_end_hour: number;
+  max_autonomous_discount: number;
+  follow_up_trigger: FollowUpTrigger;
+  auto_approve_limit: number;
+  handoff_keyword: string;
+  weather_rain: boolean;
+  weather_heat: boolean;
+  weather_freeze: boolean;
+  lead_strictness: number;
   created_at: string;
   updated_at: string;
 }
@@ -431,6 +443,16 @@ export interface AgentRulesInput {
   min_profit_margin: number;
   voice_tone: VoiceTone;
   veto_level: VetoLevel;
+  outreach_start_hour: number;
+  outreach_end_hour: number;
+  max_autonomous_discount: number;
+  follow_up_trigger: FollowUpTrigger;
+  auto_approve_limit: number;
+  handoff_keyword: string;
+  weather_rain: boolean;
+  weather_heat: boolean;
+  weather_freeze: boolean;
+  lead_strictness: number;
 }
 
 // Load the single agent rules profile, or null if not yet configured.

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, Loader2, X } from "lucide-react";
+import { Bot, Loader2, X, Clock, Percent, ShieldCheck, CloudRain, Filter } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -18,10 +20,20 @@ import {
   fetchAgentRules,
   saveAgentRules,
   VOICE_TONES,
+  FOLLOW_UP_TRIGGERS,
   type AgentRules,
   type VoiceTone,
   type VetoLevel,
+  type FollowUpTrigger,
 } from "@/lib/fsm";
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+function formatHour(h: number): string {
+  const period = h < 12 ? "AM" : "PM";
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return `${display}:00 ${period}`;
+}
 
 export function AgentRulesPanel() {
   const queryClient = useQueryClient();
@@ -36,12 +48,34 @@ export function AgentRulesPanel() {
   const [tone, setTone] = useState<VoiceTone>("Professional");
   const [semiAuto, setSemiAuto] = useState(false);
 
+  // New operational dials
+  const [startHour, setStartHour] = useState(8);
+  const [endHour, setEndHour] = useState(19);
+  const [maxDiscount, setMaxDiscount] = useState("10");
+  const [followUp, setFollowUp] = useState<FollowUpTrigger>("Every 3 Days");
+  const [autoApprove, setAutoApprove] = useState("250");
+  const [handoffKeyword, setHandoffKeyword] = useState("HUMAN");
+  const [weatherRain, setWeatherRain] = useState(false);
+  const [weatherHeat, setWeatherHeat] = useState(false);
+  const [weatherFreeze, setWeatherFreeze] = useState(false);
+  const [strictness, setStrictness] = useState(50);
+
   useEffect(() => {
     if (!rules) return;
     setZips(rules.target_zip_codes ?? []);
     setMargin(String(rules.min_profit_margin ?? 0));
     setTone(rules.voice_tone ?? "Professional");
     setSemiAuto(rules.veto_level === "Semi-Autonomous");
+    setStartHour(rules.outreach_start_hour ?? 8);
+    setEndHour(rules.outreach_end_hour ?? 19);
+    setMaxDiscount(String(rules.max_autonomous_discount ?? 10));
+    setFollowUp(rules.follow_up_trigger ?? "Every 3 Days");
+    setAutoApprove(String(rules.auto_approve_limit ?? 250));
+    setHandoffKeyword(rules.handoff_keyword ?? "HUMAN");
+    setWeatherRain(rules.weather_rain ?? false);
+    setWeatherHeat(rules.weather_heat ?? false);
+    setWeatherFreeze(rules.weather_freeze ?? false);
+    setStrictness(rules.lead_strictness ?? 50);
   }, [rules]);
 
   const mutation = useMutation({
@@ -51,10 +85,20 @@ export function AgentRulesPanel() {
         min_profit_margin: Number(margin) || 0,
         voice_tone: tone,
         veto_level: (semiAuto ? "Semi-Autonomous" : "Full Manual Review") as VetoLevel,
+        outreach_start_hour: startHour,
+        outreach_end_hour: endHour,
+        max_autonomous_discount: Number(maxDiscount) || 0,
+        follow_up_trigger: followUp,
+        auto_approve_limit: Number(autoApprove) || 0,
+        handoff_keyword: handoffKeyword.trim() || "HUMAN",
+        weather_rain: weatherRain,
+        weather_heat: weatherHeat,
+        weather_freeze: weatherFreeze,
+        lead_strictness: strictness,
       }),
     onSuccess: (saved: AgentRules) => {
       queryClient.setQueryData(["agent_rules"], saved);
-      toast.success("AI Operator configuration saved", {
+      toast.success("Van's configuration saved", {
         className: "bg-revenue text-revenue-foreground",
       });
     },
@@ -71,6 +115,8 @@ export function AgentRulesPanel() {
     setZipDraft("");
   }
 
+  const strictnessLabel = strictness < 34 ? "Loose" : strictness < 67 ? "Balanced" : "Strict";
+
   return (
     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -80,7 +126,7 @@ export function AgentRulesPanel() {
         <div>
           <h2 className="text-base font-semibold text-foreground">AI Operator</h2>
           <p className="text-sm text-muted-foreground">
-            Define the operational boundaries your autonomous agent must respect.
+            Define the operational boundaries Van must respect.
           </p>
         </div>
       </div>
@@ -88,7 +134,7 @@ export function AgentRulesPanel() {
       {isLoading ? (
         <p className="mt-6 text-sm text-muted-foreground">Loading configuration…</p>
       ) : (
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-8">
           {/* Target zip codes */}
           <div className="space-y-2">
             <Label>Target Zip Codes</Label>
@@ -144,7 +190,7 @@ export function AgentRulesPanel() {
               className="max-w-xs"
             />
             <p className="text-xs text-muted-foreground">
-              The agent will only pursue jobs projected above this margin.
+              Van will only pursue jobs projected above this margin.
             </p>
           </div>
 
@@ -165,13 +211,183 @@ export function AgentRulesPanel() {
             </Select>
           </div>
 
+          {/* ============ Core Operational Dials ============ */}
+          <div className="space-y-5 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Core Operational Dials</h3>
+            </div>
+
+            {/* Allowed outreach hours */}
+            <div className="space-y-2">
+              <Label>Allowed Outreach Hours</Label>
+              <div className="flex items-center gap-3">
+                <Select value={String(startHour)} onValueChange={(v) => setStartHour(Number(v))}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOURS.map((h) => (
+                      <SelectItem key={h} value={String(h)}>
+                        {formatHour(h)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">to</span>
+                <Select value={String(endHour)} onValueChange={(v) => setEndHour(Number(v))}>
+                  <SelectTrigger className="w-36">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HOURS.map((h) => (
+                      <SelectItem key={h} value={String(h)}>
+                        {formatHour(h)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Van only contacts leads and neighbors within this window.
+              </p>
+            </div>
+
+            {/* Max autonomous discount */}
+            <div className="space-y-2">
+              <Label htmlFor="maxDiscount">Max Autonomous Discount (%)</Label>
+              <Input
+                id="maxDiscount"
+                type="number"
+                min={0}
+                max={100}
+                value={maxDiscount}
+                onChange={(e) => setMaxDiscount(e.target.value)}
+                className="max-w-xs"
+              />
+            </div>
+
+            {/* Follow-up triggers */}
+            <div className="space-y-2">
+              <Label>Follow-Up Triggers</Label>
+              <Select value={followUp} onValueChange={(v) => setFollowUp(v as FollowUpTrigger)}>
+                <SelectTrigger className="max-w-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FOLLOW_UP_TRIGGERS.map((f) => (
+                    <SelectItem key={f} value={f}>
+                      {f}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* ============ Financial & Safety Guardrails ============ */}
+          <div className="space-y-5 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Financial &amp; Safety Guardrails</h3>
+            </div>
+
+            {/* Auto-approve max limit */}
+            <div className="space-y-2">
+              <Label htmlFor="autoApprove">Auto-Approve Maximum Limit ($)</Label>
+              <Input
+                id="autoApprove"
+                type="number"
+                min={0}
+                value={autoApprove}
+                onChange={(e) => setAutoApprove(e.target.value)}
+                className="max-w-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Van auto-books any job priced under this amount without review.
+              </p>
+            </div>
+
+            {/* Human hand-off keyword */}
+            <div className="space-y-2">
+              <Label htmlFor="handoff">Human Hand-Off Keyword</Label>
+              <Input
+                id="handoff"
+                value={handoffKeyword}
+                onChange={(e) => setHandoffKeyword(e.target.value)}
+                className="max-w-xs uppercase"
+              />
+              <p className="text-xs text-muted-foreground">
+                When a customer texts this word, Van pauses and alerts the Admin.
+              </p>
+            </div>
+          </div>
+
+          {/* ============ Smart Filtering ============ */}
+          <div className="space-y-5 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Smart Filtering</h3>
+            </div>
+
+            {/* Weather-triggered actions */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <CloudRain className="h-4 w-4 text-muted-foreground" />
+                <Label>Weather-Triggered Actions</Label>
+              </div>
+              <div className="space-y-3 rounded-lg border border-border bg-secondary/40 p-4">
+                <label className="flex items-center gap-3 text-sm text-foreground">
+                  <Checkbox
+                    checked={weatherRain}
+                    onCheckedChange={(c) => setWeatherRain(Boolean(c))}
+                  />
+                  Rain &amp; Storm
+                </label>
+                <label className="flex items-center gap-3 text-sm text-foreground">
+                  <Checkbox
+                    checked={weatherHeat}
+                    onCheckedChange={(c) => setWeatherHeat(Boolean(c))}
+                  />
+                  Heatwave
+                </label>
+                <label className="flex items-center gap-3 text-sm text-foreground">
+                  <Checkbox
+                    checked={weatherFreeze}
+                    onCheckedChange={(c) => setWeatherFreeze(Boolean(c))}
+                  />
+                  Freezing Temps
+                </label>
+              </div>
+            </div>
+
+            {/* Lead filtering strictness */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Lead Filtering Strictness</Label>
+                <span className="text-xs font-medium text-revenue">{strictnessLabel}</span>
+              </div>
+              <Slider
+                value={[strictness]}
+                onValueChange={(v) => setStrictness(v[0])}
+                min={0}
+                max={100}
+                step={1}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Loose</span>
+                <span>Strict</span>
+              </div>
+            </div>
+          </div>
+
           {/* Veto level */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 p-4">
             <div>
               <Label className="text-sm font-semibold">Veto Level</Label>
               <p className="text-xs text-muted-foreground">
                 {semiAuto
-                  ? "Semi-Autonomous — the agent acts and notifies you afterward."
+                  ? "Semi-Autonomous — Van acts and notifies you afterward."
                   : "Full Manual Review — every action waits for your approval."}
               </p>
             </div>
