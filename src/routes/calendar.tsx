@@ -126,7 +126,7 @@ function CalendarPage() {
     queryFn: fetchJobAssignments,
   });
 
-  const [view, setView] = useState<ViewMode>("agenda");
+  const [view, setView] = useState<ViewMode>("grid");
   const [cursor, setCursor] = useState(() => new Date());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
