@@ -78,8 +78,25 @@ function JobsPage() {
       if (ctx?.previous) queryClient.setQueryData(["jobs"], ctx.previous);
       toast.error("Failed to move job");
     },
-    onSuccess: (_d, { lane }) => toast.success(`Job moved to ${lane}`),
+    onSuccess: async (_d, { id, lane }) => {
+      toast.success(`Job moved to ${lane}`);
+      // Simulate the AI agent background workflow when a job gets scheduled.
+      if (lane === "Scheduled Today") {
+        const job = jobs.find((j) => j.id === id);
+        const created = await createOutreachForJob(
+          id,
+          job?.customer?.service_address ?? null,
+        );
+        if (created) {
+          toast("AI Operator found 10 neighbors around this job", {
+            className: "bg-revenue text-revenue-foreground",
+          });
+          queryClient.invalidateQueries({ queryKey: ["neighbor_outreach"] });
+        }
+      }
+    },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["jobs"] }),
+
   });
 
   function handleDrop(lane: DispatchLane) {
