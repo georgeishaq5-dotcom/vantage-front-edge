@@ -55,17 +55,38 @@ function MetricCard({
   hint,
   icon,
   emerald,
+  tooltip,
+  askVanPrompt,
 }: {
   label: string;
   value: string;
   hint: string;
   icon: React.ReactNode;
   emerald?: boolean;
+  tooltip?: string;
+  askVanPrompt?: string;
 }) {
+  const van = useVanChat();
   return (
     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium text-muted-foreground">{label}</span>
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`What is ${label}?`}
+                  className="text-muted-foreground/60 transition-colors hover:text-foreground"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[220px]">{tooltip}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
         <div
           className={
             emerald
@@ -86,6 +107,16 @@ function MetricCard({
         {value}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      {askVanPrompt && (
+        <button
+          type="button"
+          onClick={() => van.open(askVanPrompt)}
+          className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-revenue transition-colors hover:text-revenue/80"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Ask Van for Max Profit Recommendations
+        </button>
+      )}
     </div>
   );
 }
