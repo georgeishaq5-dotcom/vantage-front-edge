@@ -4,6 +4,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AgentRulesPanel } from "@/components/AgentRulesPanel";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
