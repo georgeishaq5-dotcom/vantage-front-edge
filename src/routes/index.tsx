@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock } from "lucide-react";
+import { DollarSign, FileClock, CalendarClock, Info, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useVanChat } from "@/components/VanChat";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   fetchJobsWithCustomers,
   formatCurrency,
