@@ -406,3 +406,162 @@ export function formatRelativeTime(ts: number): string {
   return `${Math.round(h / 24)}d ago`;
 }
 
+// ============= AI Operator agent rules =============
+
+export type VoiceTone = "Enthusiastic" | "Professional" | "Direct";
+export type VetoLevel = "Full Manual Review" | "Semi-Autonomous";
+
+export const VOICE_TONES: VoiceTone[] = ["Enthusiastic", "Professional", "Direct"];
+export const VETO_LEVELS: VetoLevel[] = ["Full Manual Review", "Semi-Autonomous"];
+
+export interface AgentRules {
+  id: string;
+  target_zip_codes: string[];
+  min_profit_margin: number;
+  voice_tone: VoiceTone;
+  veto_level: VetoLevel;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentRulesInput {
+  target_zip_codes: string[];
+  min_profit_margin: number;
+  voice_tone: VoiceTone;
+  veto_level: VetoLevel;
+}
+
+// Load the single agent rules profile, or null if not yet configured.
+export async function fetchAgentRules(): Promise<AgentRules | null> {
+  const { data, error } = await db
+    .from("agent_rules")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as AgentRules) ?? null;
+}
+
+// Upsert the agent rules profile (insert if none exists, otherwise update).
+export async function saveAgentRules(
+  existingId: string | null,
+  input: AgentRulesInput,
+): Promise<AgentRules> {
+  if (existingId) {
+    const { data, error } = await db
+      .from("agent_rules")
+      .update(input)
+      .eq("id", existingId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AgentRules;
+  }
+  const { data, error } = await db.from("agent_rules").insert(input).select().single();
+  if (error) throw error;
+  return data as AgentRules;
+}
+
+// ============= Neighbor outreach (automated direct mail) =============
+
+export type OutreachStatus = "Pending" | "Approved" | "Vetoed";
+
+export interface NeighborOutreach {
+  id: string;
+  job_id: string | null;
+  neighbor_addresses: string[];
+  cost: number;
+  status: OutreachStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NeighborOutreachWithJob extends NeighborOutreach {
+  job: JobWithFullCustomer | null;
+}
+
+// Generate the 10 closest physical neighbor addresses around a base address.
+export function nearbyNeighborAddresses(base: string | null, count = 10): string[] {
+  const fallback = "Field Service Area";
+  const source = (base ?? fallback).trim();
+  const match = source.match(/^(\d+)\s+(.*)$/);
+  if (!match) {
+    return Array.from({ length: count }, (_, i) => `${source} — Unit ${i + 1}`);
+  }
+  const num = parseInt(match[1], 10);
+  const street = match[2];
+  const result: string[] = [];
+  let step = 1;
+  while (result.length < count) {
+    const up = num + step * 2;
+    const down = num - step * 2;
+    result.push(`${up} ${street}`);
+    if (result.length < count && down >= 1) result.push(`${down} ${street}`);
+    step += 1;
+  }
+  return result.slice(0, count);
+}
+
+export async function fetchNeighborOutreach(): Promise<NeighborOutreach[]> {
+  const { data, error } = await db
+    .from("neighbor_outreach")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as NeighborOutreach[];
+}
+
+export async function fetchNeighborOutreachWithJobs(): Promise<NeighborOutreachWithJob[]> {
+  const [outreach, jobs] = await Promise.all([
+    fetchNeighborOutreach(),
+    fetchJobsWithFullCustomers(),
+  ]);
+  const map = new Map(jobs.map((j) => [j.id, j]));
+  return outreach.map((o) => ({
+    ...o,
+    job: (o.job_id && map.get(o.job_id)) || null,
+  }));
+}
+
+// Simulate the AI agent background workflow: ping the mapping tool for the 10
+// closest neighbors and queue a pending outreach campaign for a job.
+export async function createOutreachForJob(
+  jobId: string,
+  baseAddress: string | null,
+  cost = 10,
+): Promise<NeighborOutreach | null> {
+  // Avoid duplicate outreach for the same job.
+  const { data: existing } = await db
+    .from("neighbor_outreach")
+    .select("id")
+    .eq("job_id", jobId)
+    .limit(1)
+    .maybeSingle();
+  if (existing) return null;
+
+  const addresses = nearbyNeighborAddresses(baseAddress, 10);
+  const { data, error } = await db
+    .from("neighbor_outreach")
+    .insert({ job_id: jobId, neighbor_addresses: addresses, cost, status: "Pending" })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as NeighborOutreach;
+}
+
+export async function updateOutreachStatus(
+  id: string,
+  status: OutreachStatus,
+): Promise<void> {
+  const { error } = await db.from("neighbor_outreach").update({ status }).eq("id", id);
+  if (error) throw error;
+}
+
+export const OUTREACH_STATUS_STYLES: Record<OutreachStatus, string> = {
+  Pending: "bg-amber-50 text-amber-700 border border-amber-200",
+  Approved: "bg-revenue-muted text-revenue border border-revenue/30",
+  Vetoed: "bg-secondary text-secondary-foreground border border-border",
+};
+
+
