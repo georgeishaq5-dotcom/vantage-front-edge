@@ -99,6 +99,21 @@ function WorkOrderBody({
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
   const [lock, setLock] = useState<JobLock | null>(null);
+  const [tab, setTab] = useState<"order" | "activity">("order");
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: fetchTeamMembers,
+  });
+  const { data: assignments = [] } = useQuery({
+    queryKey: ["job_assignments"],
+    queryFn: fetchJobAssignments,
+  });
+
+  const activity = useMemo(
+    () => buildJobActivityLog(job, members, assignments, job.customer_name),
+    [job, members, assignments],
+  );
 
   const lockedByOther = !!lock && !!me && lock.locked_by_id !== me.id;
 
