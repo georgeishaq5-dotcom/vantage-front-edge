@@ -121,6 +121,7 @@ export interface JobUpdate {
   status?: JobStatus;
   service_date?: string | null;
   title?: string;
+  scheduled_by_id?: string | null;
 }
 
 export async function updateJob(id: string, input: JobUpdate): Promise<void> {
