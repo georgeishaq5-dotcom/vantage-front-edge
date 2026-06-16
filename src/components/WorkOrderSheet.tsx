@@ -341,6 +341,7 @@ function WorkOrderBody({
           <SignaturePad />
         </section>
       </div>
+      )}
 
       {/* Sticky action */}
       <div className="sticky bottom-0 border-t border-sidebar-border bg-sidebar px-5 py-4">
