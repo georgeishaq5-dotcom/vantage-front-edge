@@ -8,9 +8,13 @@ import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
 import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { NeighborOutreachFeed } from "@/components/NeighborOutreachFeed";
+import { CrewAssignment } from "@/components/CrewAssignment";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithFullCustomers,
+  fetchTeamMembers,
+  fetchJobAssignments,
   updateJob,
   laneTransition,
   jobLane,
@@ -19,7 +23,10 @@ import {
   type DispatchLane,
   type JobWithFullCustomer,
   type JobWithCustomer,
+  type TeamMember,
+  type JobAssignment,
 } from "@/lib/fsm";
+
 
 
 export const Route = createFileRoute("/jobs")({
