@@ -127,13 +127,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
-        <main className="flex-1 overflow-x-hidden">
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </main>
-      </div>
+      <VanChatProvider>
+        <div className="flex min-h-screen w-full bg-background">
+          <AppSidebar />
+          <main className="flex-1 overflow-x-hidden">
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </main>
+        </div>
+      </VanChatProvider>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
