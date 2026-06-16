@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Eraser,
   Loader2,
+  Lock,
   MapPin,
   PenLine,
   Phone,
@@ -22,11 +23,17 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
 import {
   fetchCustomers,
+  fetchJobLock,
+  acquireJobLock,
+  releaseJobLock,
   formatUSPhoneInput,
   updateJobStatus,
   type Customer,
+  type JobLock,
   type JobWithCustomer,
 } from "@/lib/fsm";
 
