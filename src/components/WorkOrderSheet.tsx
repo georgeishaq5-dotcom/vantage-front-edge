@@ -203,6 +203,7 @@ function WorkOrderBody({
                 <li key={item}>
                   <button
                     type="button"
+                    disabled={lockedByOther}
                     onClick={() => setChecked((c) => ({ ...c, [item]: !c[item] }))}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg border p-3.5 text-left transition-colors",
