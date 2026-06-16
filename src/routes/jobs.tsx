@@ -7,17 +7,20 @@ import { MapPin, StickyNote } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
 import { WorkOrderSheet } from "@/components/WorkOrderSheet";
+import { NeighborOutreachFeed } from "@/components/NeighborOutreachFeed";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithFullCustomers,
   updateJob,
   laneTransition,
   jobLane,
+  createOutreachForJob,
   DISPATCH_LANES,
   type DispatchLane,
   type JobWithFullCustomer,
   type JobWithCustomer,
 } from "@/lib/fsm";
+
 
 export const Route = createFileRoute("/jobs")({
   head: () => ({
