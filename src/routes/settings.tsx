@@ -24,7 +24,12 @@ function SettingsPage() {
     <div className="mx-auto max-w-3xl px-8 py-8">
       <PageHeader title="Settings" description="Manage your profile and workspace preferences." />
 
+      <div className="mt-6">
+        <AgentRulesPanel />
+      </div>
+
       <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+
         <h2 className="text-base font-semibold text-foreground">Profile</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Update how your information appears across Vantage FSM.
