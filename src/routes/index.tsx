@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock, Info, Sparkles } from "lucide-react";
+import { DollarSign, FileClock, CalendarClock, Info, Sparkles, TrendingUp, MessageSquare, CloudRain, Sun, Snowflake } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -172,6 +172,13 @@ function Dashboard() {
           />
         </div>
 
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
+          <MarketingActivityCard />
+        </div>
+
+
+
         <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
@@ -183,6 +190,122 @@ function Dashboard() {
     </TooltipProvider>
   );
 }
+
+function RoiAuditCard({
+  pendingTotal,
+  weeklyRevenue,
+}: {
+  pendingTotal: number;
+  weeklyRevenue: number;
+}) {
+  // Vantage's generated value: recovered invoices + estimated upsell lift.
+  const recoveredValue = pendingTotal * 0.6;
+  const upsellLift = weeklyRevenue * 0.18;
+  const generatedValue = recoveredValue + upsellLift;
+  const rows = [
+    { label: "Invoices recovered by Van", value: recoveredValue },
+    { label: "Upsell lift (tiered quotes)", value: upsellLift },
+    { label: "Marketing-driven bookings", value: 1850 },
+  ];
+  const total = generatedValue + 1850;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-revenue-muted text-revenue">
+            <TrendingUp className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Vantage View</h2>
+            <p className="text-xs text-muted-foreground">ROI Audit · value generated this month</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-lg bg-revenue-muted/60 p-4">
+        <p className="text-xs font-medium text-muted-foreground">Total value generated</p>
+        <p className="mt-1 text-3xl font-extrabold tracking-tight text-revenue">
+          {formatCurrency(total)}
+        </p>
+      </div>
+
+      <ul className="mt-4 flex flex-col gap-2.5">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{r.label}</span>
+            <span className="font-semibold text-foreground">{formatCurrency(r.value)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function MarketingActivityCard() {
+  const drafts = [
+    {
+      icon: Sun,
+      trigger: "Heatwave",
+      color: "text-amber-600",
+      text: "AC running non-stop? Beat the heat — book a tune-up today and save 15%.",
+      time: "2h ago",
+    },
+    {
+      icon: CloudRain,
+      trigger: "Rain & Storm",
+      color: "text-sky-600",
+      text: "Storms rolling in. Get your gutters & sump pump checked before the downpour.",
+      time: "Yesterday",
+    },
+    {
+      icon: Snowflake,
+      trigger: "Freezing Temps",
+      color: "text-indigo-600",
+      text: "Don't let pipes freeze — schedule your winter-ready inspection this week.",
+      time: "2 days ago",
+    },
+  ];
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="flex items-center gap-2">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
+          <MessageSquare className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Marketing Activity</h2>
+          <p className="text-xs text-muted-foreground">Weather-triggered texts Van drafted</p>
+        </div>
+      </div>
+
+      <ul className="mt-5 flex flex-col gap-3">
+        {drafts.map((d) => {
+          const Icon = d.icon;
+          return (
+            <li
+              key={d.trigger}
+              className="rounded-lg border border-border bg-secondary/30 p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Icon className={`h-3.5 w-3.5 ${d.color}`} />
+                  {d.trigger}
+                </span>
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {d.time}
+                </span>
+              </div>
+              <p className="mt-1.5 text-sm text-muted-foreground">{d.text}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+
 
 function JobsTable({ jobs, loading }: { jobs: JobWithCustomer[]; loading: boolean }) {
   if (loading) {
