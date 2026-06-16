@@ -139,6 +139,15 @@ function WorkOrderBody({
 
   return (
     <div className="flex min-h-full flex-col">
+      {lockedByOther && (
+        <div className="flex items-center gap-3 border-b border-amber-400/60 bg-amber-400/20 px-5 py-3">
+          <Lock className="h-5 w-5 shrink-0 text-amber-300" />
+          <p className="text-sm font-medium text-amber-50">
+            {lock?.locked_by_name} is currently editing this job. Editing is locked to prevent
+            overwriting their changes.
+          </p>
+        </div>
+      )}
       {/* Header & Context */}
       <SheetHeader className="space-y-0 border-b border-sidebar-border bg-sidebar px-5 py-5 text-left">
         <SheetTitle className="text-lg font-bold text-white">{job.title}</SheetTitle>
