@@ -137,42 +137,50 @@ function Dashboard() {
   const todaysJobs = jobs.filter((j) => j.status === "Scheduled" && isToday(j.service_date));
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-8">
-      <PageHeader
-        title="Dashboard"
-        description="A snapshot of revenue, invoicing, and today's field work."
-      />
+    <TooltipProvider delayDuration={150}>
+      <div className="mx-auto max-w-6xl px-8 py-8">
+        <PageHeader
+          title="Dashboard"
+          description="A snapshot of revenue, invoicing, and today's field work."
+        />
 
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <MetricCard
-          emerald
-          label="Weekly Revenue"
-          value={formatCurrency(weeklyRevenue)}
-          hint="Paid jobs in the last 7 days"
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <MetricCard
-          label="Pending Invoices"
-          value={String(pendingInvoices.length)}
-          hint={`${formatCurrency(pendingTotal)} awaiting payment`}
-          icon={<FileClock className="h-5 w-5" />}
-        />
-        <MetricCard
-          label="Scheduled Today"
-          value={String(todaysJobs.length)}
-          hint="Jobs on today's route"
-          icon={<CalendarClock className="h-5 w-5" />}
-        />
-      </div>
-
-      <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
-          <span className="text-xs text-muted-foreground">Scheduled · {todaysJobs.length}</span>
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            emerald
+            label="Weekly Revenue"
+            value={formatCurrency(weeklyRevenue)}
+            hint="Paid jobs in the last 7 days"
+            icon={<DollarSign className="h-5 w-5" />}
+            tooltip="Total value of jobs marked Paid with a service date in the last 7 days."
+            askVanPrompt="Analyze my weekly revenue and recommend the highest-margin jobs to prioritize for maximum profit."
+          />
+          <MetricCard
+            label="Pending Invoices"
+            value={String(pendingInvoices.length)}
+            hint={`${formatCurrency(pendingTotal)} awaiting payment`}
+            icon={<FileClock className="h-5 w-5" />}
+            tooltip="Completed jobs that have not yet been paid — revenue waiting to be collected."
+            askVanPrompt="Which pending invoices should I chase first to maximize collected profit this week?"
+          />
+          <MetricCard
+            label="Scheduled Today"
+            value={String(todaysJobs.length)}
+            hint="Jobs on today's route"
+            icon={<CalendarClock className="h-5 w-5" />}
+            tooltip="Jobs with a Scheduled status set for today's date."
+            askVanPrompt="Optimize today's schedule and routing to maximize profit across my scheduled jobs."
+          />
         </div>
-        <JobsTable jobs={todaysJobs} loading={isLoading} />
-      </section>
-    </div>
+
+        <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
+            <span className="text-xs text-muted-foreground">Scheduled · {todaysJobs.length}</span>
+          </div>
+          <JobsTable jobs={todaysJobs} loading={isLoading} />
+        </section>
+      </div>
+    </TooltipProvider>
   );
 }
 
