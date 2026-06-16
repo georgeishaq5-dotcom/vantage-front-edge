@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Eraser,
   Loader2,
+  Lock,
   MapPin,
   PenLine,
   Phone,
@@ -22,11 +23,17 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
 import {
   fetchCustomers,
+  fetchJobLock,
+  acquireJobLock,
+  releaseJobLock,
   formatUSPhoneInput,
   updateJobStatus,
   type Customer,
+  type JobLock,
   type JobWithCustomer,
 } from "@/lib/fsm";
 
@@ -81,8 +88,38 @@ function WorkOrderBody({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const me = useCurrentMember();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
+  const [lock, setLock] = useState<JobLock | null>(null);
+
+  const lockedByOther = !!lock && !!me && lock.locked_by_id !== me.id;
+
+  // Acquire an edit lock on open, release on close, and watch for collisions.
+  useEffect(() => {
+    if (!me) return;
+    let active = true;
+    acquireJobLock(job.id, me.id, me.full_name)
+      .then((held) => active && setLock(held))
+      .catch(() => {});
+
+    const channel = supabase
+      .channel(`job_lock_${job.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "job_locks", filter: `job_id=eq.${job.id}` },
+        () => {
+          fetchJobLock(job.id).then((l) => active && setLock(l)).catch(() => {});
+        },
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+      releaseJobLock(job.id, me.id).catch(() => {});
+    };
+  }, [job.id, me?.id, me?.full_name]);
 
   const phone = customer?.phone ? formatUSPhoneInput(customer.phone) : null;
   const siteNotes = customer?.site_notes?.trim();
@@ -102,6 +139,15 @@ function WorkOrderBody({
 
   return (
     <div className="flex min-h-full flex-col">
+      {lockedByOther && (
+        <div className="flex items-center gap-3 border-b border-amber-400/60 bg-amber-400/20 px-5 py-3">
+          <Lock className="h-5 w-5 shrink-0 text-amber-300" />
+          <p className="text-sm font-medium text-amber-50">
+            {lock?.locked_by_name} is currently editing this job. Editing is locked to prevent
+            overwriting their changes.
+          </p>
+        </div>
+      )}
       {/* Header & Context */}
       <SheetHeader className="space-y-0 border-b border-sidebar-border bg-sidebar px-5 py-5 text-left">
         <SheetTitle className="text-lg font-bold text-white">{job.title}</SheetTitle>
@@ -157,6 +203,7 @@ function WorkOrderBody({
                 <li key={item}>
                   <button
                     type="button"
+                    disabled={lockedByOther}
                     onClick={() => setChecked((c) => ({ ...c, [item]: !c[item] }))}
                     className={cn(
                       "flex w-full items-center gap-3 rounded-lg border p-3.5 text-left transition-colors",
@@ -217,18 +264,24 @@ function WorkOrderBody({
         <Button
           variant="revenue"
           className="h-14 w-full text-base"
-          disabled={completing || mutation.isPending}
+          disabled={completing || mutation.isPending || lockedByOther}
           onClick={() => {
             setCompleting(true);
             mutation.mutate();
           }}
         >
-          {mutation.isPending ? (
+          {lockedByOther ? (
+            <Lock className="h-5 w-5" />
+          ) : mutation.isPending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <CheckCircle2 className="h-5 w-5" />
           )}
-          {mutation.isPending ? "Completing…" : "Complete Job & Generate Invoice"}
+          {lockedByOther
+            ? "Locked — another user is editing"
+            : mutation.isPending
+              ? "Completing…"
+              : "Complete Job & Generate Invoice"}
         </Button>
       </div>
     </div>

@@ -8,9 +8,13 @@ import { PageHeader } from "@/components/PageHeader";
 import { CreateJobModal } from "@/components/CreateJobModal";
 import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { NeighborOutreachFeed } from "@/components/NeighborOutreachFeed";
+import { CrewAssignment } from "@/components/CrewAssignment";
+import { useCurrentMember } from "@/hooks/useCurrentMember";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithFullCustomers,
+  fetchTeamMembers,
+  fetchJobAssignments,
   updateJob,
   laneTransition,
   jobLane,
@@ -19,7 +23,10 @@ import {
   type DispatchLane,
   type JobWithFullCustomer,
   type JobWithCustomer,
+  type TeamMember,
+  type JobAssignment,
 } from "@/lib/fsm";
+
 
 
 export const Route = createFileRoute("/jobs")({
@@ -52,10 +59,19 @@ const TYPE_STYLES: Record<string, string> = {
 
 function JobsPage() {
   const queryClient = useQueryClient();
+  const me = useCurrentMember();
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: fetchJobsWithFullCustomers,
+  });
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: fetchTeamMembers,
+  });
+  const { data: assignments = [] } = useQuery({
+    queryKey: ["job_assignments"],
+    queryFn: fetchJobAssignments,
   });
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -64,11 +80,11 @@ function JobsPage() {
 
   const mutation = useMutation({
     mutationFn: ({ id, lane }: { id: string; lane: DispatchLane }) =>
-      updateJob(id, laneTransition(lane)),
+      updateJob(id, { ...laneTransition(lane), scheduled_by_id: me?.id ?? null }),
     onMutate: async ({ id, lane }) => {
       await queryClient.cancelQueries({ queryKey: ["jobs"] });
       const previous = queryClient.getQueryData<JobWithFullCustomer[]>(["jobs"]);
-      const patch = laneTransition(lane);
+      const patch = { ...laneTransition(lane), scheduled_by_id: me?.id ?? null };
       queryClient.setQueryData<JobWithFullCustomer[]>(["jobs"], (old = []) =>
         old.map((j) => (j.id === id ? { ...j, ...patch } : j)),
       );
@@ -168,6 +184,8 @@ function JobsPage() {
                     <DispatchCard
                       key={job.id}
                       job={job}
+                      members={members}
+                      assignments={assignments}
                       isDragging={draggingId === job.id}
                       onOpen={() => openOrder(job)}
                       onDragStart={() => setDraggingId(job.id)}
@@ -195,12 +213,16 @@ function JobsPage() {
 
 function DispatchCard({
   job,
+  members,
+  assignments,
   isDragging,
   onOpen,
   onDragStart,
   onDragEnd,
 }: {
   job: JobWithFullCustomer;
+  members: TeamMember[];
+  assignments: JobAssignment[];
   isDragging?: boolean;
   onOpen?: () => void;
   onDragStart?: () => void;
@@ -208,6 +230,7 @@ function DispatchCard({
 }) {
   const customer = job.customer;
   const type = customer?.customer_type;
+  const scheduledBy = members.find((m) => m.id === job.scheduled_by_id);
   return (
     <div
       draggable
@@ -250,6 +273,13 @@ function DispatchCard({
           <span className="line-clamp-2">{customer.site_notes}</span>
         </div>
       )}
+
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+        <span className="truncate text-[11px] text-muted-foreground">
+          Scheduled by: {scheduledBy?.full_name ?? "—"}
+        </span>
+        <CrewAssignment jobId={job.id} members={members} assignments={assignments} />
+      </div>
     </div>
   );
 }

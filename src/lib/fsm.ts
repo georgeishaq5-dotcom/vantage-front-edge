@@ -21,6 +21,7 @@ export interface Job {
   status: JobStatus;
   service_date: string | null;
   quote_amount: number;
+  scheduled_by_id: string | null;
   created_at: string;
 }
 
@@ -120,6 +121,7 @@ export interface JobUpdate {
   status?: JobStatus;
   service_date?: string | null;
   title?: string;
+  scheduled_by_id?: string | null;
 }
 
 export async function updateJob(id: string, input: JobUpdate): Promise<void> {
@@ -564,4 +566,187 @@ export const OUTREACH_STATUS_STYLES: Record<OutreachStatus, string> = {
   Vetoed: "bg-secondary text-secondary-foreground border border-border",
 };
 
+// ============= Team & RBAC (multi-tenant placeholder) =============
+
+// Placeholder tenant id until real auth / multi-tenant isolation is wired up.
+export const COMPANY_ID = "vantage-co";
+
+export type TeamRole = "Owner/Admin" | "Dispatcher" | "Field Tech";
+export type MemberStatus = "Active" | "Busy" | "Offline";
+
+export const TEAM_ROLES: TeamRole[] = ["Owner/Admin", "Dispatcher", "Field Tech"];
+
+export interface TeamMember {
+  id: string;
+  company_id: string;
+  full_name: string;
+  role: TeamRole;
+  status: MemberStatus;
+  skills: string[];
+  email: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const ROLE_BADGE_STYLES: Record<TeamRole, string> = {
+  "Owner/Admin": "bg-revenue-muted text-revenue border border-revenue/30",
+  Dispatcher: "bg-sky-50 text-sky-700 border border-sky-200",
+  "Field Tech": "bg-secondary text-secondary-foreground border border-border",
+};
+
+// Status dot colors: Green (Active), Yellow (Busy), Gray (Offline).
+export const STATUS_DOT_STYLES: Record<MemberStatus, string> = {
+  Active: "bg-emerald-500",
+  Busy: "bg-amber-400",
+  Offline: "bg-muted-foreground/40",
+};
+
+export function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+// Deterministic avatar color from a member id, for consistent badge tints.
+const AVATAR_TINTS = [
+  "bg-sky-100 text-sky-700",
+  "bg-amber-100 text-amber-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-violet-100 text-violet-700",
+  "bg-rose-100 text-rose-700",
+  "bg-teal-100 text-teal-700",
+];
+
+export function avatarTint(id: string): string {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+  return AVATAR_TINTS[sum % AVATAR_TINTS.length];
+}
+
+export async function fetchTeamMembers(): Promise<TeamMember[]> {
+  const { data, error } = await db
+    .from("team_members")
+    .select("*")
+    .eq("company_id", COMPANY_ID)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as TeamMember[];
+}
+
+export interface NewTeamMember {
+  full_name: string;
+  role: TeamRole;
+  status?: MemberStatus;
+  skills?: string[];
+  email?: string | null;
+}
+
+export async function createTeamMember(input: NewTeamMember): Promise<TeamMember> {
+  const { data, error } = await db
+    .from("team_members")
+    .insert({ ...input, company_id: COMPANY_ID })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as TeamMember;
+}
+
+// ============= Multi-tech crew assignments =============
+
+export interface JobAssignment {
+  id: string;
+  job_id: string;
+  team_member_id: string;
+  is_lead: boolean;
+  created_at: string;
+}
+
+export async function fetchJobAssignments(): Promise<JobAssignment[]> {
+  const { data, error } = await db.from("job_assignments").select("*");
+  if (error) throw error;
+  return (data ?? []) as JobAssignment[];
+}
+
+export async function assignMember(jobId: string, memberId: string): Promise<void> {
+  const { error } = await db
+    .from("job_assignments")
+    .insert({ job_id: jobId, team_member_id: memberId, is_lead: false });
+  if (error) throw error;
+}
+
+export async function unassignMember(jobId: string, memberId: string): Promise<void> {
+  const { error } = await db
+    .from("job_assignments")
+    .delete()
+    .eq("job_id", jobId)
+    .eq("team_member_id", memberId);
+  if (error) throw error;
+}
+
+// Designate one assignee as the mandatory Lead Tech (clears any other lead).
+export async function setLeadTech(jobId: string, memberId: string): Promise<void> {
+  const clear = await db
+    .from("job_assignments")
+    .update({ is_lead: false })
+    .eq("job_id", jobId);
+  if (clear.error) throw clear.error;
+  const { error } = await db
+    .from("job_assignments")
+    .update({ is_lead: true })
+    .eq("job_id", jobId)
+    .eq("team_member_id", memberId);
+  if (error) throw error;
+}
+
+export async function setJobScheduledBy(jobId: string, memberId: string | null): Promise<void> {
+  const { error } = await db.from("jobs").update({ scheduled_by_id: memberId }).eq("id", jobId);
+  if (error) throw error;
+}
+
+// ============= Collision detection (edit locks) =============
+
+export interface JobLock {
+  job_id: string;
+  locked_by_id: string;
+  locked_by_name: string;
+  locked_at: string;
+}
+
+export async function fetchJobLock(jobId: string): Promise<JobLock | null> {
+  const { data, error } = await db
+    .from("job_locks")
+    .select("*")
+    .eq("job_id", jobId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as JobLock) ?? null;
+}
+
+// Acquire a lock for the current user. Returns the lock currently held: either
+// our own (success) or another user's (collision).
+export async function acquireJobLock(
+  jobId: string,
+  userId: string,
+  userName: string,
+): Promise<JobLock> {
+  const existing = await fetchJobLock(jobId);
+  if (existing && existing.locked_by_id !== userId) return existing;
+  const { data, error } = await db
+    .from("job_locks")
+    .upsert(
+      { job_id: jobId, locked_by_id: userId, locked_by_name: userName, locked_at: new Date().toISOString() },
+      { onConflict: "job_id" },
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as JobLock;
+}
+
+export async function releaseJobLock(jobId: string, userId: string): Promise<void> {
+  await db.from("job_locks").delete().eq("job_id", jobId).eq("locked_by_id", userId);
+}
 
