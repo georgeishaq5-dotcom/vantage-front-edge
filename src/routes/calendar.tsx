@@ -70,12 +70,44 @@ function isoOf(d: Date): string {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
 
-function WorkabilityWatermark({ level }: { level: WorkabilityLevel }) {
-  const cls = "absolute right-1 top-1 h-9 w-9 opacity-[0.13]";
-  if (level === 1) return <Sun className={cn(cls, "text-emerald-600")} />;
-  if (level === 2) return <CloudSun className={cn(cls, "text-sky-600")} />;
-  if (level === 3) return <CloudRain className={cn(cls, "text-amber-600")} />;
-  return <CloudLightning className={cn(cls, "text-rose-600")} />;
+// Full-cell, edge-to-edge faded weather illustration that fills the date box
+// behind the scheduled job text. Kept at very low opacity for readability.
+function WorkabilityIllustration({ level }: { level: WorkabilityLevel }) {
+  const Icon =
+    level === 1 ? Sun : level === 2 ? CloudSun : level === 3 ? CloudRain : CloudLightning;
+  const color =
+    level === 1
+      ? "text-emerald-600"
+      : level === 2
+        ? "text-sky-600"
+        : level === 3
+          ? "text-amber-600"
+          : "text-rose-600";
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* Large faded sky element spanning the background */}
+      <Icon
+        className={cn(
+          "absolute -right-3 -top-3 h-24 w-24 opacity-[0.07]",
+          color,
+        )}
+      />
+      {/* Faint grass/ground band along the bottom edge */}
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-0 h-8 opacity-[0.06]",
+          level === 1
+            ? "bg-emerald-500"
+            : level === 2
+              ? "bg-sky-500"
+              : level === 3
+                ? "bg-amber-500"
+                : "bg-rose-500",
+        )}
+        style={{ maskImage: "linear-gradient(to top, black, transparent)" }}
+      />
+    </div>
+  );
 }
 
 function CalendarPage() {
