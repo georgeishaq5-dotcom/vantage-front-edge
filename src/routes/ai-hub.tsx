@@ -11,12 +11,12 @@ export const Route = createFileRoute("/ai-hub")({
       { title: "Van's AI Hub — Vantage FSM" },
       {
         name: "description",
-        content: "Configure Van, your AI operator: target zip codes, profit margins, and tone.",
+        content: "Configure Van, your AI operator: outreach hours, discounts, guardrails, and lead filtering.",
       },
       { property: "og:title", content: "Van's AI Hub — Vantage FSM" },
       {
         property: "og:description",
-        content: "Configure Van, your AI operator's operational boundaries.",
+        content: "Tune Van's operational dials, financial guardrails, and smart filtering.",
       },
     ],
   }),
