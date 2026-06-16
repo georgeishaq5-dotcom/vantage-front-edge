@@ -1,9 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock } from "lucide-react";
+import { DollarSign, FileClock, CalendarClock, Info, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useVanChat } from "@/components/VanChat";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   fetchJobsWithCustomers,
   formatCurrency,
@@ -48,17 +55,38 @@ function MetricCard({
   hint,
   icon,
   emerald,
+  tooltip,
+  askVanPrompt,
 }: {
   label: string;
   value: string;
   hint: string;
   icon: React.ReactNode;
   emerald?: boolean;
+  tooltip?: string;
+  askVanPrompt?: string;
 }) {
+  const van = useVanChat();
   return (
     <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium text-muted-foreground">{label}</span>
+          {tooltip && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`What is ${label}?`}
+                  className="text-muted-foreground/60 transition-colors hover:text-foreground"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[220px]">{tooltip}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
         <div
           className={
             emerald
@@ -79,6 +107,16 @@ function MetricCard({
         {value}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      {askVanPrompt && (
+        <button
+          type="button"
+          onClick={() => van.open(askVanPrompt)}
+          className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-revenue transition-colors hover:text-revenue/80"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Ask Van for Max Profit Recommendations
+        </button>
+      )}
     </div>
   );
 }
@@ -99,42 +137,50 @@ function Dashboard() {
   const todaysJobs = jobs.filter((j) => j.status === "Scheduled" && isToday(j.service_date));
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-8">
-      <PageHeader
-        title="Dashboard"
-        description="A snapshot of revenue, invoicing, and today's field work."
-      />
+    <TooltipProvider delayDuration={150}>
+      <div className="mx-auto max-w-6xl px-8 py-8">
+        <PageHeader
+          title="Dashboard"
+          description="A snapshot of revenue, invoicing, and today's field work."
+        />
 
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <MetricCard
-          emerald
-          label="Weekly Revenue"
-          value={formatCurrency(weeklyRevenue)}
-          hint="Paid jobs in the last 7 days"
-          icon={<DollarSign className="h-5 w-5" />}
-        />
-        <MetricCard
-          label="Pending Invoices"
-          value={String(pendingInvoices.length)}
-          hint={`${formatCurrency(pendingTotal)} awaiting payment`}
-          icon={<FileClock className="h-5 w-5" />}
-        />
-        <MetricCard
-          label="Scheduled Today"
-          value={String(todaysJobs.length)}
-          hint="Jobs on today's route"
-          icon={<CalendarClock className="h-5 w-5" />}
-        />
-      </div>
-
-      <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
-          <span className="text-xs text-muted-foreground">Scheduled · {todaysJobs.length}</span>
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            emerald
+            label="Weekly Revenue"
+            value={formatCurrency(weeklyRevenue)}
+            hint="Paid jobs in the last 7 days"
+            icon={<DollarSign className="h-5 w-5" />}
+            tooltip="Total value of jobs marked Paid with a service date in the last 7 days."
+            askVanPrompt="Analyze my weekly revenue and recommend the highest-margin jobs to prioritize for maximum profit."
+          />
+          <MetricCard
+            label="Pending Invoices"
+            value={String(pendingInvoices.length)}
+            hint={`${formatCurrency(pendingTotal)} awaiting payment`}
+            icon={<FileClock className="h-5 w-5" />}
+            tooltip="Completed jobs that have not yet been paid — revenue waiting to be collected."
+            askVanPrompt="Which pending invoices should I chase first to maximize collected profit this week?"
+          />
+          <MetricCard
+            label="Scheduled Today"
+            value={String(todaysJobs.length)}
+            hint="Jobs on today's route"
+            icon={<CalendarClock className="h-5 w-5" />}
+            tooltip="Jobs with a Scheduled status set for today's date."
+            askVanPrompt="Optimize today's schedule and routing to maximize profit across my scheduled jobs."
+          />
         </div>
-        <JobsTable jobs={todaysJobs} loading={isLoading} />
-      </section>
-    </div>
+
+        <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
+            <span className="text-xs text-muted-foreground">Scheduled · {todaysJobs.length}</span>
+          </div>
+          <JobsTable jobs={todaysJobs} loading={isLoading} />
+        </section>
+      </div>
+    </TooltipProvider>
   );
 }
 

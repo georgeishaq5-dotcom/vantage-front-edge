@@ -1,13 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, KanbanSquare, BookOpen, Megaphone, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Bot,
+  KanbanSquare,
+  CalendarDays,
+  Users,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
-  { label: "Customers", to: "/customers", icon: Users },
-  { label: "Jobs", to: "/jobs", icon: KanbanSquare },
-  { label: "Ledger", to: "/ledger", icon: BookOpen },
-  { label: "Campaigns", to: "/campaigns", icon: Megaphone },
+  { label: "Van's AI Hub", to: "/ai-hub", icon: Bot },
+  { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
+  { label: "Calendar", to: "/calendar", icon: CalendarDays },
+  { label: "My Team", to: "/team", icon: Users },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
@@ -15,7 +22,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col self-start bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-2.5 px-6 py-6">
         <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
           V

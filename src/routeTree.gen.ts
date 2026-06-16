@@ -9,14 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
+import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as AiHubRouteImport } from './routes/ai-hub'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -47,6 +55,16 @@ const CampaignsRoute = CampaignsRouteImport.update({
   path: '/campaigns',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiHubRoute = AiHubRouteImport.update({
+  id: '/ai-hub',
+  path: '/ai-hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,74 +73,102 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai-hub': typeof AiHubRoute
+  '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai-hub': typeof AiHubRoute
+  '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai-hub': typeof AiHubRoute
+  '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai-hub'
+    | '/calendar'
     | '/campaigns'
     | '/customers'
     | '/jobs'
     | '/ledger'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai-hub'
+    | '/calendar'
     | '/campaigns'
     | '/customers'
     | '/jobs'
     | '/ledger'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
   id:
     | '__root__'
     | '/'
+    | '/ai-hub'
+    | '/calendar'
     | '/campaigns'
     | '/customers'
     | '/jobs'
     | '/ledger'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiHubRoute: typeof AiHubRoute
+  CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TeamRoute: typeof TeamRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -165,6 +211,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-hub': {
+      id: '/ai-hub'
+      path: '/ai-hub'
+      fullPath: '/ai-hub'
+      preLoaderRoute: typeof AiHubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -177,12 +237,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiHubRoute: AiHubRoute,
+  CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TeamRoute: TeamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
