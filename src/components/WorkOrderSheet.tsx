@@ -212,6 +212,67 @@ function WorkOrderBody({
         )}
       </SheetHeader>
 
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-sidebar-border bg-sidebar px-5">
+        <button
+          type="button"
+          onClick={() => setTab("order")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "order"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <ClipboardList className="h-4 w-4" />
+          Work Order
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("activity")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "activity"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <History className="h-4 w-4" />
+          Activity Log
+        </button>
+      </div>
+
+      {tab === "activity" ? (
+        <div className="flex-1 px-5 py-6">
+          <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">
+            Audit Trail
+          </h3>
+          <ol className="relative space-y-5 border-l border-sidebar-border pl-5">
+            {activity.map((e) => (
+              <li key={e.id} className="relative">
+                <span
+                  className={cn(
+                    "absolute -left-[27px] grid h-5 w-5 place-items-center rounded-full ring-4 ring-sidebar",
+                    e.isAi ? "bg-revenue text-revenue-foreground" : "bg-sidebar-accent text-white",
+                  )}
+                >
+                  {e.isAi ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                </span>
+                <p className="text-sm font-medium text-white">
+                  <span className={e.isAi ? "text-revenue" : "text-sky-300"}>{e.actor}</span>{" "}
+                  {e.action}
+                </p>
+                <p className="mt-0.5 text-xs text-sidebar-foreground/60">
+                  {formatRelativeTime(e.at)}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-6 text-xs text-sidebar-foreground/50">
+            This log is append-only — entries cannot be edited or deleted.
+          </p>
+        </div>
+      ) : (
       <div className="flex-1 space-y-6 px-5 py-6">
         {/* Checklist */}
         <section>
