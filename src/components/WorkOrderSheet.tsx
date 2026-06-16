@@ -88,8 +88,38 @@ function WorkOrderBody({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const me = useCurrentMember();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
+  const [lock, setLock] = useState<JobLock | null>(null);
+
+  const lockedByOther = !!lock && !!me && lock.locked_by_id !== me.id;
+
+  // Acquire an edit lock on open, release on close, and watch for collisions.
+  useEffect(() => {
+    if (!me) return;
+    let active = true;
+    acquireJobLock(job.id, me.id, me.full_name)
+      .then((held) => active && setLock(held))
+      .catch(() => {});
+
+    const channel = supabase
+      .channel(`job_lock_${job.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "job_locks", filter: `job_id=eq.${job.id}` },
+        () => {
+          fetchJobLock(job.id).then((l) => active && setLock(l)).catch(() => {});
+        },
+      )
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+      releaseJobLock(job.id, me.id).catch(() => {});
+    };
+  }, [job.id, me?.id, me?.full_name]);
 
   const phone = customer?.phone ? formatUSPhoneInput(customer.phone) : null;
   const siteNotes = customer?.site_notes?.trim();
