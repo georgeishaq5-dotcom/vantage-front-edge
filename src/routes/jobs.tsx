@@ -184,6 +184,8 @@ function JobsPage() {
                     <DispatchCard
                       key={job.id}
                       job={job}
+                      members={members}
+                      assignments={assignments}
                       isDragging={draggingId === job.id}
                       onOpen={() => openOrder(job)}
                       onDragStart={() => setDraggingId(job.id)}
