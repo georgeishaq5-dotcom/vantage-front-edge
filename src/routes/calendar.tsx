@@ -506,7 +506,7 @@ function CalendarPage() {
                       dragOverDay === iso && "ring-2 ring-inset ring-revenue",
                     )}
                   >
-                    {f && <WorkabilityWatermark level={f.level} />}
+                    {f && <WorkabilityIllustration level={f.level} />}
                     <div className="relative flex items-center justify-between">
                       <span
                         className={cn(
@@ -520,16 +520,6 @@ function CalendarPage() {
                       >
                         {d.getDate()}
                       </span>
-                      {f && (
-                        <span
-                          className={cn(
-                            "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                            WORKABILITY_META[f.level].badge,
-                          )}
-                        >
-                          {f.label}
-                        </span>
-                      )}
                     </div>
                     <div className="relative mt-1 flex flex-col gap-1">
                       {dayJobs.slice(0, 3).map((job) => (
