@@ -59,10 +59,19 @@ const TYPE_STYLES: Record<string, string> = {
 
 function JobsPage() {
   const queryClient = useQueryClient();
+  const me = useCurrentMember();
 
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: fetchJobsWithFullCustomers,
+  });
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: fetchTeamMembers,
+  });
+  const { data: assignments = [] } = useQuery({
+    queryKey: ["job_assignments"],
+    queryFn: fetchJobAssignments,
   });
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -71,11 +80,11 @@ function JobsPage() {
 
   const mutation = useMutation({
     mutationFn: ({ id, lane }: { id: string; lane: DispatchLane }) =>
-      updateJob(id, laneTransition(lane)),
+      updateJob(id, { ...laneTransition(lane), scheduled_by_id: me?.id ?? null }),
     onMutate: async ({ id, lane }) => {
       await queryClient.cancelQueries({ queryKey: ["jobs"] });
       const previous = queryClient.getQueryData<JobWithFullCustomer[]>(["jobs"]);
-      const patch = laneTransition(lane);
+      const patch = { ...laneTransition(lane), scheduled_by_id: me?.id ?? null };
       queryClient.setQueryData<JobWithFullCustomer[]>(["jobs"], (old = []) =>
         old.map((j) => (j.id === id ? { ...j, ...patch } : j)),
       );
