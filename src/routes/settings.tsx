@@ -134,7 +134,12 @@ function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <FinancialReports />
+
+        <JobberImport />
       </div>
+    </div>
     </div>
   );
 }
