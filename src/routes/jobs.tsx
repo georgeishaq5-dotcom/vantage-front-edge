@@ -124,7 +124,10 @@ function JobsPage() {
         action={<CreateJobModal />}
       />
 
+      <NeighborOutreachFeed />
+
       <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+
         {DISPATCH_LANES.map((lane) => {
           const laneJobs = jobs.filter((j) => jobLane(j) === lane);
           return (
