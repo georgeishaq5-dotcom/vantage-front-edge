@@ -172,6 +172,13 @@ function Dashboard() {
           />
         </div>
 
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
+          <MarketingActivityCard />
+        </div>
+
+
+
         <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
