@@ -213,12 +213,16 @@ function JobsPage() {
 
 function DispatchCard({
   job,
+  members,
+  assignments,
   isDragging,
   onOpen,
   onDragStart,
   onDragEnd,
 }: {
   job: JobWithFullCustomer;
+  members: TeamMember[];
+  assignments: JobAssignment[];
   isDragging?: boolean;
   onOpen?: () => void;
   onDragStart?: () => void;
@@ -226,6 +230,7 @@ function DispatchCard({
 }) {
   const customer = job.customer;
   const type = customer?.customer_type;
+  const scheduledBy = members.find((m) => m.id === job.scheduled_by_id);
   return (
     <div
       draggable
