@@ -278,7 +278,7 @@ function DispatchCard({
         <span className="truncate text-[11px] text-muted-foreground">
           Scheduled by: {scheduledBy?.full_name ?? "—"}
         </span>
-        <CrewAssignment job​Id={job.id} members={members} assignments={assignments} />
+        <CrewAssignment jobId={job.id} members={members} assignments={assignments} />
       </div>
     </div>
   );
