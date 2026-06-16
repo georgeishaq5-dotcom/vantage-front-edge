@@ -21,6 +21,7 @@ export interface Job {
   status: JobStatus;
   service_date: string | null;
   quote_amount: number;
+  scheduled_by_id: string | null;
   created_at: string;
 }
 
