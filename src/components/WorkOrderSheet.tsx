@@ -3,9 +3,12 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AlertTriangle,
+  Bot,
   Camera,
   CheckCircle2,
+  ClipboardList,
   Eraser,
+  History,
   Loader2,
   Lock,
   MapPin,
@@ -28,9 +31,13 @@ import { useCurrentMember } from "@/hooks/useCurrentMember";
 import {
   fetchCustomers,
   fetchJobLock,
+  fetchTeamMembers,
+  fetchJobAssignments,
   acquireJobLock,
   releaseJobLock,
   formatUSPhoneInput,
+  formatRelativeTime,
+  buildJobActivityLog,
   updateJobStatus,
   type Customer,
   type JobLock,
