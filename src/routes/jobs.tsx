@@ -273,6 +273,13 @@ function DispatchCard({
           <span className="line-clamp-2">{customer.site_notes}</span>
         </div>
       )}
+
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+        <span className="truncate text-[11px] text-muted-foreground">
+          Scheduled by: {scheduledBy?.full_name ?? "—"}
+        </span>
+        <CrewAssignment job​Id={job.id} members={members} assignments={assignments} />
+      </div>
     </div>
   );
 }
