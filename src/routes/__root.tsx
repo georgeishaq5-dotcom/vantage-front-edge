@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -127,15 +128,17 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <VanChatProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <main className="flex-1 overflow-x-hidden">
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </main>
-        </div>
-      </VanChatProvider>
+      <AuthGate>
+        <VanChatProvider>
+          <div className="flex min-h-screen w-full bg-background">
+            <AppSidebar />
+            <main className="flex-1 overflow-x-hidden">
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </main>
+          </div>
+        </VanChatProvider>
+      </AuthGate>
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
