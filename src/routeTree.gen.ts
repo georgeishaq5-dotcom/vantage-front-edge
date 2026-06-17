@@ -15,11 +15,13 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as EstimatesRouteImport } from './routes/estimates'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AiHubRouteImport } from './routes/ai-hub'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
@@ -51,6 +53,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstimatesRoute = EstimatesRouteImport.update({
+  id: '/estimates',
+  path: '/estimates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -76,32 +83,41 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomersCustomerIdRoute = CustomersCustomerIdRouteImport.update({
+  id: '/$customerId',
+  path: '/$customerId',
+  getParentRoute: () => CustomersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -109,13 +125,15 @@ export interface FileRoutesById {
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
-  '/customers': typeof CustomersRoute
+  '/customers': typeof CustomersRouteWithChildren
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,12 +143,14 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/customers/$customerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,12 +158,14 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/customers/$customerId'
   id:
     | '__root__'
     | '/'
@@ -151,12 +173,14 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/customers/$customerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -164,7 +188,8 @@ export interface RootRouteChildren {
   AiHubRoute: typeof AiHubRoute
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
-  CustomersRoute: typeof CustomersRoute
+  CustomersRoute: typeof CustomersRouteWithChildren
+  EstimatesRoute: typeof EstimatesRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
   QuotesRoute: typeof QuotesRoute
@@ -217,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estimates': {
+      id: '/estimates'
+      path: '/estimates'
+      fullPath: '/estimates'
+      preLoaderRoute: typeof EstimatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/customers': {
       id: '/customers'
       path: '/customers'
@@ -252,15 +284,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customers/$customerId': {
+      id: '/customers/$customerId'
+      path: '/$customerId'
+      fullPath: '/customers/$customerId'
+      preLoaderRoute: typeof CustomersCustomerIdRouteImport
+      parentRoute: typeof CustomersRoute
+    }
   }
 }
+
+interface CustomersRouteChildren {
+  CustomersCustomerIdRoute: typeof CustomersCustomerIdRoute
+}
+
+const CustomersRouteChildren: CustomersRouteChildren = {
+  CustomersCustomerIdRoute: CustomersCustomerIdRoute,
+}
+
+const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
+  CustomersRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiHubRoute: AiHubRoute,
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
-  CustomersRoute: CustomersRoute,
+  CustomersRoute: CustomersRouteWithChildren,
+  EstimatesRoute: EstimatesRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
   QuotesRoute: QuotesRoute,

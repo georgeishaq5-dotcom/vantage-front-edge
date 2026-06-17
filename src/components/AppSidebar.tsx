@@ -7,6 +7,8 @@ import {
   Bot,
   KanbanSquare,
   CalendarDays,
+  FileText,
+  Contact,
   Users,
   Settings,
   LogOut,
@@ -21,6 +23,8 @@ const NAV = [
   { label: "Van's AI Hub", to: "/ai-hub", icon: Bot },
   { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
   { label: "Calendar", to: "/calendar", icon: CalendarDays },
+  { label: "Estimates", to: "/estimates", icon: FileText },
+  { label: "Customers", to: "/customers", icon: Contact },
   { label: "My Team", to: "/team", icon: Users },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
