@@ -10,31 +10,35 @@ export interface DayForecast {
 
 export const WORKABILITY_META: Record<
   WorkabilityLevel,
-  { label: string; condition: string; tint: string; badge: string }
+  { label: string; condition: string; tint: string; badge: string; topBorder: string }
 > = {
   1: {
     label: "Optimal",
     condition: "Clear & sunny",
     tint: "bg-emerald-50/70",
     badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+    topBorder: "border-t-[3px] border-t-emerald-500",
   },
   2: {
     label: "Fair",
     condition: "Partly cloudy",
     tint: "bg-sky-50/70",
     badge: "bg-sky-100 text-sky-700 border border-sky-200",
+    topBorder: "border-t-[3px] border-t-sky-500",
   },
   3: {
     label: "Caution",
     condition: "Rain / wind — expect delays",
     tint: "bg-amber-50/80",
     badge: "bg-amber-100 text-amber-700 border border-amber-200",
+    topBorder: "border-t-[3px] border-t-amber-500",
   },
   4: {
     label: "Severe",
     condition: "Thunderstorms — do not book",
     tint: "bg-rose-50/80",
     badge: "bg-rose-100 text-rose-700 border border-rose-200",
+    topBorder: "border-t-[3px] border-t-rose-500",
   },
 };
 
