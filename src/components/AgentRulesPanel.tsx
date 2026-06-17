@@ -420,6 +420,87 @@ export function AgentRulesPanel() {
             </div>
           </div>
 
+          {/* ============ Website Lead Capture ============ */}
+          <div className="space-y-4 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Website Lead Capture</h3>
+            </div>
+            <div className="rounded-lg border border-border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">Embed Code</p>
+                <Button type="button" variant="secondary" size="sm" onClick={copyEmbed} className="gap-1.5">
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </Button>
+              </div>
+              <pre className="mt-3 overflow-x-auto rounded-md bg-foreground/90 p-3 text-xs leading-relaxed text-background">
+                <code>{EMBED_CODE}</code>
+              </pre>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Paste this on your website to let Van automatically quote and book website visitors 24/7.
+            </p>
+          </div>
+
+          {/* ============ Reputation Engine ============ */}
+          <div className="space-y-5 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Reputation Engine</h3>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 p-4">
+              <div className="pr-4">
+                <Label className="text-sm font-semibold">Automated Review Requests</Label>
+                <p className="text-xs text-muted-foreground">
+                  Van texts a Google review link the moment an invoice is marked Paid.
+                </p>
+              </div>
+              <Switch checked={autoReviews} onCheckedChange={setAutoReviews} />
+            </div>
+          </div>
+
+          {/* ============ Sales Opportunity Queue ============ */}
+          <div className="space-y-4 border-t border-border pt-6">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-revenue" />
+              <h3 className="text-sm font-semibold text-foreground">Sales Opportunity Queue</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Quotes with no movement in over 14 days. Van can nudge these prospects automatically.
+            </p>
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 p-4">
+              <div className="pr-4">
+                <Label className="text-sm font-semibold">Auto Follow-Up Texts</Label>
+                <p className="text-xs text-muted-foreground">
+                  Send a friendly check-in to every stagnant quote below.
+                </p>
+              </div>
+              <Switch checked={autoFollowUp} onCheckedChange={setAutoFollowUp} />
+            </div>
+
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {STAGNANT_QUOTES.map((q) => (
+                <div key={q.name} className="flex items-center justify-between p-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{q.name}</p>
+                    <p className="text-xs text-muted-foreground">{q.service}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">
+                      ${q.amount.toLocaleString()}
+                    </p>
+                    <p className="text-xs font-medium text-destructive">{q.days} days stale</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+
+
           {/* Veto level */}
           <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 p-4">
             <div>
