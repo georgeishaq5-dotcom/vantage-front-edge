@@ -500,10 +500,15 @@ function PhotoSlot({ label }: { label: string }) {
   );
 }
 
-function SignaturePad() {
+function SignaturePad({ onSignedChange }: { onSignedChange?: (signed: boolean) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(false);
+
+  function markSigned() {
+    setHasInk(true);
+    onSignedChange?.(true);
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
