@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatCurrency, fetchTradePresets, DEFAULT_PRESET, type PresetUpgrade } from "@/lib/fsm";
+import { useNotifications } from "@/lib/notifications";
+import { toast } from "sonner";
 import { SatelliteMeasure, type MeasureResult } from "@/components/SatelliteMeasure";
 
 export const Route = createFileRoute("/quotes")({
@@ -54,7 +56,17 @@ function QuotesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base.profession, upgrades.length]);
 
+  const { notify } = useNotifications();
   const toggle = (key: string) => setSelected((s) => ({ ...s, [key]: !s[key] }));
+
+  function approveQuote() {
+    notify(
+      "quote_approved",
+      "Quote approved & signed",
+      `A customer checked out and signed a ${formatCurrency(total)} estimate.`,
+    );
+    toast.success("Quote approved — the customer has been notified.");
+  }
 
   const measuredCharge = useMemo(() => {
     if (!measure) return 0;
@@ -189,7 +201,7 @@ function QuotesPage() {
                 Base {formatCurrency(baseTotal)} + upgrades {formatCurrency(upgradesTotal)}
               </p>
             </div>
-            <Button variant="revenue" size="lg" className="h-12">
+            <Button variant="revenue" size="lg" className="h-12" onClick={approveQuote}>
               Approve Quote
             </Button>
           </div>

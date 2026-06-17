@@ -1079,12 +1079,33 @@ export async function saveTradePresets(
 
 // ============= Profile / onboarding =============
 
+export const TEAM_SIZES = ["1 (Solo)", "2-5", "6-15", "16+"] as const;
+export const REVENUE_BANDS = ["Under $100k", "$100k-$500k", "$500k-$1M", "$1M+"] as const;
+export const YEARS_IN_BUSINESS = [
+  "Just starting",
+  "1-3 years",
+  "4-10 years",
+  "10+ years",
+] as const;
+
 export interface Profile {
   id: string;
   email: string | null;
   full_name: string | null;
   profession: string | null;
   onboarded: boolean;
+  company_name: string | null;
+  team_size: string | null;
+  yearly_revenue: string | null;
+  years_in_business: string | null;
+}
+
+export interface OnboardingDetails {
+  profession: string;
+  company_name: string;
+  team_size: string;
+  yearly_revenue: string;
+  years_in_business: string;
 }
 
 export async function fetchMyProfile(): Promise<Profile | null> {
@@ -1093,11 +1114,31 @@ export async function fetchMyProfile(): Promise<Profile | null> {
   if (!uid) return null;
   const { data, error } = await db
     .from("profiles")
-    .select("id,email,full_name,profession,onboarded")
+    .select(
+      "id,email,full_name,profession,onboarded,company_name,team_size,yearly_revenue,years_in_business",
+    )
     .eq("id", uid)
     .maybeSingle();
   if (error) throw error;
   return (data as Profile) ?? null;
+}
+
+// Persist the expanded onboarding details without completing onboarding yet.
+export async function saveOnboardingDetails(input: OnboardingDetails): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Not signed in");
+  const { error } = await db.from("profiles").update(input).eq("id", uid);
+  if (error) throw error;
+}
+
+// Mark onboarding complete after the feature tour finishes.
+export async function finishOnboarding(): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Not signed in");
+  const { error } = await db.from("profiles").update({ onboarded: true }).eq("id", uid);
+  if (error) throw error;
 }
 
 export async function completeOnboarding(profession: string): Promise<void> {
@@ -1110,3 +1151,4 @@ export async function completeOnboarding(profession: string): Promise<void> {
     .eq("id", uid);
   if (error) throw error;
 }
+

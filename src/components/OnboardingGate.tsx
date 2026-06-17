@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Briefcase } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,20 +13,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { VantageLogo } from "@/components/VantageLogo";
+import { FeatureTour } from "@/components/onboarding/FeatureTour";
 import {
   PROFESSIONS,
+  TEAM_SIZES,
+  REVENUE_BANDS,
+  YEARS_IN_BUSINESS,
   presetForProfession,
   fetchMyProfile,
   fetchTradePresets,
   saveTradePresets,
-  completeOnboarding,
+  saveOnboardingDetails,
+  finishOnboarding,
 } from "@/lib/fsm";
 
 const OTHER = "__other__";
 
 /**
- * Mandatory first-login modal: captures the user's trade and seeds
- * trade-specific estimate presets before the app is usable.
+ * Mandatory onboarding sequence:
+ *  Step 1 — expanded business profile capture
+ *  Step 2 — animated 5-page feature tour
+ *  Step 3 — global notification opt-in (final tour page)
  */
 export function OnboardingGate() {
   const queryClient = useQueryClient();
@@ -35,54 +43,88 @@ export function OnboardingGate() {
     queryFn: fetchMyProfile,
   });
 
-  const [choice, setChoice] = useState<string>("");
+  const [stage, setStage] = useState<"form" | "tour">("form");
+  const [choice, setChoice] = useState("");
   const [custom, setCustom] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [teamSize, setTeamSize] = useState("");
+  const [yearlyRevenue, setYearlyRevenue] = useState("");
+  const [yearsInBusiness, setYearsInBusiness] = useState("");
   const [busy, setBusy] = useState(false);
 
   if (isLoading || !profile || profile.onboarded) return null;
 
   const profession = choice === OTHER ? custom.trim() : choice;
-  const canSubmit = !!profession;
+  const canSubmit =
+    !!profession && !!companyName.trim() && !!teamSize && !!yearlyRevenue && !!yearsInBusiness;
 
   async function submit() {
-    if (!profession) return;
+    if (!canSubmit) return;
     setBusy(true);
     try {
-      // Seed trade-specific presets (managers only; ignore if not permitted).
       try {
         const existing = await fetchTradePresets();
         await saveTradePresets(existing?.id ?? null, presetForProfession(profession));
         queryClient.invalidateQueries({ queryKey: ["trade_presets"] });
       } catch {
-        /* non-managers can't write presets; onboarding still completes */
+        /* non-managers can't write presets; onboarding still continues */
       }
-      await completeOnboarding(profession);
-      await queryClient.invalidateQueries({ queryKey: ["my_profile"] });
-      toast.success(`Welcome aboard — ${profession} presets are ready.`);
+      await saveOnboardingDetails({
+        profession,
+        company_name: companyName.trim(),
+        team_size: teamSize,
+        yearly_revenue: yearlyRevenue,
+        years_in_business: yearsInBusiness,
+      });
+      setStage("tour");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save your trade");
+      toast.error(err instanceof Error ? err.message : "Could not save your details");
+    } finally {
       setBusy(false);
     }
   }
 
+  async function finish() {
+    try {
+      await finishOnboarding();
+      await queryClient.invalidateQueries({ queryKey: ["my_profile"] });
+      toast.success(`Welcome aboard${companyName ? `, ${companyName}` : ""}!`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not finish setup");
+    }
+  }
+
+  if (stage === "tour") return <FeatureTour onFinish={finish} />;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl">
-        <div className="mb-5 flex flex-col items-center text-center">
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-xl bg-revenue text-revenue-foreground">
-            <Briefcase className="h-6 w-6" />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-background/90 px-4 py-8 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-8 shadow-md sm:p-10">
+        <div className="mb-7 flex flex-col items-center text-center">
+          <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-brand-muted">
+            <VantageLogo className="h-7 w-9" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">Welcome to VantageFSM</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Let's tailor your workspace. What is your profession?
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome to Vantage</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Tell us about your business so we can tailor your workspace.
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="space-y-1.5">
-            <Label>Profession</Label>
+            <Label htmlFor="company">Company Name</Label>
+            <Input
+              id="company"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g. Vantage Field Services"
+              className="h-11"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Industry</Label>
             <Select value={choice} onValueChange={setChoice}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select your trade…" />
               </SelectTrigger>
               <SelectContent>
@@ -104,22 +146,73 @@ export function OnboardingGate() {
                 value={custom}
                 onChange={(e) => setCustom(e.target.value)}
                 placeholder="e.g. Mobile Detailing"
+                className="h-11"
                 autoFocus
               />
             </div>
           )}
 
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Team Size</Label>
+              <Select value={teamSize} onValueChange={setTeamSize}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEAM_SIZES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Years in Business</Label>
+              <Select value={yearsInBusiness} onValueChange={setYearsInBusiness}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {YEARS_IN_BUSINESS.map((y) => (
+                    <SelectItem key={y} value={y}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Estimated Yearly Revenue</Label>
+            <Select value={yearlyRevenue} onValueChange={setYearlyRevenue}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Select a range…" />
+              </SelectTrigger>
+              <SelectContent>
+                {REVENUE_BANDS.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button
-            variant="revenue"
-            className="w-full"
+            variant="brand"
+            className="h-12 w-full text-base"
             disabled={!canSubmit || busy}
             onClick={submit}
           >
-            {busy && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-            Set up my workspace
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            Continue
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            We'll preload estimate templates for your trade. You can edit them anytime in Settings.
+            Next, a quick tour of what Vantage can do for you.
           </p>
         </div>
       </div>

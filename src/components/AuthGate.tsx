@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OnboardingGate } from "@/components/OnboardingGate";
+import { VantageLogo } from "@/components/VantageLogo";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -87,10 +88,10 @@ function AuthScreen() {
     <div className="flex min-h-screen items-center justify-center bg-sidebar px-4">
       <div className="w-full max-w-sm rounded-2xl border border-sidebar-border bg-card p-8 shadow-2xl">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-xl bg-revenue text-revenue-foreground">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="mb-3 grid h-12 w-12 place-items-center rounded-xl bg-brand-muted">
+            <VantageLogo className="h-6 w-8" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">VantageFSM</h1>
+          <h1 className="text-xl font-bold text-foreground">Vantage</h1>
           <p className="mt-1 text-sm text-muted-foreground">Sign in to your workspace</p>
         </div>
 

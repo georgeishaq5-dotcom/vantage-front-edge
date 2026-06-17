@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
+import { NotificationsProvider } from "@/lib/notifications";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -81,14 +83,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Vantage" },
+      {
+        name: "description",
+        content:
+          "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
+      },
+      { name: "author", content: "Vantage" },
+      { property: "og:title", content: "Vantage" },
+      {
+        property: "og:description",
+        content:
+          "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Vantage" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Vantage" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -128,18 +139,23 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate>
-        <VanChatProvider>
-          <div className="flex min-h-screen w-full bg-background">
-            <AppSidebar />
-            <main className="flex-1 overflow-x-hidden">
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </main>
-          </div>
-        </VanChatProvider>
-      </AuthGate>
-      <Toaster richColors position="top-right" />
+      <NotificationsProvider>
+        <AuthGate>
+          <VanChatProvider>
+            <div className="flex min-h-screen w-full bg-background">
+              <AppSidebar />
+              <main className="flex-1 overflow-x-hidden">
+                <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-2 border-b border-border bg-background/80 px-6 backdrop-blur">
+                  <NotificationBell />
+                </header>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </main>
+            </div>
+          </VanChatProvider>
+        </AuthGate>
+        <Toaster richColors position="top-right" />
+      </NotificationsProvider>
     </QueryClientProvider>
   );
 }

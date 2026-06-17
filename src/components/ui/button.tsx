@@ -18,6 +18,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         revenue:
           "bg-revenue text-revenue-foreground shadow-sm hover:bg-revenue/90 font-semibold",
+        brand:
+          "bg-brand text-brand-foreground shadow-sm hover:bg-brand/90 font-semibold rounded-xl",
       },
       size: {
         default: "h-9 px-4 py-2",

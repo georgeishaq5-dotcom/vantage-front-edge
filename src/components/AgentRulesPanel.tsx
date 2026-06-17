@@ -39,6 +39,7 @@ import {
   type VetoLevel,
   type FollowUpTrigger,
 } from "@/lib/fsm";
+import { useNotifications } from "@/lib/notifications";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
@@ -50,6 +51,7 @@ function formatHour(h: number): string {
 
 export function AgentRulesPanel() {
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const { data: rules, isLoading } = useQuery({
     queryKey: ["agent_rules"],
     queryFn: fetchAgentRules,
@@ -441,6 +443,20 @@ export function AgentRulesPanel() {
             <p className="text-xs text-muted-foreground">
               Paste this on your website to let Van automatically quote and book website visitors 24/7.
             </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                notify(
+                  "new_lead",
+                  "New lead captured",
+                  "The website widget captured a new prospect requesting a quote.",
+                )
+              }
+            >
+              Simulate widget lead
+            </Button>
           </div>
 
           {/* ============ Reputation Engine ============ */}
@@ -488,16 +504,33 @@ export function AgentRulesPanel() {
                     <p className="text-sm font-medium text-foreground">{q.name}</p>
                     <p className="text-xs text-muted-foreground">{q.service}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-foreground">
-                      ${q.amount.toLocaleString()}
-                    </p>
-                    <p className="text-xs font-medium text-destructive">{q.days} days stale</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-foreground">
+                        ${q.amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs font-medium text-destructive">{q.days} days stale</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        notify(
+                          "quote_resurrection",
+                          "Quote resurrected",
+                          `Van re-engaged ${q.name}'s stagnant ${q.service} quote.`,
+                        )
+                      }
+                    >
+                      Re-engage
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
 
 
 
