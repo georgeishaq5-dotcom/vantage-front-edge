@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as EstimatesRouteImport } from './routes/estimates'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
@@ -51,6 +52,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EstimatesRoute = EstimatesRouteImport.update({
+  id: '/estimates',
+  path: '/estimates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/customers': typeof CustomersRoute
+  '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/quotes': typeof QuotesRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/campaigns'
     | '/customers'
+    | '/estimates'
     | '/jobs'
     | '/ledger'
     | '/quotes'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
   CustomersRoute: typeof CustomersRoute
+  EstimatesRoute: typeof EstimatesRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
   QuotesRoute: typeof QuotesRoute
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/estimates': {
+      id: '/estimates'
+      path: '/estimates'
+      fullPath: '/estimates'
+      preLoaderRoute: typeof EstimatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/customers': {
       id: '/customers'
       path: '/customers'
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
   CustomersRoute: CustomersRoute,
+  EstimatesRoute: EstimatesRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
   QuotesRoute: QuotesRoute,
