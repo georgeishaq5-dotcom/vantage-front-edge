@@ -101,7 +101,15 @@ function CustomersPage() {
               ) : (
                 filtered.map((c, i) => (
                   <tr key={c.id} className={i % 2 === 1 ? "bg-secondary/30" : "bg-card"}>
-                    <td className="px-6 py-3.5 font-medium text-foreground">{c.full_name}</td>
+                    <td className="px-6 py-3.5 font-medium text-foreground">
+                      <Link
+                        to="/customers/$customerId"
+                        params={{ customerId: c.id }}
+                        className="hover:text-revenue hover:underline"
+                      >
+                        {c.full_name}
+                      </Link>
+                    </td>
                     <td className="px-6 py-3.5">
                       {c.customer_type ? (
                         <span
