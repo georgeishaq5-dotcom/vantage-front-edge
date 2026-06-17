@@ -83,14 +83,6 @@ export function CreateJobModal() {
   );
   const estimateTotal = base + measuredCharge + upgradesTotal;
 
-  // Approved estimates available to attach (quoted jobs).
-  const { data: jobs = [] } = useQuery({
-    queryKey: ["jobs"],
-    queryFn: fetchCustomers, // placeholder not used; see below
-    enabled: false,
-  });
-  void jobs;
-
   function resetForms() {
     setCustomerId("");
     setTitle("");
