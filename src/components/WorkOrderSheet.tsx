@@ -232,7 +232,7 @@ function WorkOrderBody({
       </SheetHeader>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-sidebar-border bg-sidebar px-5">
+      <div className="flex gap-1 overflow-x-auto border-b border-sidebar-border bg-sidebar px-5">
         <button
           type="button"
           onClick={() => setTab("order")}
