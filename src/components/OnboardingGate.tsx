@@ -127,7 +127,7 @@ export function OnboardingGate() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select your trade…" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[200]">
                 {PROFESSIONS.map((p) => (
                   <SelectItem key={p} value={p}>
                     {p}
@@ -159,7 +159,7 @@ export function OnboardingGate() {
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[200]">
                   {TEAM_SIZES.map((t) => (
                     <SelectItem key={t} value={t}>
                       {t}
@@ -175,7 +175,7 @@ export function OnboardingGate() {
                 <SelectTrigger className="h-11">
                   <SelectValue placeholder="Select…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[200]">
                   {YEARS_IN_BUSINESS.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}
@@ -192,7 +192,7 @@ export function OnboardingGate() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select a range…" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[200]">
                 {REVENUE_BANDS.map((r) => (
                   <SelectItem key={r} value={r}>
                     {r}

@@ -16,7 +16,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
 import { NotificationsProvider } from "@/lib/notifications";
-import { NotificationBell } from "@/components/NotificationBell";
+import { HeaderBar } from "@/components/HeaderBar";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -146,9 +146,7 @@ function RootComponent() {
             <div className="flex min-h-screen w-full bg-background">
               <AppSidebar />
               <main className="flex-1 overflow-x-hidden pb-16 md:pb-0">
-                <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-2 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-                  <NotificationBell />
-                </header>
+                <HeaderBar />
                 {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
                 <Outlet />
               </main>
