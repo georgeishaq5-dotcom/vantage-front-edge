@@ -26,8 +26,15 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl px-8 py-8">
-      <PageHeader title="Settings" description="Manage billing, your team, and integrations." />
+      <PageHeader title="Settings" description="Manage billing, your team, integrations, and trade presets." />
 
+      <Tabs defaultValue="general" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="presets">Trade &amp; Pricing Presets</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general">
       {/* Profile */}
       <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
         <h2 className="text-base font-semibold text-foreground">Profile</h2>
