@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, ShieldCheck, UserPlus } from "lucide-react";
+import { Building2, ShieldCheck, UserPlus, Mail } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { MemberAvatar } from "@/components/CrewAssignment";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { inviteTeammate } from "@/lib/team.functions";
 import { cn } from "@/lib/utils";
 import {
   COMPANY_ID,
