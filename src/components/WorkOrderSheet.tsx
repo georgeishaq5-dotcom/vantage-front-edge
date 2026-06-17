@@ -48,6 +48,8 @@ import {
   type JobWithCustomer,
 } from "@/lib/fsm";
 
+export type WorkOrderTab = "order" | "inspection" | "activity" | "radius";
+
 const DEFAULT_CHECKLIST = [
   "Pre-service photo taken",
   "Property inspected for open windows",
