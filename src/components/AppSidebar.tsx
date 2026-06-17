@@ -8,6 +8,7 @@ import {
   KanbanSquare,
   CalendarDays,
   FileText,
+  Clock,
   Contact,
   Users,
   Settings,
