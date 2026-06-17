@@ -73,17 +73,7 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
     <VanChatContext.Provider value={{ open, close }}>
       {children}
 
-      {/* Floating action button */}
-      {!isOpen && (
-        <button
-          type="button"
-          aria-label="Open Van AI assistant"
-          onClick={() => open()}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-revenue text-white shadow-lg shadow-revenue/30 transition-transform hover:scale-105 active:scale-95"
-        >
-          <Bot className="h-6 w-6" />
-        </button>
-      )}
+
 
       {/* Slide-out chat panel */}
       <div
