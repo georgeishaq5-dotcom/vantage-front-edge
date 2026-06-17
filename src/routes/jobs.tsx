@@ -31,6 +31,10 @@ import {
 
 
 export const Route = createFileRoute("/jobs")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    job: typeof search.job === "string" ? search.job : undefined,
+    tab: search.tab === "radius" ? "radius" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Dispatch Board — Vantage FSM" },
