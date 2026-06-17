@@ -66,7 +66,18 @@ function TimesheetsPage() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [clockedInAt, setClockedInAt] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [trackType, setTrackType] = useState<"general" | "drive" | "job">("general");
+  const [selectedJobId, setSelectedJobId] = useState<string>("");
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { data: jobs = [] } = useQuery({
+    queryKey: ["jobs"],
+    queryFn: fetchJobsWithCustomers,
+  });
+  const today = new Date().toISOString().slice(0, 10);
+  const todaysJobs = jobs.filter(
+    (j) => j.status === "Scheduled" && (j.service_date ?? "").slice(0, 10) === today,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
