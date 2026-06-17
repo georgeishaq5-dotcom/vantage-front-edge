@@ -42,7 +42,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (!session) return <AuthScreen />;
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <OnboardingGate />
+    </>
+  );
 }
 
 function AuthScreen() {
