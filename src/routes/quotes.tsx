@@ -1,10 +1,12 @@
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Star, Shield, Sparkles } from "lucide-react";
+import { Check, Shield, Plus, Satellite, Ruler, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/fsm";
+import { SatelliteMeasure, type MeasureResult } from "@/components/SatelliteMeasure";
 
 export const Route = createFileRoute("/quotes")({
   head: () => ({
@@ -13,161 +15,241 @@ export const Route = createFileRoute("/quotes")({
       {
         name: "description",
         content:
-          "A clear three-tier service quote — Good, Better, and Best — so you can choose the option that fits your home and budget.",
+          "Review your base service price and add optional upgrades. Your total updates instantly as you customize the job.",
       },
       { property: "og:title", content: "Your Quote — Vantage FSM" },
       {
         property: "og:description",
-        content: "Compare Good, Better, and Best service packages side by side.",
+        content: "Build your service estimate with optional upgrades and live pricing.",
       },
     ],
   }),
   component: QuotesPage,
 });
 
-interface Tier {
-  key: "good" | "better" | "best";
+interface Upgrade {
+  key: string;
   name: string;
-  tagline: string;
+  description: string;
   price: number;
-  icon: typeof Shield;
-  features: string[];
   recommended?: boolean;
 }
 
-const TIERS: Tier[] = [
+const UPGRADES: Upgrade[] = [
   {
-    key: "good",
-    name: "Good",
-    tagline: "Basic Service",
-    price: 480,
-    icon: Shield,
-    features: [
-      "Core repair & labor",
-      "Standard-grade parts",
-      "30-day workmanship warranty",
-      "Single technician visit",
-    ],
-  },
-  {
-    key: "better",
-    name: "Better",
-    tagline: "Recommended",
-    price: 740,
-    icon: Star,
+    key: "premium-parts",
+    name: "Premium-grade parts",
+    description: "Longer-lasting components with extended manufacturer coverage.",
+    price: 180,
     recommended: true,
-    features: [
-      "Everything in Good",
-      "Premium-grade parts",
-      "1-year workmanship warranty",
-      "Full system safety inspection",
-      "Priority scheduling",
-    ],
   },
   {
-    key: "best",
-    name: "Best",
-    tagline: "Premium",
-    price: 1120,
-    icon: Sparkles,
-    features: [
-      "Everything in Better",
-      "Top-tier parts & components",
-      "3-year workmanship warranty",
-      "Annual maintenance plan included",
-      "24/7 emergency support",
-      "Satisfaction guarantee",
-    ],
+    key: "warranty",
+    name: "Extended 3-year warranty",
+    description: "Full workmanship coverage for three years instead of 30 days.",
+    price: 220,
+  },
+  {
+    key: "inspection",
+    name: "Full system safety inspection",
+    description: "Top-to-bottom check of the surrounding system while we're on site.",
+    price: 95,
+    recommended: true,
+  },
+  {
+    key: "maintenance",
+    name: "Annual maintenance plan",
+    description: "One scheduled tune-up per year to prevent future breakdowns.",
+    price: 140,
+  },
+  {
+    key: "priority",
+    name: "Priority scheduling & 24/7 support",
+    description: "Front-of-line booking and emergency phone support.",
+    price: 75,
   },
 ];
 
+const BASE_PRICE = 480;
+/** Internal pricing rate applied to satellite-measured footage. */
+const RATE_PER_SQFT = 0.85;
+const RATE_PER_LINEAR_FT = 3.5;
+
 function QuotesPage() {
+  const [selected, setSelected] = useState<Record<string, boolean>>({
+    "premium-parts": true,
+    inspection: true,
+  });
+  const [measureOpen, setMeasureOpen] = useState(false);
+  const [measure, setMeasure] = useState<MeasureResult | null>(null);
+
+  const toggle = (key: string) =>
+    setSelected((s) => ({ ...s, [key]: !s[key] }));
+
+  const measuredCharge = useMemo(() => {
+    if (!measure) return 0;
+    return Math.round(
+      measure.feet * (measure.mode === "area" ? RATE_PER_SQFT : RATE_PER_LINEAR_FT),
+    );
+  }, [measure]);
+
+  const baseTotal = BASE_PRICE + measuredCharge;
+
+  const upgradesTotal = useMemo(
+    () => UPGRADES.filter((u) => selected[u.key]).reduce((sum, u) => sum + u.price, 0),
+    [selected],
+  );
+
+  const total = baseTotal + upgradesTotal;
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
       <PageHeader
         title="Your Service Quote"
-        description="Choose the package that's right for you. Every option is backed by our workmanship guarantee."
+        description="Start with the base job and add any optional upgrades. Your total updates in real time."
+        action={
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setMeasureOpen(true)}>
+            <Satellite className="h-4 w-4" />
+            Satellite Measure
+          </Button>
+        }
       />
 
-      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-        {TIERS.map((tier) => {
-          const Icon = tier.icon;
-          return (
-            <div
-              key={tier.key}
-              className={cn(
-                "relative flex flex-col rounded-2xl border bg-card p-6 shadow-sm transition-all",
-                tier.recommended
-                  ? "border-revenue ring-2 ring-revenue/30 md:-mt-3 md:mb-3 shadow-md"
-                  : "border-border",
-              )}
-            >
-              {tier.recommended && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-revenue px-3 py-1 text-xs font-semibold text-revenue-foreground shadow">
-                  Recommended
-                </span>
-              )}
-
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg",
-                    tier.recommended
-                      ? "bg-revenue-muted text-revenue"
-                      : "bg-secondary text-foreground",
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {tier.tagline}
-                  </p>
-                </div>
+      <div className="mt-8 space-y-6">
+        {/* Base job */}
+        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
+                <Shield className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Base Job</h2>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Core service & labor
+                </p>
               </div>
-
-              <div className="mt-5">
-                <span
-                  className={cn(
-                    "text-4xl font-extrabold tracking-tight",
-                    tier.recommended ? "text-revenue" : "text-foreground",
-                  )}
-                >
-                  {formatCurrency(tier.price)}
-                </span>
-                <span className="ml-1 text-sm text-muted-foreground">one-time</span>
-              </div>
-
-              <ul className="mt-6 flex flex-1 flex-col gap-3">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                    <Check
-                      className={cn(
-                        "mt-0.5 h-4 w-4 shrink-0",
-                        tier.recommended ? "text-revenue" : "text-muted-foreground",
-                      )}
-                    />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                className="mt-6 w-full"
-                variant={tier.recommended ? "default" : "outline"}
-              >
-                Approve {tier.name}
-              </Button>
             </div>
-          );
-        })}
+            <span className="text-2xl font-extrabold tracking-tight text-foreground">
+              {formatCurrency(baseTotal)}
+            </span>
+          </div>
+
+          {measure && (
+            <div className="mt-4 flex items-center justify-between rounded-lg border border-border bg-secondary/50 px-4 py-2.5 text-sm">
+              <span className="flex items-center gap-2 text-foreground">
+                <Ruler className="h-4 w-4 text-revenue" />
+                Satellite measured: {measure.feet.toLocaleString()}{" "}
+                {measure.mode === "area" ? "sq ft" : "linear ft"}
+              </span>
+              <span className="font-semibold text-revenue">+{formatCurrency(measuredCharge)}</span>
+            </div>
+          )}
+
+          <ul className="mt-4 space-y-2">
+            {[
+              "Core repair & labor",
+              "Standard-grade parts",
+              "30-day workmanship warranty",
+              "Single technician visit",
+            ].map((f) => (
+              <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Optional upgrades */}
+        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-1 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-revenue" />
+            <h2 className="text-lg font-bold text-foreground">Optional Upgrades</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Tap any upgrade to add it. Your total updates instantly.
+          </p>
+
+          <ul className="space-y-2.5">
+            {UPGRADES.map((u) => {
+              const isOn = !!selected[u.key];
+              return (
+                <li key={u.key}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(u.key)}
+                    className={cn(
+                      "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all",
+                      isOn
+                        ? "border-revenue/60 bg-revenue-muted/40 ring-1 ring-revenue/30"
+                        : "border-border hover:border-revenue/40",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 transition-colors",
+                        isOn
+                          ? "border-revenue bg-revenue text-revenue-foreground"
+                          : "border-muted-foreground/40",
+                      )}
+                    >
+                      {isOn ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4 text-muted-foreground" />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-foreground">{u.name}</span>
+                        {u.recommended && (
+                          <span className="rounded-full bg-revenue-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-revenue">
+                            Recommended
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block text-sm text-muted-foreground">
+                        {u.description}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-semibold text-foreground">
+                      +{formatCurrency(u.price)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Live total */}
+        <section className="sticky bottom-4 rounded-2xl border border-revenue/40 bg-card p-6 shadow-md ring-1 ring-revenue/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Your Total
+              </p>
+              <p className="text-3xl font-extrabold tracking-tight text-revenue">
+                {formatCurrency(total)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Base {formatCurrency(baseTotal)} + upgrades {formatCurrency(upgradesTotal)}
+              </p>
+            </div>
+            <Button variant="revenue" size="lg" className="h-12">
+              Approve Quote
+            </Button>
+          </div>
+        </section>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Prices include parts, labor, and applicable warranty. Final invoice may vary based on
+          on-site conditions.
+        </p>
       </div>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Prices include parts, labor, and applicable warranty. Final invoice may vary based on
-        on-site conditions.
-      </p>
+      <SatelliteMeasure
+        open={measureOpen}
+        onOpenChange={setMeasureOpen}
+        onApply={setMeasure}
+      />
     </div>
   );
 }

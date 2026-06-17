@@ -14,6 +14,10 @@ import {
   MapPin,
   PenLine,
   Phone,
+  Play,
+  ScanEye,
+  ShieldCheck,
+  Timer,
   User,
 } from "lucide-react";
 
@@ -99,7 +103,9 @@ function WorkOrderBody({
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
   const [lock, setLock] = useState<JobLock | null>(null);
-  const [tab, setTab] = useState<"order" | "activity">("order");
+  const [tab, setTab] = useState<"order" | "inspection" | "activity">("order");
+  const [inspectionSigned, setInspectionSigned] = useState(false);
+  const [jobStarted, setJobStarted] = useState(false);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
@@ -229,6 +235,19 @@ function WorkOrderBody({
         </button>
         <button
           type="button"
+          onClick={() => setTab("inspection")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "inspection"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <ShieldCheck className="h-4 w-4" />
+          Pre-Job Inspection
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("activity")}
           className={cn(
             "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
@@ -271,6 +290,79 @@ function WorkOrderBody({
           <p className="mt-6 text-xs text-sidebar-foreground/50">
             This log is append-only — entries cannot be edited or deleted.
           </p>
+        </div>
+      ) : tab === "inspection" ? (
+        <div className="flex-1 space-y-6 px-5 py-6">
+          {/* Pre-Job photo upload zone */}
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">
+              Pre-Job Inspection Photos
+            </h3>
+            <p className="mb-3 text-xs text-sidebar-foreground/60">
+              Document existing conditions before any work begins to protect against liability claims.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <PhotoSlot label="Front / Exterior" />
+              <PhotoSlot label="Work Area" />
+              <PhotoSlot label="Existing Damage" />
+              <PhotoSlot label="Access Point" />
+            </div>
+          </section>
+
+          {/* Van's Vision Scan — AI placeholder */}
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">
+              Van&apos;s Vision Scan
+            </h3>
+            <div className="flex items-start gap-3 rounded-xl border border-dashed border-revenue/50 bg-revenue/10 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-revenue text-revenue-foreground">
+                <ScanEye className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">AI hazard &amp; condition analysis</p>
+                <p className="mt-1 text-xs text-sidebar-foreground/70">
+                  Van will automatically scan uploaded photos for pre-existing damage, safety
+                  hazards, and liability flags. (Analysis coming soon.)
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* E-Signature gate */}
+          <section>
+            <h3 className="mb-1 text-sm font-bold uppercase tracking-wide text-white">
+              Customer Pre-Job Authorization
+            </h3>
+            <p className="mb-3 text-xs text-sidebar-foreground/60">
+              A signature is required to unlock the job timer.
+            </p>
+            <SignaturePad onSignedChange={setInspectionSigned} />
+          </section>
+
+          {/* Start Job — gated by signature */}
+          <Button
+            variant={jobStarted ? "outline" : "revenue"}
+            className="h-12 w-full"
+            disabled={!inspectionSigned || lockedByOther || jobStarted}
+            onClick={() => setJobStarted(true)}
+          >
+            {jobStarted ? (
+              <>
+                <Timer className="h-5 w-5" />
+                Job Timer Running…
+              </>
+            ) : !inspectionSigned ? (
+              <>
+                <Lock className="h-5 w-5" />
+                Capture Signature to Start Job
+              </>
+            ) : (
+              <>
+                <Play className="h-5 w-5" />
+                Start Job Timer
+              </>
+            )}
+          </Button>
         </div>
       ) : (
       <div className="flex-1 space-y-6 px-5 py-6">
@@ -408,10 +500,15 @@ function PhotoSlot({ label }: { label: string }) {
   );
 }
 
-function SignaturePad() {
+function SignaturePad({ onSignedChange }: { onSignedChange?: (signed: boolean) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(false);
+
+  function markSigned() {
+    setHasInk(true);
+    onSignedChange?.(true);
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -452,7 +549,7 @@ function SignaturePad() {
     const { x, y } = pos(e);
     ctx.lineTo(x, y);
     ctx.stroke();
-    setHasInk(true);
+    markSigned();
   }
 
   function end() {
@@ -464,7 +561,9 @@ function SignaturePad() {
     const ctx = canvas?.getContext("2d");
     if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasInk(false);
+    onSignedChange?.(false);
   }
+
 
   return (
     <div className="rounded-xl border border-sidebar-border bg-card p-3">

@@ -10,7 +10,17 @@ export interface DayForecast {
 
 export const WORKABILITY_META: Record<
   WorkabilityLevel,
-  { label: string; condition: string; tint: string; badge: string; topBorder: string }
+  {
+    label: string;
+    condition: string;
+    tint: string;
+    badge: string;
+    topBorder: string;
+    /** Highly transparent full-cell heat-map tint (~12% opacity). */
+    cellTint: string;
+    /** Tailwind text color for the watermark weather icon. */
+    iconColor: string;
+  }
 > = {
   1: {
     label: "Optimal",
@@ -18,6 +28,8 @@ export const WORKABILITY_META: Record<
     tint: "bg-emerald-50/70",
     badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
     topBorder: "border-t-[3px] border-t-emerald-500",
+    cellTint: "bg-emerald-500/[0.12]",
+    iconColor: "text-emerald-500/15",
   },
   2: {
     label: "Fair",
@@ -25,6 +37,8 @@ export const WORKABILITY_META: Record<
     tint: "bg-sky-50/70",
     badge: "bg-sky-100 text-sky-700 border border-sky-200",
     topBorder: "border-t-[3px] border-t-sky-500",
+    cellTint: "bg-sky-500/[0.12]",
+    iconColor: "text-sky-500/15",
   },
   3: {
     label: "Caution",
@@ -32,6 +46,8 @@ export const WORKABILITY_META: Record<
     tint: "bg-amber-50/80",
     badge: "bg-amber-100 text-amber-700 border border-amber-200",
     topBorder: "border-t-[3px] border-t-amber-500",
+    cellTint: "bg-amber-500/[0.13]",
+    iconColor: "text-amber-500/20",
   },
   4: {
     label: "Severe",
@@ -39,6 +55,8 @@ export const WORKABILITY_META: Record<
     tint: "bg-rose-50/80",
     badge: "bg-rose-100 text-rose-700 border border-rose-200",
     topBorder: "border-t-[3px] border-t-rose-500",
+    cellTint: "bg-rose-500/[0.13]",
+    iconColor: "text-rose-500/20",
   },
 };
 
