@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuotesRouteImport } from './routes/quotes'
@@ -32,6 +33,11 @@ const TimesheetsRoute = TimesheetsRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimesheetsRoute = TimesheetsRouteImport.update({
+  id: '/timesheets',
+  path: '/timesheets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/timesheets': typeof TimesheetsRoute
+  '/timesheets': typeof TimesheetsRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
 export interface FileRoutesByTo {
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/timesheets': typeof TimesheetsRoute
   '/timesheets': typeof TimesheetsRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/timesheets': typeof TimesheetsRoute
   '/timesheets': typeof TimesheetsRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/timesheets'
+    | '/timesheets'
     | '/customers/$customerId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/timesheets'
+    | '/timesheets'
     | '/customers/$customerId'
   id:
     | '__root__'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/timesheets'
     | '/timesheets'
     | '/customers/$customerId'
   fileRoutesById: FileRoutesById
@@ -225,6 +237,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/timesheets': {
+      id: '/timesheets'
+      path: '/timesheets'
+      fullPath: '/timesheets'
+      preLoaderRoute: typeof TimesheetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
