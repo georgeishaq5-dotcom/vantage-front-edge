@@ -168,6 +168,12 @@ function SettingsPage() {
 
         <JobberImport />
       </div>
+        </TabsContent>
+
+        <TabsContent value="presets" className="mt-6">
+          <TradePresetsPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
