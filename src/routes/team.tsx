@@ -76,7 +76,7 @@ function TeamPage() {
       <PageHeader
         title="My Team"
         description="Your crew, their roles, live status, and certified skills."
-        action={<AddTeammateDialog />}
+        action={<TeamActions />}
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
