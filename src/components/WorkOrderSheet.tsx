@@ -14,6 +14,10 @@ import {
   MapPin,
   PenLine,
   Phone,
+  Play,
+  ScanEye,
+  ShieldCheck,
+  Timer,
   User,
 } from "lucide-react";
 
