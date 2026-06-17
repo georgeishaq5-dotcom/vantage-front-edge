@@ -883,3 +883,230 @@ export function buildFinancialReport(jobs: JobWithFullCustomer[]): FinancialRepo
 }
 
 
+
+// ============= Trade & pricing presets =============
+
+export interface PresetUpgrade {
+  key: string;
+  name: string;
+  description: string;
+  price: number;
+  recommended?: boolean;
+}
+
+export interface TradePreset {
+  id: string;
+  profession: string;
+  base_job_title: string;
+  base_job_description: string;
+  base_price: number;
+  upgrades: PresetUpgrade[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TradePresetInput {
+  profession: string;
+  base_job_title: string;
+  base_job_description: string;
+  base_price: number;
+  upgrades: PresetUpgrade[];
+}
+
+// Standard field service trades offered during onboarding.
+export const PROFESSIONS = [
+  "Landscaping",
+  "Plumbing",
+  "HVAC",
+  "Handyman",
+  "Fencing/Decking",
+  "Electrical",
+  "Cleaning",
+  "Pest Control",
+] as const;
+
+// Per-trade default templates applied during onboarding / when a trade changes.
+export const PROFESSION_PRESETS: Record<string, TradePresetInput> = {
+  Landscaping: {
+    profession: "Landscaping",
+    base_job_title: "Lawn Maintenance",
+    base_job_description: "Mowing, edging, blowing & seasonal cleanup",
+    base_price: 120,
+    upgrades: [
+      { key: "fertilization", name: "Fertilization & weed control", description: "Seasonal treatment to keep turf healthy and green.", price: 85, recommended: true },
+      { key: "mulch", name: "Premium mulch refresh", description: "Fresh hardwood mulch installed across all beds.", price: 160 },
+      { key: "aeration", name: "Core aeration & overseed", description: "Relieve compaction and thicken the lawn.", price: 140, recommended: true },
+      { key: "irrigation", name: "Irrigation tune-up", description: "Inspect and adjust all sprinkler zones.", price: 95 },
+    ],
+  },
+  Plumbing: {
+    profession: "Plumbing",
+    base_job_title: "Service Call & Diagnosis",
+    base_job_description: "On-site diagnosis and standard repair labor",
+    base_price: 220,
+    upgrades: [
+      { key: "premium-parts", name: "Premium-grade fixtures", description: "Brand-name fixtures with extended warranty.", price: 180, recommended: true },
+      { key: "water-heater", name: "Water heater flush", description: "Full tank flush to extend equipment life.", price: 130 },
+      { key: "camera", name: "Camera line inspection", description: "Video scope of the main drain line.", price: 195, recommended: true },
+      { key: "warranty", name: "Extended 3-year warranty", description: "Workmanship coverage for three years.", price: 220 },
+    ],
+  },
+  HVAC: {
+    profession: "HVAC",
+    base_job_title: "System Service & Tune-Up",
+    base_job_description: "Full inspection, cleaning, and performance check",
+    base_price: 320,
+    upgrades: [
+      { key: "filter", name: "Premium filtration upgrade", description: "High-efficiency filter with better air quality.", price: 90, recommended: true },
+      { key: "refrigerant", name: "Refrigerant top-off", description: "Recharge to manufacturer spec.", price: 160 },
+      { key: "maintenance", name: "Annual maintenance plan", description: "Two scheduled tune-ups per year.", price: 240, recommended: true },
+      { key: "thermostat", name: "Smart thermostat install", description: "Wi-Fi thermostat supplied and installed.", price: 210 },
+    ],
+  },
+  Handyman: {
+    profession: "Handyman",
+    base_job_title: "Half-Day Service Block",
+    base_job_description: "Up to 4 hours of general repair labor",
+    base_price: 280,
+    upgrades: [
+      { key: "materials", name: "Materials & hardware", description: "Standard supplies sourced for the job.", price: 90, recommended: true },
+      { key: "haul", name: "Debris haul-away", description: "Remove and dispose of old materials.", price: 75 },
+      { key: "extra-hours", name: "Additional 2 hours", description: "Extend the visit for larger projects.", price: 140 },
+      { key: "warranty", name: "Workmanship warranty", description: "One-year coverage on all labor.", price: 110 },
+    ],
+  },
+  "Fencing/Decking": {
+    profession: "Fencing/Decking",
+    base_job_title: "Linear Footage Install",
+    base_job_description: "Standard install priced per linear foot",
+    base_price: 600,
+    upgrades: [
+      { key: "premium-material", name: "Premium material upgrade", description: "Cedar or composite instead of standard pine.", price: 450, recommended: true },
+      { key: "gates", name: "Custom gate add-on", description: "Heavy-duty gate with locking hardware.", price: 320 },
+      { key: "staining", name: "Seal & stain finish", description: "Protective stain to extend lifespan.", price: 280, recommended: true },
+      { key: "removal", name: "Old fence removal", description: "Tear-out and disposal of existing fence.", price: 240 },
+    ],
+  },
+  Electrical: {
+    profession: "Electrical",
+    base_job_title: "Service Call & Diagnosis",
+    base_job_description: "On-site troubleshooting and standard labor",
+    base_price: 250,
+    upgrades: [
+      { key: "panel", name: "Panel inspection", description: "Full safety review of the electrical panel.", price: 150, recommended: true },
+      { key: "surge", name: "Whole-home surge protector", description: "Protect electronics from power spikes.", price: 280 },
+      { key: "outlets", name: "GFCI outlet upgrades", description: "Replace standard outlets with GFCI.", price: 120, recommended: true },
+      { key: "warranty", name: "Extended 3-year warranty", description: "Workmanship coverage for three years.", price: 200 },
+    ],
+  },
+  Cleaning: {
+    profession: "Cleaning",
+    base_job_title: "Standard Cleaning Visit",
+    base_job_description: "Full interior cleaning for a standard home",
+    base_price: 160,
+    upgrades: [
+      { key: "deep", name: "Deep clean add-on", description: "Baseboards, vents, and detailed scrubbing.", price: 120, recommended: true },
+      { key: "windows", name: "Interior windows", description: "Clean all reachable interior glass.", price: 70 },
+      { key: "appliances", name: "Inside appliances", description: "Clean inside oven and refrigerator.", price: 85, recommended: true },
+      { key: "recurring", name: "Recurring discount plan", description: "Locked rate for biweekly service.", price: 0 },
+    ],
+  },
+  "Pest Control": {
+    profession: "Pest Control",
+    base_job_title: "General Pest Treatment",
+    base_job_description: "Interior & perimeter treatment",
+    base_price: 140,
+    upgrades: [
+      { key: "termite", name: "Termite inspection", description: "Full structure termite assessment.", price: 130, recommended: true },
+      { key: "rodent", name: "Rodent exclusion", description: "Seal entry points and set traps.", price: 180 },
+      { key: "mosquito", name: "Mosquito yard treatment", description: "Seasonal yard fogging.", price: 110, recommended: true },
+      { key: "quarterly", name: "Quarterly protection plan", description: "Four visits per year at a locked rate.", price: 320 },
+    ],
+  },
+};
+
+export const DEFAULT_PRESET: TradePresetInput = {
+  profession: "General Field Service",
+  base_job_title: "Base Job",
+  base_job_description: "Core service & labor",
+  base_price: 480,
+  upgrades: [
+    { key: "premium-parts", name: "Premium-grade parts", description: "Longer-lasting components with extended manufacturer coverage.", price: 180, recommended: true },
+    { key: "warranty", name: "Extended 3-year warranty", description: "Full workmanship coverage for three years instead of 30 days.", price: 220 },
+    { key: "inspection", name: "Full system safety inspection", description: "Top-to-bottom check of the surrounding system while we're on site.", price: 95, recommended: true },
+    { key: "maintenance", name: "Annual maintenance plan", description: "One scheduled tune-up per year to prevent future breakdowns.", price: 140 },
+    { key: "priority", name: "Priority scheduling & 24/7 support", description: "Front-of-line booking and emergency phone support.", price: 75 },
+  ],
+};
+
+// Resolve the preset template for a profession (custom trades fall back to default).
+export function presetForProfession(profession: string): TradePresetInput {
+  return PROFESSION_PRESETS[profession] ?? { ...DEFAULT_PRESET, profession };
+}
+
+// Load the singleton trade preset row (or null if none exists yet).
+export async function fetchTradePresets(): Promise<TradePreset | null> {
+  const { data, error } = await db
+    .from("trade_presets")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return { ...data, upgrades: (data.upgrades ?? []) as PresetUpgrade[] } as TradePreset;
+}
+
+// Upsert the singleton trade preset row.
+export async function saveTradePresets(
+  existingId: string | null,
+  input: TradePresetInput,
+): Promise<TradePreset> {
+  if (existingId) {
+    const { data, error } = await db
+      .from("trade_presets")
+      .update(input)
+      .eq("id", existingId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as TradePreset;
+  }
+  const { data, error } = await db.from("trade_presets").insert(input).select().single();
+  if (error) throw error;
+  return data as TradePreset;
+}
+
+// ============= Profile / onboarding =============
+
+export interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  profession: string | null;
+  onboarded: boolean;
+}
+
+export async function fetchMyProfile(): Promise<Profile | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+  const { data, error } = await db
+    .from("profiles")
+    .select("id,email,full_name,profession,onboarded")
+    .eq("id", uid)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as Profile) ?? null;
+}
+
+export async function completeOnboarding(profession: string): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Not signed in");
+  const { error } = await db
+    .from("profiles")
+    .update({ profession, onboarded: true })
+    .eq("id", uid);
+  if (error) throw error;
+}

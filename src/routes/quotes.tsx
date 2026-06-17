@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Check, Shield, Plus, Satellite, Ruler, Sparkles } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/fsm";
+import { formatCurrency, fetchTradePresets, DEFAULT_PRESET, type PresetUpgrade } from "@/lib/fsm";
 import { SatelliteMeasure, type MeasureResult } from "@/components/SatelliteMeasure";
 
 export const Route = createFileRoute("/quotes")({
@@ -27,64 +28,33 @@ export const Route = createFileRoute("/quotes")({
   component: QuotesPage,
 });
 
-interface Upgrade {
-  key: string;
-  name: string;
-  description: string;
-  price: number;
-  recommended?: boolean;
-}
-
-const UPGRADES: Upgrade[] = [
-  {
-    key: "premium-parts",
-    name: "Premium-grade parts",
-    description: "Longer-lasting components with extended manufacturer coverage.",
-    price: 180,
-    recommended: true,
-  },
-  {
-    key: "warranty",
-    name: "Extended 3-year warranty",
-    description: "Full workmanship coverage for three years instead of 30 days.",
-    price: 220,
-  },
-  {
-    key: "inspection",
-    name: "Full system safety inspection",
-    description: "Top-to-bottom check of the surrounding system while we're on site.",
-    price: 95,
-    recommended: true,
-  },
-  {
-    key: "maintenance",
-    name: "Annual maintenance plan",
-    description: "One scheduled tune-up per year to prevent future breakdowns.",
-    price: 140,
-  },
-  {
-    key: "priority",
-    name: "Priority scheduling & 24/7 support",
-    description: "Front-of-line booking and emergency phone support.",
-    price: 75,
-  },
-];
-
-const BASE_PRICE = 480;
 /** Internal pricing rate applied to satellite-measured footage. */
 const RATE_PER_SQFT = 0.85;
 const RATE_PER_LINEAR_FT = 3.5;
 
 function QuotesPage() {
-  const [selected, setSelected] = useState<Record<string, boolean>>({
-    "premium-parts": true,
-    inspection: true,
+  const { data: preset } = useQuery({
+    queryKey: ["trade_presets"],
+    queryFn: fetchTradePresets,
   });
+
+  const base = preset ?? DEFAULT_PRESET;
+  const basePrice = Number(base.base_price) || 0;
+  const upgrades: PresetUpgrade[] = base.upgrades?.length ? base.upgrades : DEFAULT_PRESET.upgrades;
+
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [measureOpen, setMeasureOpen] = useState(false);
   const [measure, setMeasure] = useState<MeasureResult | null>(null);
 
-  const toggle = (key: string) =>
-    setSelected((s) => ({ ...s, [key]: !s[key] }));
+  // Default-select recommended upgrades whenever the preset loads/changes.
+  useEffect(() => {
+    const next: Record<string, boolean> = {};
+    for (const u of upgrades) if (u.recommended) next[u.key] = true;
+    setSelected(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base.profession, upgrades.length]);
+
+  const toggle = (key: string) => setSelected((s) => ({ ...s, [key]: !s[key] }));
 
   const measuredCharge = useMemo(() => {
     if (!measure) return 0;
@@ -93,11 +63,11 @@ function QuotesPage() {
     );
   }, [measure]);
 
-  const baseTotal = BASE_PRICE + measuredCharge;
+  const baseTotal = basePrice + measuredCharge;
 
   const upgradesTotal = useMemo(
-    () => UPGRADES.filter((u) => selected[u.key]).reduce((sum, u) => sum + u.price, 0),
-    [selected],
+    () => upgrades.filter((u) => selected[u.key]).reduce((sum, u) => sum + Number(u.price), 0),
+    [selected, upgrades],
   );
 
   const total = baseTotal + upgradesTotal;
@@ -106,7 +76,7 @@ function QuotesPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8">
       <PageHeader
         title="Your Service Quote"
-        description="Start with the base job and add any optional upgrades. Your total updates in real time."
+        description={`Tailored for ${base.profession}. Add any optional upgrades — your total updates in real time.`}
         action={
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setMeasureOpen(true)}>
             <Satellite className="h-4 w-4" />
@@ -124,9 +94,9 @@ function QuotesPage() {
                 <Shield className="h-5 w-5" />
               </span>
               <div>
-                <h2 className="text-lg font-bold text-foreground">Base Job</h2>
+                <h2 className="text-lg font-bold text-foreground">{base.base_job_title}</h2>
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Core service & labor
+                  {base.base_job_description}
                 </p>
               </div>
             </div>
@@ -145,20 +115,6 @@ function QuotesPage() {
               <span className="font-semibold text-revenue">+{formatCurrency(measuredCharge)}</span>
             </div>
           )}
-
-          <ul className="mt-4 space-y-2">
-            {[
-              "Core repair & labor",
-              "Standard-grade parts",
-              "30-day workmanship warranty",
-              "Single technician visit",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2 text-sm text-foreground">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <span>{f}</span>
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* Optional upgrades */}
@@ -172,7 +128,7 @@ function QuotesPage() {
           </p>
 
           <ul className="space-y-2.5">
-            {UPGRADES.map((u) => {
+            {upgrades.map((u) => {
               const isOn = !!selected[u.key];
               return (
                 <li key={u.key}>
@@ -210,7 +166,7 @@ function QuotesPage() {
                       </span>
                     </span>
                     <span className="shrink-0 font-semibold text-foreground">
-                      +{formatCurrency(u.price)}
+                      +{formatCurrency(Number(u.price))}
                     </span>
                   </button>
                 </li>

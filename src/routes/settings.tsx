@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
+import { TradePresetsPanel } from "@/components/TradePresetsPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Users, Plug, PhoneCall } from "lucide-react";
 
 
@@ -24,8 +26,15 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl px-8 py-8">
-      <PageHeader title="Settings" description="Manage billing, your team, and integrations." />
+      <PageHeader title="Settings" description="Manage billing, your team, integrations, and trade presets." />
 
+      <Tabs defaultValue="general" className="mt-6">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="presets">Trade &amp; Pricing Presets</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general">
       {/* Profile */}
       <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
         <h2 className="text-base font-semibold text-foreground">Profile</h2>
@@ -159,6 +168,12 @@ function SettingsPage() {
 
         <JobberImport />
       </div>
+        </TabsContent>
+
+        <TabsContent value="presets" className="mt-6">
+          <TradePresetsPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
