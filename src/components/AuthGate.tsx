@@ -46,31 +46,16 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 function AuthScreen() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { full_name: fullName },
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created", { description: "You're signed in." });
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
@@ -100,24 +85,10 @@ function AuthScreen() {
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-bold text-foreground">VantageFSM</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {mode === "signin" ? "Sign in to your workspace" : "Create your staff account"}
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to your workspace</p>
         </div>
 
         <form onSubmit={handleEmail} className="space-y-4">
-          {mode === "signup" && (
-            <div className="space-y-1.5">
-              <Label htmlFor="fullName">Full name</Label>
-              <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Jane Tech"
-                required
-              />
-            </div>
-          )}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -143,7 +114,7 @@ function AuthScreen() {
           </div>
           <Button type="submit" variant="revenue" className="w-full" disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            {mode === "signin" ? "Sign in" : "Create account"}
+            Sign in
           </Button>
         </form>
 
@@ -157,17 +128,12 @@ function AuthScreen() {
           Continue with Google
         </Button>
 
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          {mode === "signin" ? "Need an account?" : "Already have an account?"}{" "}
-          <button
-            type="button"
-            className="font-semibold text-revenue hover:underline"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          >
-            {mode === "signin" ? "Sign up" : "Sign in"}
-          </button>
+        <p className="mt-6 rounded-lg border border-border bg-secondary/40 px-3 py-3 text-center text-xs text-muted-foreground">
+          VantageFSM is invite-only. Need access? Ask your workspace admin to send
+          you an account invitation from the My Team page.
         </p>
       </div>
     </div>
   );
 }
+
