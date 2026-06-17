@@ -69,16 +69,16 @@ function MetricCard({
   const van = useVanChat();
   return (
     <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex min-w-0 items-center gap-1">
+          <span className="truncate text-xs font-medium text-muted-foreground md:text-sm">{label}</span>
           {tooltip && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
                   aria-label={`What is ${label}?`}
-                  className="text-muted-foreground/60 transition-colors hover:text-foreground"
+                  className="shrink-0 text-muted-foreground/60 transition-colors hover:text-foreground"
                 >
                   <Info className="h-3.5 w-3.5" />
                 </button>
@@ -90,8 +90,8 @@ function MetricCard({
         <div
           className={
             emerald
-              ? "flex h-9 w-9 items-center justify-center rounded-lg bg-revenue-muted text-revenue"
-              : "flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground"
+              ? "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-revenue-muted text-revenue md:h-9 md:w-9"
+              : "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground md:h-9 md:w-9"
           }
         >
           {icon}
@@ -100,8 +100,8 @@ function MetricCard({
       <div
         className={
           emerald
-            ? "mt-4 text-2xl md:text-3xl font-extrabold tracking-tight text-revenue"
-            : "mt-4 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground"
+            ? "mt-2 text-xl md:mt-4 md:text-3xl font-extrabold tracking-tight text-revenue"
+            : "mt-2 text-xl md:mt-4 md:text-3xl font-extrabold tracking-tight text-foreground"
         }
       >
         {value}
