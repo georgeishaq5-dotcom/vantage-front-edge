@@ -283,16 +283,21 @@ function CalendarPage() {
         title="Calendar"
         description="Schedule field work with drag-and-drop dispatch and weather awareness."
         action={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={syncToDevice} className="gap-1.5">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={syncToDevice}
+              className="w-full gap-1.5 sm:w-auto"
+            >
               <CalendarPlus className="h-4 w-4" />
               Sync to Device Calendar
             </Button>
-            <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+            <div className="inline-flex w-full rounded-lg border border-border bg-card p-0.5 sm:w-auto">
               <button
                 onClick={() => setView("agenda")}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none",
                   view === "agenda"
                     ? "bg-revenue text-revenue-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -304,7 +309,7 @@ function CalendarPage() {
               <button
                 onClick={() => setView("grid")}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none",
                   view === "grid"
                     ? "bg-revenue text-revenue-foreground"
                     : "text-muted-foreground hover:text-foreground",
