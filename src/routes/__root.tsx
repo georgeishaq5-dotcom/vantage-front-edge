@@ -16,7 +16,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
 import { NotificationsProvider } from "@/lib/notifications";
-import { NotificationBell } from "@/components/NotificationBell";
+import { HeaderBar } from "@/components/HeaderBar";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
