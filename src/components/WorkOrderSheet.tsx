@@ -231,6 +231,19 @@ function WorkOrderBody({
         </button>
         <button
           type="button"
+          onClick={() => setTab("inspection")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "inspection"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <ShieldCheck className="h-4 w-4" />
+          Pre-Job Inspection
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("activity")}
           className={cn(
             "flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
