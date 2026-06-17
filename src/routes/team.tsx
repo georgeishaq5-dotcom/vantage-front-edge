@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, ShieldCheck, UserPlus } from "lucide-react";
+import { Building2, ShieldCheck, UserPlus, Mail } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { MemberAvatar } from "@/components/CrewAssignment";
@@ -12,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,6 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
+import { useIsAdmin } from "@/hooks/useUserRole";
+import { inviteTeammate } from "@/lib/team.functions";
 import { cn } from "@/lib/utils";
 import {
   COMPANY_ID,
@@ -72,7 +76,7 @@ function TeamPage() {
       <PageHeader
         title="My Team"
         description="Your crew, their roles, live status, and certified skills."
-        action={<AddTeammateDialog />}
+        action={<TeamActions />}
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -149,6 +153,83 @@ function MemberCard({ member, isMe }: { member: TeamMember; isMe: boolean }) {
         </div>
       )}
     </div>
+  );
+}
+
+function TeamActions() {
+  const isAdmin = useIsAdmin();
+  if (!isAdmin) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        Admin access required to invite or add staff
+      </span>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <InviteUserDialog />
+      <AddTeammateDialog />
+    </div>
+  );
+}
+
+function InviteUserDialog() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const invite = useServerFn(inviteTeammate);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      invite({ data: { email: email.trim(), redirectTo: window.location.origin } }),
+    onSuccess: () => {
+      toast.success("Invitation sent", {
+        description: `An account-creation email is on its way to ${email.trim()}.`,
+      });
+      setOpen(false);
+      setEmail("");
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Could not send invite"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Mail className="h-4 w-4" />
+          Invite User
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite a new user</DialogTitle>
+          <DialogDescription>
+            Sign-ups are invite-only. We'll email an account-creation link so they can
+            set a password and join the workspace.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-email">Email address</Label>
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="new.teammate@company.com"
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            variant="revenue"
+            disabled={!email.trim() || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? "Sending…" : "Send Invite"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
