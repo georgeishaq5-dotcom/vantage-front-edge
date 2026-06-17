@@ -156,6 +156,83 @@ function MemberCard({ member, isMe }: { member: TeamMember; isMe: boolean }) {
   );
 }
 
+function TeamActions() {
+  const isAdmin = useIsAdmin();
+  if (!isAdmin) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <ShieldCheck className="h-3.5 w-3.5" />
+        Admin access required to invite or add staff
+      </span>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <InviteUserDialog />
+      <AddTeammateDialog />
+    </div>
+  );
+}
+
+function InviteUserDialog() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const invite = useServerFn(inviteTeammate);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      invite({ data: { email: email.trim(), redirectTo: window.location.origin } }),
+    onSuccess: () => {
+      toast.success("Invitation sent", {
+        description: `An account-creation email is on its way to ${email.trim()}.`,
+      });
+      setOpen(false);
+      setEmail("");
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Could not send invite"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Mail className="h-4 w-4" />
+          Invite User
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite a new user</DialogTitle>
+          <DialogDescription>
+            Sign-ups are invite-only. We'll email an account-creation link so they can
+            set a password and join the workspace.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="invite-email">Email address</Label>
+          <Input
+            id="invite-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="new.teammate@company.com"
+          />
+        </div>
+        <DialogFooter>
+          <Button
+            variant="revenue"
+            disabled={!email.trim() || mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {mutation.isPending ? "Sending…" : "Send Invite"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function AddTeammateDialog() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
