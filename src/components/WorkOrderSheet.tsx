@@ -272,9 +272,24 @@ function WorkOrderBody({
           <History className="h-4 w-4" />
           Activity Log
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("radius")}
+          className={cn(
+            "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "radius"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <Megaphone className="h-4 w-4" />
+          Radius Marketing
+        </button>
       </div>
 
-      {tab === "activity" ? (
+      {tab === "radius" ? (
+        <RadiusMarketing job={job} customer={customer} />
+      ) : tab === "activity" ? (
         <div className="flex-1 px-5 py-6">
           <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">
             Audit Trail
