@@ -177,6 +177,57 @@ function TimesheetsPage() {
               )}
             </Button>
 
+            <div className="w-full max-w-sm space-y-2 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Select time to track
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { id: "general", label: "General" },
+                    { id: "drive", label: "Drive Time" },
+                    { id: "job", label: "Specific Job" },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setTrackType(opt.id)}
+                    className={cn(
+                      "rounded-full border px-3 py-2 text-xs font-semibold transition-colors",
+                      trackType === opt.id
+                        ? "border-revenue bg-revenue-muted text-revenue"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {trackType === "job" && (
+                <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Select a job from today's route…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {todaysJobs.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No jobs on today's route
+                      </div>
+                    ) : (
+                      todaysJobs.map((j) => (
+                        <SelectItem key={j.id} value={j.id}>
+                          {j.customer_name} — {j.title}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+
             <p className="text-xs text-muted-foreground">
               Logged today: <span className="font-semibold text-foreground">{formatDuration(loggedTotal)}</span>
             </p>
