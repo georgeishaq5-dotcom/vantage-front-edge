@@ -53,16 +53,32 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 function AuthScreen() {
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { company_name: companyName.trim() },
+          },
+        });
+        if (error) throw error;
+        toast.success("Workspace created — check your email to confirm and sign in.");
+        setMode("signin");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
     } finally {
