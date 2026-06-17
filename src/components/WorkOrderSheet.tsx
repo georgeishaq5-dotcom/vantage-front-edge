@@ -99,7 +99,9 @@ function WorkOrderBody({
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
   const [lock, setLock] = useState<JobLock | null>(null);
-  const [tab, setTab] = useState<"order" | "activity">("order");
+  const [tab, setTab] = useState<"order" | "inspection" | "activity">("order");
+  const [inspectionSigned, setInspectionSigned] = useState(false);
+  const [jobStarted, setJobStarted] = useState(false);
 
   const { data: members = [] } = useQuery({
     queryKey: ["team_members"],
