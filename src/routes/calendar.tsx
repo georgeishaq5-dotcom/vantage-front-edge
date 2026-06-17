@@ -468,13 +468,12 @@ function CalendarPage() {
                     onDragLeave={() => setDragOverDay((c) => (c === iso ? null : c))}
                     onDrop={() => handleDrop(iso)}
                     className={cn(
-                      "relative min-h-[104px] border-b border-r border-border p-1.5 transition-colors [&:nth-child(7n)]:border-r-0",
-                      !inMonth && "bg-muted/30",
-                      f && WORKABILITY_META[f.level].tint,
+                      "relative min-h-[104px] border-b border-r border-border bg-card p-1.5 transition-colors [&:nth-child(7n)]:border-r-0",
+                      !inMonth && "bg-muted/20",
+                      f && WORKABILITY_META[f.level].topBorder,
                       dragOverDay === iso && "ring-2 ring-inset ring-revenue",
                     )}
                   >
-                    {f && <WorkabilityIllustration level={f.level} />}
                     <div className="relative flex items-center justify-between">
                       <span
                         className={cn(
@@ -488,6 +487,16 @@ function CalendarPage() {
                       >
                         {d.getDate()}
                       </span>
+                      {f &&
+                        (() => {
+                          const Icon = WORKABILITY_ICON[f.level];
+                          return (
+                            <Icon
+                              className="h-3.5 w-3.5 text-muted-foreground"
+                              aria-label={WORKABILITY_META[f.level].label}
+                            />
+                          );
+                        })()}
                     </div>
                     <div className="relative mt-1 flex flex-col gap-1">
                       {dayJobs.slice(0, 3).map((job) => (
