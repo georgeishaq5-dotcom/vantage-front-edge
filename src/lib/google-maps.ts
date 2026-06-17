@@ -36,7 +36,7 @@ export function loadGoogleMaps(): Promise<typeof google> {
     const script = document.createElement("script");
     const params = new URLSearchParams({
       key: BROWSER_KEY,
-      libraries: "places",
+      libraries: "places,geometry",
       loading: "async",
       callback: callbackName,
     });
