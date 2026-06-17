@@ -1,6 +1,6 @@
 /// <reference types="google.maps" />
 import { useEffect, useRef, useState } from "react";
-import { Ruler, Satellite, Trash2, MapPin } from "lucide-react";
+import { Ruler, Satellite, Trash2, MapPin, Search, Loader2 } from "lucide-react";
 
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { loadGoogleMaps, isMapsConfigured } from "@/lib/google-maps";
 
 export type MeasureMode = "area" | "linear";
@@ -23,6 +24,12 @@ export interface MeasureResult {
 
 const SQM_TO_SQFT = 10.7639;
 const M_TO_FT = 3.28084;
+
+interface Suggestion {
+  placeId: string;
+  primary: string;
+  secondary: string;
+}
 
 export function SatelliteMeasure({
   open,
@@ -40,10 +47,22 @@ export function SatelliteMeasure({
   const markersRef = useRef<google.maps.Marker[]>([]);
   const pathRef = useRef<google.maps.LatLng[]>([]);
 
+  // Address autocomplete
+  const placesLibRef = useRef<any>(null);
+  const sessionTokenRef = useRef<any>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const [mode, setMode] = useState<MeasureMode>("area");
   const [feet, setFeet] = useState(0);
+  const [pricePerSqFt, setPricePerSqFt] = useState("");
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const projectedTotal = (Number(pricePerSqFt) || 0) * feet;
 
   const recompute = () => {
     const path = pathRef.current;
@@ -105,12 +124,65 @@ export function SatelliteMeasure({
     setFeet(0);
   };
 
+  function fetchSuggestions(input: string) {
+    const lib = placesLibRef.current;
+    if (!lib || !input.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    setSearching(true);
+    lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      input,
+      sessionToken: sessionTokenRef.current,
+    })
+      .then(({ suggestions: results }: any) => {
+        const mapped: Suggestion[] = (results ?? [])
+          .filter((s: any) => s.placePrediction)
+          .map((s: any) => ({
+            placeId: s.placePrediction.placeId,
+            primary: s.placePrediction.mainText?.text ?? s.placePrediction.text?.text ?? "",
+            secondary: s.placePrediction.secondaryText?.text ?? "",
+          }));
+        setSuggestions(mapped);
+        setShowSuggestions(mapped.length > 0);
+      })
+      .catch(() => setSuggestions([]))
+      .finally(() => setSearching(false));
+  }
+
+  function handleQuery(next: string) {
+    setQuery(next);
+    if (!ready) return;
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchSuggestions(next), 220);
+  }
+
+  async function selectSuggestion(s: Suggestion) {
+    const lib = placesLibRef.current;
+    setQuery([s.primary, s.secondary].filter(Boolean).join(", "));
+    setShowSuggestions(false);
+    setSuggestions([]);
+    try {
+      if (lib && mapRef.current) {
+        const place = new lib.Place({ id: s.placeId });
+        await place.fetchFields({ fields: ["location"] });
+        if (place.location) {
+          mapRef.current.setCenter(place.location);
+          mapRef.current.setZoom(20);
+        }
+        sessionTokenRef.current = new lib.AutocompleteSessionToken();
+      }
+    } catch {
+      /* keep current view */
+    }
+  }
+
   // Init map when dialog opens
   useEffect(() => {
     if (!open || !isMapsConfigured()) return;
     let cancelled = false;
     loadGoogleMaps()
-      .then((g) => {
+      .then(async (g) => {
         if (cancelled || !mapEl.current) return;
         const map = new g.maps.Map(mapEl.current, {
           center: { lat: 39.7684, lng: -86.1581 },
@@ -139,6 +211,13 @@ export function SatelliteMeasure({
           markersRef.current.push(marker);
           redraw();
         });
+        try {
+          const lib = (await g.maps.importLibrary("places")) as google.maps.PlacesLibrary;
+          placesLibRef.current = lib;
+          sessionTokenRef.current = new lib.AutocompleteSessionToken();
+        } catch {
+          /* autocomplete unavailable */
+        }
         setReady(true);
       })
       .catch(() => setError("Unable to load the satellite map."));
@@ -163,12 +242,52 @@ export function SatelliteMeasure({
             Satellite Auto-Measure
           </DialogTitle>
           <DialogDescription>
-            Click points on the property to outline the work area. We&apos;ll calculate the footage
-            automatically.
+            Search an address, then click points on the property to outline the work area. We&apos;ll
+            calculate the footage automatically.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-2">
+        {/* Address search */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            autoComplete="off"
+            placeholder="Search an address to center the map…"
+            className="pl-9"
+            disabled={!isMapsConfigured()}
+            onChange={(e) => handleQuery(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          />
+          {searching && (
+            <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+          )}
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="absolute z-50 mt-1.5 max-h-56 w-full overflow-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
+              {suggestions.map((s) => (
+                <li key={s.placeId}>
+                  <button
+                    type="button"
+                    onClick={() => selectSuggestion(s)}
+                    className="flex w-full items-start gap-2.5 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-secondary/60"
+                  >
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-revenue" />
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{s.primary}</span>
+                      {s.secondary && (
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {s.secondary}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
             <button
               onClick={() => setMode("area")}
@@ -203,13 +322,42 @@ export function SatelliteMeasure({
           </div>
         </div>
 
+        {/* Price per sq ft + projected total */}
+        <div className="flex flex-wrap items-end gap-4 rounded-lg border border-border bg-secondary/40 p-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Price Per {mode === "area" ? "Sq Ft" : "Ft"} ($)
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                $
+              </span>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={pricePerSqFt}
+                onChange={(e) => setPricePerSqFt(e.target.value)}
+                placeholder="0.00"
+                className="w-32 pl-7"
+              />
+            </div>
+          </div>
+          <div className="ml-auto text-right">
+            <p className="text-xs font-medium text-muted-foreground">Projected Total</p>
+            <p className="text-2xl font-bold text-revenue">
+              ${projectedTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            </p>
+          </div>
+        </div>
+
         {isMapsConfigured() ? (
           <div
             ref={mapEl}
-            className="h-[380px] w-full overflow-hidden rounded-lg border border-border bg-muted"
+            className="h-[340px] w-full overflow-hidden rounded-lg border border-border bg-muted"
           />
         ) : (
-          <div className="flex h-[380px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted text-center text-sm text-muted-foreground">
+          <div className="flex h-[340px] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted text-center text-sm text-muted-foreground">
             <MapPin className="h-8 w-8" />
             Satellite measurement requires the Google Maps connector.
           </div>
