@@ -25,6 +25,22 @@ const NAV = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const queryClient = useQueryClient();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+  }
+
+  const email = user?.email ?? "";
+  const initials = email ? email.slice(0, 2).toUpperCase() : "VF";
+
 
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col self-start bg-sidebar text-sidebar-foreground">
