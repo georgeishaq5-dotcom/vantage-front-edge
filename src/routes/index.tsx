@@ -68,7 +68,7 @@ function MetricCard({
 }) {
   const van = useVanChat();
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-medium text-muted-foreground">{label}</span>
@@ -100,8 +100,8 @@ function MetricCard({
       <div
         className={
           emerald
-            ? "mt-4 text-3xl font-extrabold tracking-tight text-revenue"
-            : "mt-4 text-3xl font-extrabold tracking-tight text-foreground"
+            ? "mt-4 text-2xl md:text-3xl font-extrabold tracking-tight text-revenue"
+            : "mt-4 text-2xl md:text-3xl font-extrabold tracking-tight text-foreground"
         }
       >
         {value}
@@ -138,13 +138,13 @@ function Dashboard() {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="mx-auto max-w-6xl px-8 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
         <PageHeader
           title="Dashboard"
           description="A snapshot of revenue, invoicing, and today's field work."
         />
 
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             emerald
             label="Weekly Revenue"
@@ -172,14 +172,14 @@ function Dashboard() {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
           <MarketingActivityCard />
         </div>
 
 
 
-        <section className="mt-8 rounded-xl border border-border bg-card shadow-sm">
+        <section className="mt-5 md:mt-8 rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
             <h2 className="text-base font-semibold text-foreground">Today's Jobs</h2>
             <span className="text-xs text-muted-foreground">Scheduled · {todaysJobs.length}</span>
@@ -210,7 +210,7 @@ function RoiAuditCard({
   const total = generatedValue + 1850;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-revenue-muted text-revenue">
@@ -225,7 +225,7 @@ function RoiAuditCard({
 
       <div className="mt-5 rounded-lg bg-revenue-muted/60 p-4">
         <p className="text-xs font-medium text-muted-foreground">Total value generated</p>
-        <p className="mt-1 text-3xl font-extrabold tracking-tight text-revenue">
+        <p className="mt-1 text-2xl md:text-3xl font-extrabold tracking-tight text-revenue">
           {formatCurrency(total)}
         </p>
       </div>
@@ -268,7 +268,7 @@ function MarketingActivityCard() {
   ];
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center gap-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
           <MessageSquare className="h-5 w-5" />

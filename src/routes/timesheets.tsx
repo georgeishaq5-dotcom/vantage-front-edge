@@ -119,7 +119,7 @@ function TimesheetsPage() {
         </TabsList>
 
         <TabsContent value="track">
-          <div className="flex flex-col items-center gap-5 rounded-xl border border-border bg-card p-6 text-center shadow-sm md:p-10">
+          <div className="flex flex-col items-center gap-3 md:gap-5 rounded-xl border border-border bg-card p-3 md:p-6 text-center shadow-sm md:p-10">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
                 clockedInAt !== null

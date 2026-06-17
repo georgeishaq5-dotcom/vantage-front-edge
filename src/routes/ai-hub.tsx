@@ -26,7 +26,7 @@ export const Route = createFileRoute("/ai-hub")({
 function AiHubPage() {
   const van = useVanChat();
   return (
-    <div className="mx-auto max-w-3xl px-8 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader
         title="Van's AI Hub"
         description="Configure how Van runs your field service operation."
@@ -39,7 +39,7 @@ function AiHubPage() {
           </Button>
         }
       />
-      <div className="mt-6">
+      <div className="mt-4 md:mt-6">
         <AgentRulesPanel />
       </div>
     </div>

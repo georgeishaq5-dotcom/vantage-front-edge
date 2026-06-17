@@ -25,10 +25,10 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   return (
-    <div className="mx-auto max-w-3xl px-8 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader title="Settings" description="Manage billing, your team, integrations, and trade presets." />
 
-      <Tabs defaultValue="general" className="mt-6">
+      <Tabs defaultValue="general" className="mt-4 md:mt-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="presets">Trade &amp; Pricing Presets</TabsTrigger>
@@ -36,13 +36,13 @@ function SettingsPage() {
 
         <TabsContent value="general">
       {/* Profile */}
-      <div className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="mt-4 md:mt-6 rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
         <h2 className="text-base font-semibold text-foreground">Profile</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Update how your information appears across Vantage FSM.
         </p>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="name">Full Name</Label>
             <Input id="name" defaultValue="Field Supervisor" disabled />
@@ -61,7 +61,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center gap-3 border-t border-border pt-6">
+        <div className="mt-4 md:mt-6 flex items-center gap-3 border-t border-border pt-6">
           <Button variant="revenue" disabled>
             Save Changes
           </Button>
@@ -72,8 +72,8 @@ function SettingsPage() {
       </div>
 
       {/* Business administration */}
-      <div className="mt-6 grid grid-cols-1 gap-6">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="mt-4 md:mt-6 grid grid-cols-1 gap-6">
+        <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
               <CreditCard className="h-5 w-5" />
@@ -96,7 +96,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
               <Users className="h-5 w-5" />
@@ -116,7 +116,7 @@ function SettingsPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
               <Plug className="h-5 w-5" />
@@ -170,7 +170,7 @@ function SettingsPage() {
       </div>
         </TabsContent>
 
-        <TabsContent value="presets" className="mt-6">
+        <TabsContent value="presets" className="mt-4 md:mt-6">
           <TradePresetsPanel />
         </TabsContent>
       </Tabs>

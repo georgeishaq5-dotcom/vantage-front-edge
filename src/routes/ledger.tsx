@@ -94,14 +94,14 @@ function LedgerPage() {
   const overdue = useMemo(() => collectOverdue(ledger), [ledger]);
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader
         title="Client Ledger"
         description="Relational view of lifetime value, AR status, and service history."
         action={<AuditorPanel overdue={overdue} />}
       />
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="mt-4 md:mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -194,7 +194,7 @@ function LedgerRow({
 
 function ClientProfile({ entry }: { entry: LedgerEntry }) {
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
       <div className="space-y-5">
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center justify-between">
@@ -461,7 +461,7 @@ function AuditorPanel({ overdue }: { overdue: ReturnType<typeof collectOverdue> 
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-4 md:mt-6 space-y-3">
           {overdue.length === 0 ? (
             <div className="rounded-lg border border-border bg-secondary/40 px-4 py-10 text-center text-sm text-muted-foreground">
               No overdue invoices. You're all caught up.

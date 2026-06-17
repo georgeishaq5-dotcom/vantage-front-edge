@@ -97,9 +97,9 @@ function QuotesPage() {
         }
       />
 
-      <div className="mt-8 space-y-6">
+      <div className="mt-5 md:mt-8 space-y-6">
         {/* Base job */}
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-foreground">
@@ -130,7 +130,7 @@ function QuotesPage() {
         </section>
 
         {/* Optional upgrades */}
-        <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="mb-1 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-revenue" />
             <h2 className="text-lg font-bold text-foreground">Optional Upgrades</h2>
@@ -188,13 +188,13 @@ function QuotesPage() {
         </section>
 
         {/* Live total */}
-        <section className="sticky bottom-4 rounded-2xl border border-revenue/40 bg-card p-6 shadow-md ring-1 ring-revenue/20">
+        <section className="sticky bottom-4 rounded-2xl border border-revenue/40 bg-card p-3 md:p-6 shadow-md ring-1 ring-revenue/20">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Your Total
               </p>
-              <p className="text-3xl font-extrabold tracking-tight text-revenue">
+              <p className="text-2xl md:text-3xl font-extrabold tracking-tight text-revenue">
                 {formatCurrency(total)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">

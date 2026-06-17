@@ -38,7 +38,7 @@ export function NeighborOutreachFeed() {
   if (pending.length === 0) return null;
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-4 md:mt-6 space-y-3">
       {pending.map((o) => (
         <OutreachCard
           key={o.id}

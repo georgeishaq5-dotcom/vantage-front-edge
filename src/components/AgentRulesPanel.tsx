@@ -159,7 +159,7 @@ export function AgentRulesPanel() {
   const strictnessLabel = strictness < 34 ? "Loose" : strictness < 67 ? "Balanced" : "Strict";
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-revenue-muted text-revenue">
           <Bot className="h-5 w-5" />
@@ -173,9 +173,9 @@ export function AgentRulesPanel() {
       </div>
 
       {isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Loading configuration…</p>
+        <p className="mt-4 md:mt-6 text-sm text-muted-foreground">Loading configuration…</p>
       ) : (
-        <div className="mt-6 space-y-8">
+        <div className="mt-4 md:mt-6 space-y-8">
           {/* Target zip codes */}
           <div className="space-y-2">
             <Label>Target Zip Codes</Label>

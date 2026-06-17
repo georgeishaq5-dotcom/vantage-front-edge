@@ -106,7 +106,7 @@ export function TradePresetsPanel() {
   return (
     <div className="space-y-6">
       {/* Ask Van */}
-      <div className="rounded-xl border border-revenue/40 bg-revenue-muted/30 p-6 shadow-sm">
+      <div className="rounded-xl border border-revenue/40 bg-revenue-muted/30 p-3 md:p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-revenue text-revenue-foreground">
@@ -127,7 +127,7 @@ export function TradePresetsPanel() {
       </div>
 
       {/* Base job */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <Wrench className="h-4 w-4 text-revenue" />
           <h3 className="text-base font-semibold text-foreground">Base Job</h3>
@@ -166,7 +166,7 @@ export function TradePresetsPanel() {
       </div>
 
       {/* Upgrades */}
-      <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-semibold text-foreground">Optional Upgrades</h3>
           <Button variant="secondary" size="sm" className="gap-1.5" onClick={addUpgrade}>

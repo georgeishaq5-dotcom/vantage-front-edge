@@ -72,14 +72,14 @@ function TeamPage() {
   const me = useCurrentMember();
 
   return (
-    <div className="mx-auto max-w-5xl px-8 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader
         title="My Team"
         description="Your crew, their roles, live status, and certified skills."
         action={<TeamActions />}
       />
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="mt-4 md:mt-6 flex flex-wrap items-center gap-3">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
           <Building2 className="h-3.5 w-3.5" />
           Workspace: <span className="text-foreground">{COMPANY_ID}</span>
@@ -99,7 +99,7 @@ function TeamPage() {
       {isLoading ? (
         <p className="mt-10 text-center text-sm text-muted-foreground">Loading team…</p>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((member) => (
             <MemberCard key={member.id} member={member} isMe={member.id === me?.id} />
           ))}
