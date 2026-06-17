@@ -9,6 +9,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OnboardingGate } from "@/components/OnboardingGate";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
