@@ -93,7 +93,7 @@ function JobsPage() {
     if (!search.job || jobs.length === 0) return;
     const target = jobs.find((j) => j.id === search.job);
     if (target) {
-      setActiveOrder(target);
+      setActiveOrder({ ...target, customer_name: target.customer?.full_name ?? "Unassigned" });
       setSheetTab(search.tab === "radius" ? "radius" : "order");
     }
     navigate({ to: "/jobs", search: {}, replace: true });
