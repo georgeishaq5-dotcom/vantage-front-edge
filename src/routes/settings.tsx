@@ -133,7 +133,27 @@ function SettingsPage() {
               </span>
             </div>
           </div>
+
+          <div className="mt-5 space-y-3 border-t border-border pt-5">
+            <div className="flex items-center gap-2">
+              <PhoneCall className="h-4 w-4 text-revenue" />
+              <p className="text-sm font-semibold text-foreground">Twilio Voice Sync</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Connect a Twilio Voice API token so Van can transcribe inbound phone leads and turn
+              calls into bookable jobs.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                type="password"
+                placeholder="Enter Twilio Voice API token…"
+                className="font-mono sm:max-w-md"
+              />
+              <Button variant="secondary">Save Token</Button>
+            </div>
+          </div>
         </div>
+
 
         <FinancialReports />
 
