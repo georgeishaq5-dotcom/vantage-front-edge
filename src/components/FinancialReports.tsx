@@ -121,7 +121,7 @@ export function FinancialReports() {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
           <BarChart3 className="h-5 w-5" />

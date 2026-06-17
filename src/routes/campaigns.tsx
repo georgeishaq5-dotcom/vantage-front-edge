@@ -121,7 +121,7 @@ function CampaignsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader
         title="Campaign Analytics"
         description="Live conversion funnel and status tracking for automated Neighbor Hook promo texts."
@@ -142,7 +142,7 @@ function CampaignsPage() {
         }
       />
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 md:mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {counts.map(({ stage, reached }) => {
           const pct = Math.round((reached / total) * 100);
           return (
@@ -157,7 +157,7 @@ function CampaignsPage() {
                 <span className={cn("h-2 w-2 rounded-full", FUNNEL_ACCENT[stage])} />
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-bold tracking-tight text-foreground">{reached}</span>
+                <span className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{reached}</span>
                 <span className="text-sm text-muted-foreground">{pct}%</span>
               </div>
               <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -171,7 +171,7 @@ function CampaignsPage() {
         })}
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="mt-4 md:mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
         <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-6 py-3">
           <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold text-foreground">Recent Outgoing Promo Texts</h2>

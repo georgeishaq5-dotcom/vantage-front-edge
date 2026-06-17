@@ -58,7 +58,7 @@ function CustomerProfilePage() {
     .toUpperCase();
 
   return (
-    <div className="mx-auto max-w-4xl px-8 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-5 md:px-8 md:py-8">
       <Button variant="ghost" size="sm" className="mb-4 -ml-2 gap-1.5" asChild>
         <Link to="/customers">
           <ArrowLeft className="h-4 w-4" />
@@ -66,7 +66,7 @@ function CustomerProfilePage() {
         </Link>
       </Button>
 
-      <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="flex items-start gap-4 rounded-2xl border border-border bg-card p-3 md:p-6 shadow-sm">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-secondary text-xl font-bold text-foreground">
           {initials}
         </div>
@@ -91,7 +91,7 @@ function CustomerProfilePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="mt-6">
+      <Tabs defaultValue="overview" className="mt-4 md:mt-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="jobs">Jobs</TabsTrigger>
@@ -99,7 +99,7 @@ function CustomerProfilePage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Site Notes
             </h2>

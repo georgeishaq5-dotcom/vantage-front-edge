@@ -8,6 +8,7 @@ import {
   KanbanSquare,
   CalendarDays,
   FileText,
+  Clock,
   Contact,
   Users,
   Settings,
@@ -26,6 +27,7 @@ const NAV = [
   { label: "Calendar", to: "/calendar", icon: CalendarDays },
   { label: "Estimates", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
+  { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
   { label: "My Team", to: "/team", icon: Users },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
@@ -67,7 +69,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 flex h-screen shrink-0 flex-col self-start bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out",
+        "sticky top-0 hidden h-screen shrink-0 flex-col self-start bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out md:flex",
         collapsed ? "w-16" : "w-64",
       )}
     >

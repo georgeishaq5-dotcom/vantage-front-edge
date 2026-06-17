@@ -44,7 +44,7 @@ function EstimatesPage() {
   }, [jobs, query]);
 
   return (
-    <div className="mx-auto max-w-6xl px-8 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
       <PageHeader
         title="Estimates"
         description="Quotes awaiting customer approval."
@@ -58,7 +58,7 @@ function EstimatesPage() {
         }
       />
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-4 md:mt-6 flex items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
