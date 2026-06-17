@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
-import { CreditCard, Users, Plug } from "lucide-react";
+import { CreditCard, Users, Plug, PhoneCall } from "lucide-react";
 
 
 export const Route = createFileRoute("/settings")({
