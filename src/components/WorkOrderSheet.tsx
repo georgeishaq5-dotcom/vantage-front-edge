@@ -287,6 +287,79 @@ function WorkOrderBody({
             This log is append-only — entries cannot be edited or deleted.
           </p>
         </div>
+      ) : tab === "inspection" ? (
+        <div className="flex-1 space-y-6 px-5 py-6">
+          {/* Pre-Job photo upload zone */}
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">
+              Pre-Job Inspection Photos
+            </h3>
+            <p className="mb-3 text-xs text-sidebar-foreground/60">
+              Document existing conditions before any work begins to protect against liability claims.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <PhotoSlot label="Front / Exterior" />
+              <PhotoSlot label="Work Area" />
+              <PhotoSlot label="Existing Damage" />
+              <PhotoSlot label="Access Point" />
+            </div>
+          </section>
+
+          {/* Van's Vision Scan — AI placeholder */}
+          <section>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">
+              Van&apos;s Vision Scan
+            </h3>
+            <div className="flex items-start gap-3 rounded-xl border border-dashed border-revenue/50 bg-revenue/10 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-revenue text-revenue-foreground">
+                <ScanEye className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">AI hazard &amp; condition analysis</p>
+                <p className="mt-1 text-xs text-sidebar-foreground/70">
+                  Van will automatically scan uploaded photos for pre-existing damage, safety
+                  hazards, and liability flags. (Analysis coming soon.)
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* E-Signature gate */}
+          <section>
+            <h3 className="mb-1 text-sm font-bold uppercase tracking-wide text-white">
+              Customer Pre-Job Authorization
+            </h3>
+            <p className="mb-3 text-xs text-sidebar-foreground/60">
+              A signature is required to unlock the job timer.
+            </p>
+            <SignaturePad onSignedChange={setInspectionSigned} />
+          </section>
+
+          {/* Start Job — gated by signature */}
+          <Button
+            variant={jobStarted ? "outline" : "revenue"}
+            className="h-12 w-full"
+            disabled={!inspectionSigned || lockedByOther || jobStarted}
+            onClick={() => setJobStarted(true)}
+          >
+            {jobStarted ? (
+              <>
+                <Timer className="h-5 w-5" />
+                Job Timer Running…
+              </>
+            ) : !inspectionSigned ? (
+              <>
+                <Lock className="h-5 w-5" />
+                Capture Signature to Start Job
+              </>
+            ) : (
+              <>
+                <Play className="h-5 w-5" />
+                Start Job Timer
+              </>
+            )}
+          </Button>
+        </div>
       ) : (
       <div className="flex-1 space-y-6 px-5 py-6">
         {/* Checklist */}
