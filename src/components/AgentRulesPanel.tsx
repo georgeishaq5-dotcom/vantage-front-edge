@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Bot, Loader2, X, Clock, Percent, ShieldCheck, CloudRain, Filter } from "lucide-react";
+import {
+  Bot,
+  Loader2,
+  X,
+  Clock,
+  ShieldCheck,
+  CloudRain,
+  Filter,
+  Globe,
+  Copy,
+  Check,
+  Star,
+  ClipboardList,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
