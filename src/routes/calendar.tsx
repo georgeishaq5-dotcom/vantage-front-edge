@@ -468,12 +468,26 @@ function CalendarPage() {
                     onDragLeave={() => setDragOverDay((c) => (c === iso ? null : c))}
                     onDrop={() => handleDrop(iso)}
                     className={cn(
-                      "relative min-h-[104px] border-b border-r border-border bg-card p-1.5 transition-colors [&:nth-child(7n)]:border-r-0",
+                      "relative min-h-[104px] overflow-hidden border-b border-r border-border bg-card p-1.5 transition-colors [&:nth-child(7n)]:border-r-0",
                       !inMonth && "bg-muted/20",
-                      f && WORKABILITY_META[f.level].topBorder,
+                      f && WORKABILITY_META[f.level].cellTint,
                       dragOverDay === iso && "ring-2 ring-inset ring-revenue",
                     )}
                   >
+                    {/* Transparent monochrome weather watermark behind content */}
+                    {f &&
+                      (() => {
+                        const Icon = WORKABILITY_ICON[f.level];
+                        return (
+                          <Icon
+                            className={cn(
+                              "pointer-events-none absolute bottom-1 right-1 h-14 w-14",
+                              WORKABILITY_META[f.level].iconColor,
+                            )}
+                            aria-hidden="true"
+                          />
+                        );
+                      })()}
                     <div className="relative flex items-center justify-between">
                       <span
                         className={cn(
@@ -485,6 +499,7 @@ function CalendarPage() {
                               : "text-muted-foreground",
                         )}
                       >
+
                         {d.getDate()}
                       </span>
                       {f &&
