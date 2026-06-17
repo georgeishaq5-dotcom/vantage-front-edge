@@ -101,17 +101,19 @@ function WorkOrderBody({
   job,
   customer,
   onClose,
+  initialTab,
 }: {
   job: JobWithCustomer;
   customer: Customer | null;
   onClose: () => void;
+  initialTab: WorkOrderTab;
 }) {
   const queryClient = useQueryClient();
   const me = useCurrentMember();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
   const [lock, setLock] = useState<JobLock | null>(null);
-  const [tab, setTab] = useState<"order" | "inspection" | "activity">("order");
+  const [tab, setTab] = useState<WorkOrderTab>(initialTab);
   const [inspectionSigned, setInspectionSigned] = useState(false);
   const [jobStarted, setJobStarted] = useState(false);
 
