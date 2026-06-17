@@ -36,6 +36,10 @@
   --color-revenue-foreground: var(--revenue-foreground);
   --color-revenue-muted: var(--revenue-muted);
 
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-muted: var(--brand-muted);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -89,6 +93,11 @@
   --revenue-foreground: oklch(0.99 0.01 158);
   --revenue-muted: oklch(0.95 0.04 158);
 
+  /* Sharp primary brand accent (electric blue) */
+  --brand: oklch(0.55 0.22 256);
+  --brand-foreground: oklch(0.99 0.01 256);
+  --brand-muted: oklch(0.95 0.045 256);
+
   /* Slate sidebar */
   --sidebar: oklch(0.23 0.03 257);
   --sidebar-foreground: oklch(0.8 0.02 257);
@@ -129,6 +138,9 @@
   --revenue: oklch(0.7 0.16 158);
   --revenue-foreground: oklch(0.16 0.02 257);
   --revenue-muted: oklch(0.3 0.06 158);
+  --brand: oklch(0.62 0.22 256);
+  --brand-foreground: oklch(0.99 0.01 256);
+  --brand-muted: oklch(0.3 0.07 256);
   --sidebar: oklch(0.16 0.02 257);
   --sidebar-foreground: oklch(0.8 0.02 257);
   --sidebar-primary: oklch(0.7 0.16 158);
@@ -156,3 +168,27 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* ===== Onboarding feature tour animations ===== */
+@keyframes tour-slide-in {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes tour-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes tour-draw {
+  from { stroke-dashoffset: 300; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes tour-pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  60% { opacity: 1; transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.tour-slide-active { animation: tour-slide-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tour-float { animation: tour-float 4s ease-in-out infinite; }
+.tour-draw { stroke-dasharray: 300; animation: tour-draw 1.4s ease-out forwards; }
+.tour-pop { animation: tour-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }

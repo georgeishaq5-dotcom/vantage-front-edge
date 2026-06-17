@@ -16,6 +16,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VantageLogo } from "@/components/VantageLogo";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
@@ -78,8 +79,8 @@ export function AppSidebar() {
       >
         {!collapsed && (
           <div className="flex items-center gap-2.5 pl-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
-              V
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
+              <VantageLogo className="h-5 w-6" />
             </div>
             <div className="leading-tight">
               <div className="text-[15px] font-bold text-white tracking-tight">Vantage</div>

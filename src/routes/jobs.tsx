@@ -10,6 +10,7 @@ import { WorkOrderSheet } from "@/components/WorkOrderSheet";
 import { NeighborOutreachFeed } from "@/components/NeighborOutreachFeed";
 import { CrewAssignment } from "@/components/CrewAssignment";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
+import { useNotifications } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import {
   fetchJobsWithFullCustomers,
@@ -74,6 +75,7 @@ function JobsPage() {
     queryFn: fetchJobAssignments,
   });
 
+  const { notify } = useNotifications();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverLane, setDragOverLane] = useState<DispatchLane | null>(null);
   const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
@@ -96,6 +98,11 @@ function JobsPage() {
     },
     onSuccess: async (_d, { id, lane }) => {
       toast.success(`Job moved to ${lane}`);
+      const movedJob = jobs.find((j) => j.id === id);
+      const who = movedJob?.customer?.full_name ?? movedJob?.title ?? "A job";
+      const statusLabel =
+        lane === "Scheduled Today" ? "En Route" : lane === "Completed" ? "Completed" : "Updated";
+      notify("job_status", `Job ${statusLabel}`, `${who} was marked '${statusLabel}'.`);
       // Simulate the AI agent background workflow when a job gets scheduled.
       if (lane === "Scheduled Today") {
         const job = jobs.find((j) => j.id === id);

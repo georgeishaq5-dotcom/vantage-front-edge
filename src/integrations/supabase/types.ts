@@ -263,28 +263,40 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_name: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
           onboarded: boolean
           profession: string | null
+          team_size: string | null
+          yearly_revenue: string | null
+          years_in_business: string | null
         }
         Insert: {
+          company_name?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
           onboarded?: boolean
           profession?: string | null
+          team_size?: string | null
+          yearly_revenue?: string | null
+          years_in_business?: string | null
         }
         Update: {
+          company_name?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
           onboarded?: boolean
           profession?: string | null
+          team_size?: string | null
+          yearly_revenue?: string | null
+          years_in_business?: string | null
         }
         Relationships: []
       }
