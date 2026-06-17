@@ -549,7 +549,7 @@ function SignaturePad({ onSignedChange }: { onSignedChange?: (signed: boolean) =
     const { x, y } = pos(e);
     ctx.lineTo(x, y);
     ctx.stroke();
-    setHasInk(true);
+    markSigned();
   }
 
   function end() {
@@ -561,7 +561,9 @@ function SignaturePad({ onSignedChange }: { onSignedChange?: (signed: boolean) =
     const ctx = canvas?.getContext("2d");
     if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasInk(false);
+    onSignedChange?.(false);
   }
+
 
   return (
     <div className="rounded-xl border border-sidebar-border bg-card p-3">
