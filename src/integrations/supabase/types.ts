@@ -267,18 +267,24 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          onboarded: boolean
+          profession: string | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          onboarded?: boolean
+          profession?: string | null
         }
         Update: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          onboarded?: boolean
+          profession?: string | null
         }
         Relationships: []
       }
@@ -318,6 +324,39 @@ export type Database = {
           status?: Database["public"]["Enums"]["member_status"]
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      trade_presets: {
+        Row: {
+          base_job_description: string
+          base_job_title: string
+          base_price: number
+          created_at: string
+          id: string
+          profession: string
+          updated_at: string
+          upgrades: Json
+        }
+        Insert: {
+          base_job_description?: string
+          base_job_title?: string
+          base_price?: number
+          created_at?: string
+          id?: string
+          profession?: string
+          updated_at?: string
+          upgrades?: Json
+        }
+        Update: {
+          base_job_description?: string
+          base_job_title?: string
+          base_price?: number
+          created_at?: string
+          id?: string
+          profession?: string
+          updated_at?: string
+          upgrades?: Json
         }
         Relationships: []
       }
