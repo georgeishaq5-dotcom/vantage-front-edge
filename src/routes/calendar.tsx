@@ -499,20 +499,10 @@ function CalendarPage() {
                               : "text-muted-foreground",
                         )}
                       >
-
                         {d.getDate()}
                       </span>
-                      {f &&
-                        (() => {
-                          const Icon = WORKABILITY_ICON[f.level];
-                          return (
-                            <Icon
-                              className="h-3.5 w-3.5 text-muted-foreground"
-                              aria-label={WORKABILITY_META[f.level].label}
-                            />
-                          );
-                        })()}
                     </div>
+
                     <div className="relative mt-1 flex flex-col gap-1">
                       {dayJobs.slice(0, 3).map((job) => (
                         <div
