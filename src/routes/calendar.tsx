@@ -590,17 +590,22 @@ function AgendaView({
       ) : (
         <ul className="divide-y divide-border">
           {jobs.map((job) => (
-            <li key={job.id} className="flex items-center justify-between gap-4 px-6 py-4">
+            <li
+              key={job.id}
+              className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4"
+            >
               <div className="min-w-0">
-                <div className="font-medium text-foreground">
+                <div className="truncate font-medium text-foreground">
                   {job.customer?.full_name ?? "Unassigned"}
                 </div>
                 <div className="truncate text-sm text-muted-foreground">{job.title}</div>
               </div>
-              <div className="flex items-center gap-6">
-                <span className="text-sm text-muted-foreground">{formatDate(job.service_date)}</span>
+              <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end sm:gap-6">
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                  {formatDate(job.service_date)}
+                </span>
                 <StatusBadge status={job.status} />
-                <span className="w-24 text-right font-semibold text-revenue">
+                <span className="whitespace-nowrap text-right font-semibold text-revenue sm:w-24">
                   {formatCurrency(Number(job.quote_amount))}
                 </span>
               </div>
