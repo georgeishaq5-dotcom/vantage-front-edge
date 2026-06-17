@@ -12,6 +12,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  Megaphone,
   PenLine,
   Phone,
   Play,
@@ -29,6 +30,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { RadiusMarketing } from "@/components/RadiusMarketing";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
@@ -48,6 +50,8 @@ import {
   type JobWithCustomer,
 } from "@/lib/fsm";
 
+export type WorkOrderTab = "order" | "inspection" | "activity" | "radius";
+
 const DEFAULT_CHECKLIST = [
   "Pre-service photo taken",
   "Property inspected for open windows",
@@ -60,10 +64,12 @@ export function WorkOrderSheet({
   job,
   open,
   onOpenChange,
+  initialTab,
 }: {
   job: JobWithCustomer | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialTab?: WorkOrderTab;
 }) {
   const { data: customers = [] } = useQuery({
     queryKey: ["customers"],
@@ -82,7 +88,13 @@ export function WorkOrderSheet({
         className="w-full overflow-y-auto bg-sidebar p-0 text-sidebar-foreground sm:max-w-xl"
       >
         {job && (
-          <WorkOrderBody job={job} customer={customer} onClose={() => onOpenChange(false)} />
+          <WorkOrderBody
+            key={`${job.id}-${initialTab ?? "order"}`}
+            job={job}
+            customer={customer}
+            initialTab={initialTab ?? "order"}
+            onClose={() => onOpenChange(false)}
+          />
         )}
       </SheetContent>
     </Sheet>
@@ -93,17 +105,19 @@ function WorkOrderBody({
   job,
   customer,
   onClose,
+  initialTab,
 }: {
   job: JobWithCustomer;
   customer: Customer | null;
   onClose: () => void;
+  initialTab: WorkOrderTab;
 }) {
   const queryClient = useQueryClient();
   const me = useCurrentMember();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [completing, setCompleting] = useState(false);
   const [lock, setLock] = useState<JobLock | null>(null);
-  const [tab, setTab] = useState<"order" | "inspection" | "activity">("order");
+  const [tab, setTab] = useState<WorkOrderTab>(initialTab);
   const [inspectionSigned, setInspectionSigned] = useState(false);
   const [jobStarted, setJobStarted] = useState(false);
 
@@ -219,7 +233,7 @@ function WorkOrderBody({
       </SheetHeader>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-sidebar-border bg-sidebar px-5">
+      <div className="flex gap-1 overflow-x-auto border-b border-sidebar-border bg-sidebar px-5">
         <button
           type="button"
           onClick={() => setTab("order")}
@@ -259,9 +273,24 @@ function WorkOrderBody({
           <History className="h-4 w-4" />
           Activity Log
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("radius")}
+          className={cn(
+            "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-semibold transition-colors",
+            tab === "radius"
+              ? "border-revenue text-white"
+              : "border-transparent text-sidebar-foreground/60 hover:text-white",
+          )}
+        >
+          <Megaphone className="h-4 w-4" />
+          Radius Marketing
+        </button>
       </div>
 
-      {tab === "activity" ? (
+      {tab === "radius" ? (
+        <RadiusMarketing job={job} customer={customer} />
+      ) : tab === "activity" ? (
         <div className="flex-1 px-5 py-6">
           <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-white">
             Audit Trail

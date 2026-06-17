@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MapPin, StickyNote } from "lucide-react";
@@ -31,6 +31,10 @@ import {
 
 
 export const Route = createFileRoute("/jobs")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    job: typeof search.job === "string" ? search.job : undefined,
+    tab: search.tab === "radius" ? "radius" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Dispatch Board — Vantage FSM" },
@@ -79,6 +83,22 @@ function JobsPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverLane, setDragOverLane] = useState<DispatchLane | null>(null);
   const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
+  const [sheetTab, setSheetTab] = useState<"order" | "radius">("order");
+
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+
+  // Deep-link: ?job=<id>&tab=radius opens that job's Radius Marketing tab.
+  useEffect(() => {
+    if (!search.job || jobs.length === 0) return;
+    const target = jobs.find((j) => j.id === search.job);
+    if (target) {
+      setActiveOrder({ ...target, customer_name: target.customer?.full_name ?? "Unassigned" });
+      setSheetTab(search.tab === "radius" ? "radius" : "order");
+    }
+    navigate({ to: "/jobs", search: {}, replace: true });
+  }, [search.job, search.tab, jobs, navigate]);
+
 
   const mutation = useMutation({
     mutationFn: ({ id, lane }: { id: string; lane: DispatchLane }) =>
