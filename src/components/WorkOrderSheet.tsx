@@ -12,6 +12,7 @@ import {
   Loader2,
   Lock,
   MapPin,
+  Megaphone,
   PenLine,
   Phone,
   Play,
