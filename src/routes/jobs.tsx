@@ -83,6 +83,22 @@ function JobsPage() {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverLane, setDragOverLane] = useState<DispatchLane | null>(null);
   const [activeOrder, setActiveOrder] = useState<JobWithCustomer | null>(null);
+  const [sheetTab, setSheetTab] = useState<"order" | "radius">("order");
+
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+
+  // Deep-link: ?job=<id>&tab=radius opens that job's Radius Marketing tab.
+  useEffect(() => {
+    if (!search.job || jobs.length === 0) return;
+    const target = jobs.find((j) => j.id === search.job);
+    if (target) {
+      setActiveOrder(target);
+      setSheetTab(search.tab === "radius" ? "radius" : "order");
+    }
+    navigate({ to: "/jobs", search: {}, replace: true });
+  }, [search.job, search.tab, jobs, navigate]);
+
 
   const mutation = useMutation({
     mutationFn: ({ id, lane }: { id: string; lane: DispatchLane }) =>
