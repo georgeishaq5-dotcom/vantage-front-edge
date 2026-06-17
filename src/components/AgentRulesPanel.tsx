@@ -73,6 +73,32 @@ export function AgentRulesPanel() {
   const [weatherFreeze, setWeatherFreeze] = useState(false);
   const [strictness, setStrictness] = useState(50);
 
+  // Reputation engine & lead capture (front-end automations)
+  const [copied, setCopied] = useState(false);
+  const [autoReviews, setAutoReviews] = useState(true);
+  const [autoFollowUp, setAutoFollowUp] = useState(true);
+
+  const EMBED_CODE = `<!-- Van AI Lead Capture Widget -->
+<script
+  src="https://widget.vantagefsm.app/van.js"
+  data-vantage-id="vfsm_live_8a2c91"
+  async
+></script>`;
+
+  const STAGNANT_QUOTES = [
+    { name: "Marcus Bellwether", service: "Gutter Replacement", amount: 4200, days: 21 },
+    { name: "Dana Cho", service: "Roof Inspection", amount: 1850, days: 18 },
+    { name: "Theo Vance", service: "Siding Repair", amount: 6750, days: 16 },
+  ];
+
+  function copyEmbed() {
+    navigator.clipboard?.writeText(EMBED_CODE).then(() => {
+      setCopied(true);
+      toast.success("Embed code copied");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   useEffect(() => {
     if (!rules) return;
     setZips(rules.target_zip_codes ?? []);
