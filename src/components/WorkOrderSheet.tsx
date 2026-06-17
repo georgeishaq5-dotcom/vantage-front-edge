@@ -60,10 +60,12 @@ export function WorkOrderSheet({
   job,
   open,
   onOpenChange,
+  initialTab,
 }: {
   job: JobWithCustomer | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialTab?: WorkOrderTab;
 }) {
   const { data: customers = [] } = useQuery({
     queryKey: ["customers"],
@@ -82,7 +84,13 @@ export function WorkOrderSheet({
         className="w-full overflow-y-auto bg-sidebar p-0 text-sidebar-foreground sm:max-w-xl"
       >
         {job && (
-          <WorkOrderBody job={job} customer={customer} onClose={() => onOpenChange(false)} />
+          <WorkOrderBody
+            key={`${job.id}-${initialTab ?? "order"}`}
+            job={job}
+            customer={customer}
+            initialTab={initialTab ?? "order"}
+            onClose={() => onOpenChange(false)}
+          />
         )}
       </SheetContent>
     </Sheet>
