@@ -1,4 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import {
   LayoutDashboard,
   Bot,
@@ -6,8 +9,10 @@ import {
   CalendarDays,
   Users,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
