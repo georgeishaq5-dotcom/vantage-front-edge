@@ -428,6 +428,7 @@ function CalendarPage() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Previous month"
                   onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -438,6 +439,7 @@ function CalendarPage() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Next month"
                   onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
                 >
                   <ChevronRight className="h-4 w-4" />
