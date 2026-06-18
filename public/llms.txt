@@ -1,0 +1,23 @@
+# Vantage
+
+> Vantage is the all-in-one field service management platform for quoting, dispatch, scheduling, invoicing, and automated growth.
+
+Vantage helps field service businesses manage customers, schedule and dispatch jobs, build quotes and estimates, track timesheets, and run radius marketing campaigns — all in one place.
+
+## Pages
+
+- [Dashboard](/): Weekly revenue, pending invoices, and today's scheduled jobs.
+- [Customers](/customers): Manage your customer records and history.
+- [Jobs](/jobs): Track and dispatch field service jobs.
+- [Calendar](/calendar): Schedule and view upcoming work.
+- [Estimates](/estimates): Build and send job estimates.
+- [Quotes](/quotes): Manage quotes and pricing presets.
+- [Campaigns](/campaigns): Run radius marketing outreach.
+- [Ledger](/ledger): Review financials and invoicing.
+- [Team](/team): Manage crew members and assignments.
+- [Timesheets](/timesheets): Track crew hours.
+
+## Optional
+
+- [AI Hub](/ai-hub): Chat with Van, the AI assistant.
+- [Settings](/settings): Account and workspace configuration.
