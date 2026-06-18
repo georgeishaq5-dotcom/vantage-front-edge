@@ -57,7 +57,9 @@ export const Route = createFileRoute("/calendar")({
       },
       { property: "og:title", content: "Calendar — Vantage FSM" },
       { property: "og:description", content: "Interactive field service scheduling with weather awareness." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/calendar" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/calendar" }],
   }),
   component: CalendarPage,
 });
@@ -428,6 +430,7 @@ function CalendarPage() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Previous month"
                   onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -438,6 +441,7 @@ function CalendarPage() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Next month"
                   onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
                 >
                   <ChevronRight className="h-4 w-4" />

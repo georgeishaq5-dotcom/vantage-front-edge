@@ -511,7 +511,7 @@ function PhotoSlot({ label }: { label: string }) {
       className="group relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-sidebar-border bg-sidebar-accent/40 transition-colors hover:border-revenue/60 hover:bg-sidebar-accent/70"
     >
       {preview ? (
-        <img src={preview} alt={label} className="h-full w-full object-cover" />
+        <img src={preview} alt={`${label} service photo`} className="h-full w-full object-cover" />
       ) : (
         <>
           <Camera className="h-8 w-8 text-revenue" />

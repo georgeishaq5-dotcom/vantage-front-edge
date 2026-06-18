@@ -18,7 +18,9 @@ export const Route = createFileRoute("/estimates")({
       },
       { property: "og:title", content: "Estimates — Vantage FSM" },
       { property: "og:description", content: "Manage customer estimates and quotes." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/estimates" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/estimates" }],
   }),
   component: EstimatesPage,
 });

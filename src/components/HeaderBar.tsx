@@ -21,7 +21,7 @@ export function HeaderBar() {
       <div className="flex min-w-0 items-center gap-2">
         <img
           src={vantageLogo}
-          alt={`${companyName} logo`}
+          alt={`${companyName} field service management logo`}
           className="h-8 w-auto shrink-0 object-contain md:h-10"
         />
         <span className="truncate text-lg font-bold tracking-tight text-foreground md:text-xl">

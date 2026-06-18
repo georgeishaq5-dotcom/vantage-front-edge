@@ -207,6 +207,7 @@ export function AgentRulesPanel() {
                     {z}
                     <button
                       type="button"
+                      aria-label={`Remove zip code ${z}`}
                       onClick={() => setZips((list) => list.filter((x) => x !== z))}
                       className="text-muted-foreground hover:text-foreground"
                     >

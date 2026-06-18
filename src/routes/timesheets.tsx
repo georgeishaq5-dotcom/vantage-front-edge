@@ -29,7 +29,9 @@ export const Route = createFileRoute("/timesheets")({
         property: "og:description",
         content: "Clock in, clock out, and review daily time logs.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/timesheets" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/timesheets" }],
   }),
   component: TimesheetsPage,
 });

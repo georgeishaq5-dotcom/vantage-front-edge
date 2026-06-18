@@ -32,7 +32,9 @@ export const Route = createFileRoute("/campaigns")({
         property: "og:description",
         content: "Track promo text performance from Sent through Job Booked.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/campaigns" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/campaigns" }],
   }),
   component: CampaignsPage,
 });

@@ -25,7 +25,9 @@ export const Route = createFileRoute("/quotes")({
         property: "og:description",
         content: "Build your service estimate with optional upgrades and live pricing.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/quotes" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/quotes" }],
   }),
   component: QuotesPage,
 });

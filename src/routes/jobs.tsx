@@ -45,7 +45,9 @@ export const Route = createFileRoute("/jobs")({
       },
       { property: "og:title", content: "Dispatch Board — Vantage FSM" },
       { property: "og:description", content: "Drag-and-drop dispatch board for field crews." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/jobs" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/jobs" }],
   }),
   component: JobsPage,
 });

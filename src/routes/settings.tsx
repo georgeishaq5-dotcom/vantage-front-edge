@@ -19,7 +19,9 @@ export const Route = createFileRoute("/settings")({
       { name: "description", content: "Manage billing, your team, and integrations for Vantage FSM." },
       { property: "og:title", content: "Settings — Vantage FSM" },
       { property: "og:description", content: "Manage billing, team, and integrations." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/settings" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/settings" }],
   }),
   component: SettingsPage,
 });

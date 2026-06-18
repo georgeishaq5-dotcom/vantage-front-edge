@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "";
+const BASE_URL = "https://vantage-front-edge.lovable.app";
 
 interface SitemapEntry {
   path: string;
@@ -17,6 +17,14 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/customers", changefreq: "weekly", priority: "0.8" },
           { path: "/jobs", changefreq: "weekly", priority: "0.8" },
+          { path: "/calendar", changefreq: "weekly", priority: "0.7" },
+          { path: "/estimates", changefreq: "weekly", priority: "0.7" },
+          { path: "/quotes", changefreq: "weekly", priority: "0.7" },
+          { path: "/campaigns", changefreq: "weekly", priority: "0.6" },
+          { path: "/ledger", changefreq: "weekly", priority: "0.6" },
+          { path: "/team", changefreq: "monthly", priority: "0.5" },
+          { path: "/timesheets", changefreq: "weekly", priority: "0.5" },
+          { path: "/ai-hub", changefreq: "weekly", priority: "0.5" },
           { path: "/settings", changefreq: "monthly", priority: "0.4" },
         ];
 
