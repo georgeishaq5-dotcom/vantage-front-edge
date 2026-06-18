@@ -85,7 +85,7 @@ export function AppSidebar() {
           <div className="flex items-center gap-2.5 pl-2">
             <img
               src={vantageLogo}
-              alt="Vantage logo"
+              alt="Vantage field service management logo"
               className="h-8 w-auto object-contain"
             />
             <span className="text-xl font-bold text-white tracking-tight">Vantage</span>
