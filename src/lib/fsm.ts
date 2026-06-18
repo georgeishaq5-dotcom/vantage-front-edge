@@ -5,10 +5,14 @@ export type CustomerType = "Residential" | "Commercial" | "HOA";
 
 export interface Customer {
   id: string;
+  company_id?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   full_name: string;
   email: string | null;
   phone: string | null;
   customer_type: CustomerType | null;
+  address?: string | null;
   service_address: string | null;
   site_notes: string | null;
   created_at: string;
@@ -16,11 +20,18 @@ export interface Customer {
 
 export interface Job {
   id: string;
+  company_id?: string | null;
   customer_id: string | null;
+  assigned_tech_id?: string | null;
+  job_phase?: string | null;
+  skill_tag?: string | null;
   title: string;
+  description?: string | null;
   status: JobStatus;
   service_date: string | null;
+  scheduled_date?: string | null;
   quote_amount: number;
+  total_amount?: number;
   scheduled_by_id: string | null;
   created_at: string;
 }
