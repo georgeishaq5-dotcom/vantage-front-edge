@@ -4,6 +4,8 @@ import { Bot } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useVanChat } from "@/components/VanChat";
 import { fetchMyProfile } from "@/lib/fsm";
+import vantageLogo from "@/assets/vantage-logo.png";
+
 
 export function HeaderBar() {
   const van = useVanChat();
