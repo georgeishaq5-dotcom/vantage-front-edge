@@ -53,7 +53,9 @@ export const Route = createFileRoute("/team")({
       },
       { property: "og:title", content: "My Team — Vantage FSM" },
       { property: "og:description", content: "Manage your crew, roles, and skills." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/team" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/team" }],
   }),
   component: TeamPage,
 });

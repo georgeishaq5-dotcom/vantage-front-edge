@@ -21,7 +21,9 @@ export const Route = createFileRoute("/customers")({
       },
       { property: "og:title", content: "Customers — Vantage FSM" },
       { property: "og:description", content: "Manage your customer ledger and add new accounts." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/customers" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/customers" }],
   }),
   component: CustomersPage,
 });

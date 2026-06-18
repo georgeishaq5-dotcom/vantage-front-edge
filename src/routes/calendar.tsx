@@ -57,7 +57,9 @@ export const Route = createFileRoute("/calendar")({
       },
       { property: "og:title", content: "Calendar — Vantage FSM" },
       { property: "og:description", content: "Interactive field service scheduling with weather awareness." },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/calendar" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/calendar" }],
   }),
   component: CalendarPage,
 });

@@ -60,7 +60,9 @@ export const Route = createFileRoute("/ledger")({
         property: "og:description",
         content: "Track lifetime value, AR status, and audit overdue invoices.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/ledger" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/ledger" }],
   }),
   component: LedgerPage,
 });

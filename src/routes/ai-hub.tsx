@@ -18,7 +18,9 @@ export const Route = createFileRoute("/ai-hub")({
         property: "og:description",
         content: "Tune Van's operational dials, financial guardrails, and smart filtering.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/ai-hub" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/ai-hub" }],
   }),
   component: AiHubPage,
 });
