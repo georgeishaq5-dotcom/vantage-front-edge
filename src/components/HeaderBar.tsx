@@ -16,9 +16,16 @@ export function HeaderBar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b border-border bg-background/80 px-4 backdrop-blur md:px-6">
-      <span className="truncate text-sm font-bold tracking-tight text-foreground md:text-base">
-        {companyName}
-      </span>
+      <div className="flex min-w-0 items-center gap-2">
+        <img
+          src="/vantage-logo.png"
+          alt={`${companyName} logo`}
+          className="h-8 w-8 shrink-0 object-contain md:h-10 md:w-10"
+        />
+        <span className="truncate text-lg font-bold tracking-tight text-foreground md:text-xl">
+          {companyName}
+        </span>
+      </div>
       <div className="flex items-center gap-1.5">
         <NotificationBell />
         <button

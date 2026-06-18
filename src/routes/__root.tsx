@@ -101,8 +101,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Vantage" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Vantage" },
+      { name: "theme-color", content: "#1e4fff" },
+      { property: "og:image", content: "/icon-512.png" },
+      { name: "twitter:image", content: "/icon-512.png" },
     ],
     links: [
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", type: "image/png", href: "/icon-192.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
