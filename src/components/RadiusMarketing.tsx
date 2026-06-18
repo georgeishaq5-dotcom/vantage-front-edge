@@ -111,11 +111,11 @@ export function RadiusMarketing({
 
         // Green accent rule under the company name.
         doc.setFillColor(...GREEN);
-        doc.roundedRect(cx - 0.7, headTop + 1.7, 1.4, 0.07, 0.035, 0.035, "F");
+        doc.roundedRect(cx - 0.7, headTop + 1.95, 1.4, 0.07, 0.035, 0.035, "F");
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
-        doc.text("Trusted local service", cx, headTop + 2.15, { align: "center" });
+        doc.text("Trusted local service", cx, headTop + 2.3, { align: "center" });
 
         // ---- White middle section: dynamic message ----
         const midY = headTop + headH + 0.7;
