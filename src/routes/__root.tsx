@@ -108,6 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
       { property: "og:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
       { name: "twitter:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
+      { name: "google-site-verification", content: "y6X7f2siEE2wTWBOVGGH61wnTv6FdkxhqN1TBZzl51I" },
     ],
     links: [
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
