@@ -7,12 +7,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Bot, Mic, Send, X } from "lucide-react";
+import { Bot, Send, X } from "lucide-react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-type VanMessage = { id: string; role: "user" | "van"; text: string };
 
 type VanChatContextValue = {
   open: (prefill?: string) => void;
@@ -27,18 +28,39 @@ export function useVanChat() {
   return ctx;
 }
 
+const INTRO: UIMessage = {
+  id: "intro",
+  role: "assistant",
+  parts: [
+    {
+      type: "text",
+      text: "Hi, I'm Van — your AI operator. Give me a command or ask for recommendations.",
+    },
+  ],
+};
+
+function messageText(message: UIMessage): string {
+  return message.parts
+    .map((part) => (part.type === "text" ? part.text : ""))
+    .join("");
+}
+
 export function VanChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [recording, setRecording] = useState(false);
-  const [messages, setMessages] = useState<VanMessage[]>([
-    {
-      id: "intro",
-      role: "van",
-      text: "Hi, I'm Van — your AI operator. Give me a command or ask for recommendations.",
-    },
-  ]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    messages: [INTRO],
+    onError: (err) => {
+      console.error("[VanChat] stream error:", err);
+      toast.error("Van couldn't respond. Please try again.");
+    },
+  });
+
+  const isLoading = status === "submitted" || status === "streaming";
 
   const open = useCallback((prefill?: string) => {
     setIsOpen(true);
@@ -54,26 +76,20 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, isLoading]);
+
   const send = useCallback(() => {
     const text = input.trim();
-    if (!text) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: "user", text },
-      {
-        id: crypto.randomUUID(),
-        role: "van",
-        text: "Got it — I'm analyzing that now. (Van's live reasoning will connect here.)",
-      },
-    ]);
+    if (!text || isLoading) return;
+    void sendMessage({ text });
     setInput("");
-  }, [input]);
+  }, [input, isLoading, sendMessage]);
 
   return (
     <VanChatContext.Provider value={{ open, close }}>
       {children}
-
-
 
       {/* Slide-out chat panel */}
       <div
@@ -105,24 +121,44 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
           </button>
         </header>
 
-        <div className="flex-1 space-y-3 overflow-y-auto p-4">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
-            >
+        <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+          {messages.map((m) => {
+            const text = messageText(m);
+            if (!text && m.role !== "assistant") return null;
+            return (
               <div
-                className={cn(
-                  "max-w-[85%] rounded-2xl px-3.5 py-2 text-sm",
-                  m.role === "user"
-                    ? "bg-revenue text-white"
-                    : "bg-secondary text-foreground",
-                )}
+                key={m.id}
+                className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
               >
-                {m.text}
+                <div
+                  className={cn(
+                    "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm",
+                    m.role === "user" ? "bg-revenue text-white" : "bg-secondary text-foreground",
+                  )}
+                >
+                  {text || "…"}
+                </div>
+              </div>
+            );
+          })}
+
+          {status === "submitted" && (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-1.5 rounded-2xl bg-secondary px-3.5 py-2.5 text-sm text-muted-foreground">
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.3s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60 [animation-delay:-0.15s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/60" />
               </div>
             </div>
-          ))}
+          )}
+
+          {error && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-2xl bg-destructive/10 px-3.5 py-2 text-sm text-destructive">
+                Something went wrong. Please try sending your message again.
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-border p-3">
@@ -143,19 +179,9 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
             <Button
               type="button"
               size="icon"
-              variant={recording ? "destructive" : "secondary"}
-              aria-label={recording ? "Stop recording" : "Record voice command"}
-              aria-pressed={recording}
-              onClick={() => setRecording((r) => !r)}
-              className={cn(recording && "animate-pulse")}
-            >
-              <Mic className="h-5 w-5" />
-            </Button>
-            <Button
-              type="button"
-              size="icon"
               variant="revenue"
               aria-label="Send message to Van"
+              disabled={isLoading || !input.trim()}
               onClick={send}
             >
               <Send className="h-5 w-5" />
