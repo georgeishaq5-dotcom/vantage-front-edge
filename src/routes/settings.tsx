@@ -169,6 +169,9 @@ function SettingsPage() {
 
         <JobberImport />
       </div>
+
+      <DeleteAccountSection />
+
         </TabsContent>
 
         <TabsContent value="presets" className="mt-4 md:mt-6">
