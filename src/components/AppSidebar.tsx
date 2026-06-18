@@ -17,6 +17,8 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import vantageLogo from "@/assets/vantage-logo.png";
+
 
 import { supabase } from "@/integrations/supabase/client";
 
