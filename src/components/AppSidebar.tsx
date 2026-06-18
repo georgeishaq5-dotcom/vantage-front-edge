@@ -81,15 +81,12 @@ export function AppSidebar() {
       >
         {!collapsed && (
           <div className="flex items-center gap-2.5 pl-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10">
-              <VantageLogo className="h-5 w-6" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-[15px] font-bold text-white tracking-tight">Vantage</div>
-              <div className="text-[11px] uppercase tracking-[0.18em] text-sidebar-foreground/60">
-                FSM
-              </div>
-            </div>
+            <img
+              src="/vantage-logo.png"
+              alt="Vantage logo"
+              className="h-8 w-auto object-contain"
+            />
+            <span className="text-xl font-bold text-white tracking-tight">Vantage</span>
           </div>
         )}
         <button
