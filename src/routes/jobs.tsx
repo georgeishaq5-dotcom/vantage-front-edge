@@ -96,7 +96,7 @@ function JobsPage() {
       setActiveOrder({ ...target, customer_name: target.customer?.full_name ?? "Unassigned" });
       setSheetTab(search.tab === "radius" ? "radius" : "order");
     }
-    navigate({ to: "/jobs", search: {}, replace: true });
+    navigate({ to: "/jobs", search: { job: undefined, tab: undefined }, replace: true });
   }, [search.job, search.tab, jobs, navigate]);
 
 
