@@ -17,7 +17,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { VantageLogo } from "@/components/VantageLogo";
+
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
