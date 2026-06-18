@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock, Info, Sparkles, TrendingUp, MessageSquare, CloudRain, Sun, Snowflake } from "lucide-react";
+import { DollarSign, FileClock, CalendarClock, Info, Sparkles, TrendingUp, MessageSquare, CloudRain, Sun, Snowflake, Megaphone } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
+import { RadiusCampaignModal } from "@/components/RadiusCampaignModal";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useVanChat } from "@/components/VanChat";
 import {
@@ -122,6 +125,7 @@ function MetricCard({
 }
 
 function Dashboard() {
+  const [radiusOpen, setRadiusOpen] = useState(false);
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: fetchJobsWithCustomers,
@@ -179,6 +183,18 @@ function Dashboard() {
             tooltip="Estimated value Vantage generated: recovered invoices, upsell lift, and marketing-driven bookings."
           />
         </div>
+
+        <Button
+          variant="revenue"
+          onClick={() => setRadiusOpen(true)}
+          className="mt-3 h-12 w-full gap-2 text-sm font-semibold md:mt-6 md:h-11 md:w-auto"
+        >
+          <Megaphone className="h-5 w-5" />
+          Launch Radius Campaign
+        </Button>
+        <RadiusCampaignModal open={radiusOpen} onOpenChange={setRadiusOpen} />
+
+
 
         <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
