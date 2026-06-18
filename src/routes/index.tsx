@@ -184,6 +184,18 @@ function Dashboard() {
           />
         </div>
 
+        <Button
+          variant="revenue"
+          onClick={() => setRadiusOpen(true)}
+          className="mt-3 h-12 w-full gap-2 text-sm font-semibold md:mt-6 md:h-11 md:w-auto"
+        >
+          <Megaphone className="h-5 w-5" />
+          Launch Radius Campaign
+        </Button>
+        <RadiusCampaignModal open={radiusOpen} onOpenChange={setRadiusOpen} />
+
+
+
         <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
           <MarketingActivityCard />
