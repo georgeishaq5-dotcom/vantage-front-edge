@@ -47,6 +47,55 @@ const db = supabase as unknown as {
   from: (t: string) => any;
 };
 
+/**
+ * Resolves the signed-in user's company_id from their profile so it can be
+ * attached explicitly to inserts (matching the RLS `company_id = current_company_id()`
+ * policy). If the profile is missing a company we provision one on the fly so the
+ * tenant context is never NULL.
+ */
+export async function getCurrentCompanyId(): Promise<string> {
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError) {
+    console.error("[fsm] getUser failed:", authError);
+    throw authError;
+  }
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Not authenticated — no active user session.");
+
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("company_id")
+    .eq("id", uid)
+    .maybeSingle();
+  if (profileError) {
+    console.error("[fsm] profile lookup failed:", profileError);
+    throw profileError;
+  }
+
+  if (profile?.company_id) return profile.company_id as string;
+
+  // No company yet — create a workspace and link the profile to it.
+  const { data: company, error: companyError } = await db
+    .from("companies")
+    .insert({ name: auth.user?.email ?? "My Workspace" })
+    .select("id")
+    .single();
+  if (companyError) {
+    console.error("[fsm] company creation failed:", companyError);
+    throw companyError;
+  }
+
+  const { error: upsertError } = await db
+    .from("profiles")
+    .upsert({ id: uid, email: auth.user?.email, company_id: company.id });
+  if (upsertError) {
+    console.error("[fsm] profile upsert failed:", upsertError);
+    throw upsertError;
+  }
+
+  return company.id as string;
+}
+
 export async function fetchCustomers(): Promise<Customer[]> {
   const { data, error } = await db
     .from("customers")
