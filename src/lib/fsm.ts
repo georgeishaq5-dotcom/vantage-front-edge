@@ -47,6 +47,55 @@ const db = supabase as unknown as {
   from: (t: string) => any;
 };
 
+/**
+ * Resolves the signed-in user's company_id from their profile so it can be
+ * attached explicitly to inserts (matching the RLS `company_id = current_company_id()`
+ * policy). If the profile is missing a company we provision one on the fly so the
+ * tenant context is never NULL.
+ */
+export async function getCurrentCompanyId(): Promise<string> {
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError) {
+    console.error("[fsm] getUser failed:", authError);
+    throw authError;
+  }
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Not authenticated — no active user session.");
+
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("company_id")
+    .eq("id", uid)
+    .maybeSingle();
+  if (profileError) {
+    console.error("[fsm] profile lookup failed:", profileError);
+    throw profileError;
+  }
+
+  if (profile?.company_id) return profile.company_id as string;
+
+  // No company yet — create a workspace and link the profile to it.
+  const { data: company, error: companyError } = await db
+    .from("companies")
+    .insert({ name: auth.user?.email ?? "My Workspace" })
+    .select("id")
+    .single();
+  if (companyError) {
+    console.error("[fsm] company creation failed:", companyError);
+    throw companyError;
+  }
+
+  const { error: upsertError } = await db
+    .from("profiles")
+    .upsert({ id: uid, email: auth.user?.email, company_id: company.id });
+  if (upsertError) {
+    console.error("[fsm] profile upsert failed:", upsertError);
+    throw upsertError;
+  }
+
+  return company.id as string;
+}
+
 export async function fetchCustomers(): Promise<Customer[]> {
   const { data, error } = await db
     .from("customers")
@@ -93,17 +142,24 @@ function splitName(full: string): { first: string; last: string } {
 }
 
 export async function createCustomer(input: NewCustomer): Promise<Customer> {
-  const { first, last } = splitName(input.full_name);
-  const row = {
-    ...input,
-    first_name: input.first_name ?? first,
-    last_name: input.last_name ?? last,
-    // Keep the new `address` column in sync with the legacy `service_address`.
-    address: input.address ?? input.service_address ?? null,
-  };
-  const { data, error } = await db.from("customers").insert(row).select().single();
-  if (error) throw error;
-  return data as Customer;
+  try {
+    const company_id = await getCurrentCompanyId();
+    const { first, last } = splitName(input.full_name);
+    const row = {
+      ...input,
+      company_id,
+      first_name: input.first_name ?? first,
+      last_name: input.last_name ?? last,
+      // Keep the new `address` column in sync with the legacy `service_address`.
+      address: input.address ?? input.service_address ?? null,
+    };
+    const { data, error } = await db.from("customers").insert(row).select().single();
+    if (error) throw error;
+    return data as Customer;
+  } catch (err) {
+    console.error("[fsm] createCustomer failed:", err);
+    throw err;
+  }
 }
 
 export interface NewJob {
@@ -121,15 +177,22 @@ export interface NewJob {
 }
 
 export async function createJob(input: NewJob): Promise<Job> {
-  const row = {
-    ...input,
-    description: input.description ?? input.title,
-    // Mirror the legacy `quote_amount` into the canonical `total_amount`.
-    total_amount: input.total_amount ?? input.quote_amount,
-  };
-  const { data, error } = await db.from("jobs").insert(row).select().single();
-  if (error) throw error;
-  return data as Job;
+  try {
+    const company_id = await getCurrentCompanyId();
+    const row = {
+      ...input,
+      company_id,
+      description: input.description ?? input.title,
+      // Mirror the legacy `quote_amount` into the canonical `total_amount`.
+      total_amount: input.total_amount ?? input.quote_amount,
+    };
+    const { data, error } = await db.from("jobs").insert(row).select().single();
+    if (error) throw error;
+    return data as Job;
+  } catch (err) {
+    console.error("[fsm] createJob failed:", err);
+    throw err;
+  }
 }
 
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
