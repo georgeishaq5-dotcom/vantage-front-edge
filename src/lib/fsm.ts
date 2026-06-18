@@ -76,15 +76,32 @@ export async function fetchJobsWithCustomers(): Promise<JobWithCustomer[]> {
 
 export interface NewCustomer {
   full_name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string | null;
   phone?: string | null;
   customer_type?: CustomerType | null;
+  address?: string | null;
   service_address?: string | null;
   site_notes?: string | null;
 }
 
+// Split "First Last" into parts when explicit names aren't provided.
+function splitName(full: string): { first: string; last: string } {
+  const parts = full.trim().split(/\s+/);
+  return { first: parts[0] ?? "", last: parts.slice(1).join(" ") };
+}
+
 export async function createCustomer(input: NewCustomer): Promise<Customer> {
-  const { data, error } = await db.from("customers").insert(input).select().single();
+  const { first, last } = splitName(input.full_name);
+  const row = {
+    ...input,
+    first_name: input.first_name ?? first,
+    last_name: input.last_name ?? last,
+    // Keep the new `address` column in sync with the legacy `service_address`.
+    address: input.address ?? input.service_address ?? null,
+  };
+  const { data, error } = await db.from("customers").insert(row).select().single();
   if (error) throw error;
   return data as Customer;
 }
@@ -92,13 +109,25 @@ export async function createCustomer(input: NewCustomer): Promise<Customer> {
 export interface NewJob {
   customer_id?: string | null;
   title: string;
+  description?: string | null;
   status: JobStatus;
+  job_phase?: string | null;
+  skill_tag?: string | null;
+  assigned_tech_id?: string | null;
   service_date?: string | null;
+  scheduled_date?: string | null;
   quote_amount: number;
+  total_amount?: number;
 }
 
 export async function createJob(input: NewJob): Promise<Job> {
-  const { data, error } = await db.from("jobs").insert(input).select().single();
+  const row = {
+    ...input,
+    description: input.description ?? input.title,
+    // Mirror the legacy `quote_amount` into the canonical `total_amount`.
+    total_amount: input.total_amount ?? input.quote_amount,
+  };
+  const { data, error } = await db.from("jobs").insert(row).select().single();
   if (error) throw error;
   return data as Job;
 }
