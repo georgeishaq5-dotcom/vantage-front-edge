@@ -74,38 +74,79 @@ export type Database = {
         }
         Relationships: []
       }
-      customers: {
+      companies: {
         Row: {
           created_at: string
-          customer_type: Database["public"]["Enums"]["customer_type"] | null
-          email: string | null
-          full_name: string
           id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address: string | null
+          company_id: string
+          created_at: string
+          customer_type: string | null
+          email: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string
+          last_name: string | null
           phone: string | null
           service_address: string | null
           site_notes: string | null
         }
         Insert: {
+          address?: string | null
+          company_id?: string
           created_at?: string
-          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          customer_type?: string | null
           email?: string | null
-          full_name: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
+          last_name?: string | null
           phone?: string | null
           service_address?: string | null
           site_notes?: string | null
         }
         Update: {
+          address?: string | null
+          company_id?: string
           created_at?: string
-          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          customer_type?: string | null
           email?: string | null
-          full_name?: string
+          first_name?: string | null
+          full_name?: string | null
           id?: string
+          last_name?: string | null
           phone?: string | null
           service_address?: string | null
           site_notes?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_assignments: {
         Row: {
@@ -130,13 +171,6 @@ export type Database = {
           team_member_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "job_assignments_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "job_assignments_team_member_id_fkey"
             columns: ["team_member_id"]
@@ -165,60 +199,73 @@ export type Database = {
           locked_by_id?: string
           locked_by_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "job_locks_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: true
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       jobs: {
         Row: {
+          assigned_tech_id: string | null
+          company_id: string
           created_at: string
           customer_id: string | null
+          description: string | null
           id: string
+          job_phase: string | null
           quote_amount: number
           scheduled_by_id: string | null
+          scheduled_date: string | null
           service_date: string | null
-          status: Database["public"]["Enums"]["job_status"]
+          skill_tag: string | null
+          status: string
           title: string
+          total_amount: number
         }
         Insert: {
+          assigned_tech_id?: string | null
+          company_id?: string
           created_at?: string
           customer_id?: string | null
+          description?: string | null
           id?: string
+          job_phase?: string | null
           quote_amount?: number
           scheduled_by_id?: string | null
+          scheduled_date?: string | null
           service_date?: string | null
-          status?: Database["public"]["Enums"]["job_status"]
-          title: string
+          skill_tag?: string | null
+          status?: string
+          title?: string
+          total_amount?: number
         }
         Update: {
+          assigned_tech_id?: string | null
+          company_id?: string
           created_at?: string
           customer_id?: string | null
+          description?: string | null
           id?: string
+          job_phase?: string | null
           quote_amount?: number
           scheduled_by_id?: string | null
+          scheduled_date?: string | null
           service_date?: string | null
-          status?: Database["public"]["Enums"]["job_status"]
+          skill_tag?: string | null
+          status?: string
           title?: string
+          total_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "jobs_scheduled_by_id_fkey"
-            columns: ["scheduled_by_id"]
-            isOneToOne: false
-            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
@@ -251,18 +298,11 @@ export type Database = {
           status?: Database["public"]["Enums"]["outreach_status"]
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "neighbor_outreach_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
+          company_id: string | null
           company_name: string | null
           created_at: string
           email: string | null
@@ -275,6 +315,7 @@ export type Database = {
           years_in_business: string | null
         }
         Insert: {
+          company_id?: string | null
           company_name?: string | null
           created_at?: string
           email?: string | null
@@ -287,6 +328,7 @@ export type Database = {
           years_in_business?: string | null
         }
         Update: {
+          company_id?: string | null
           company_name?: string | null
           created_at?: string
           email?: string | null
@@ -298,7 +340,15 @@ export type Database = {
           yearly_revenue?: string | null
           years_in_business?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
@@ -399,6 +449,7 @@ export type Database = {
     }
     Functions: {
       can_manage: { Args: never; Returns: boolean }
+      current_company_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
