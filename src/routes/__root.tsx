@@ -84,14 +84,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Vantage" },
+      { title: "Vantage: Field Service Manager" },
       {
         name: "description",
         content:
           "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
       },
       { name: "author", content: "Vantage" },
-      { property: "og:title", content: "Vantage" },
+      { property: "og:title", content: "Vantage: Field Service Manager" },
       {
         property: "og:description",
         content:
@@ -102,8 +102,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Vantage" },
       { name: "theme-color", content: "#1e4fff" },
-      { property: "og:image", content: "/icon-512.png" },
-      { name: "twitter:image", content: "/icon-512.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
+      { name: "twitter:title", content: "Vantage: Field Service Manager" },
+      { name: "description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
+      { property: "og:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
+      { name: "twitter:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
     ],
     links: [
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
