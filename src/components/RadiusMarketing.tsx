@@ -48,52 +48,123 @@ export function RadiusMarketing({
     setGenerating(true);
     try {
       const leadUrl = `${window.location.origin}/?lead=1`;
-      const qr = await QRCode.toDataURL(leadUrl, { margin: 1, width: 400 });
+      const qr = await QRCode.toDataURL(leadUrl, { margin: 1, width: 600 });
 
       const doc = new jsPDF({ unit: "in", format: "letter" });
       const pageW = 8.5;
       const half = pageW / 2;
 
-      // Divider line between the two vertical door hangers.
-      doc.setDrawColor(180);
+      // Brand palette pulled from the Vantage logo.
+      const BLUE: [number, number, number] = [30, 79, 255];
+      const GREEN: [number, number, number] = [16, 185, 129];
+      const INK: [number, number, number] = [17, 24, 39];
+
+      // Cut/divider line between the two vertical door hangers.
+      doc.setDrawColor(190);
       doc.setLineDashPattern([0.08, 0.08], 0);
       doc.line(half, 0, half, 11);
       doc.setLineDashPattern([], 0);
 
       const drawHanger = (offsetX: number) => {
+        const pad = 0.28;
+        const x = offsetX + pad;
+        const w = half - pad * 2;
         const cx = offsetX + half / 2;
-        // Door-knob hole
-        doc.setDrawColor(120);
-        doc.circle(cx, 1, 0.45);
-        doc.line(cx, 1.45, cx, 1.9);
+
+        // Outer card with rounded corners.
+        doc.setDrawColor(225);
+        doc.setLineWidth(0.012);
+        doc.roundedRect(x, 0.3, w, 10.4, 0.18, 0.18, "S");
+
+        // ---- Door-knob cutout ----
+        doc.setFillColor(245, 246, 248);
+        doc.setDrawColor(205);
+        doc.circle(cx, 1.0, 0.42, "FD");
+        doc.setFillColor(255, 255, 255);
+        doc.circle(cx, 1.0, 0.32, "F");
+        // Slot connecting the hole to the top edge.
+        doc.setFillColor(245, 246, 248);
+        doc.roundedRect(cx - 0.09, 0.42, 0.18, 0.5, 0.09, 0.09, "F");
+        doc.setDrawColor(205);
+        doc.line(cx - 0.09, 0.42, cx - 0.09, 0.7);
+        doc.line(cx + 0.09, 0.42, cx + 0.09, 0.7);
+
+        // ---- Blue header block ----
+        const headTop = 1.7;
+        const headH = 2.5;
+        doc.setFillColor(...BLUE);
+        doc.roundedRect(x, headTop, w, headH, 0.14, 0.14, "F");
 
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(20, 20, 20);
-        doc.setFontSize(26);
-        doc.text(company, cx, 3, { align: "center", maxWidth: half - 0.6 });
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.text("YOUR NEIGHBORHOOD CREW", cx, headTop + 0.5, {
+          align: "center",
+          charSpace: 0.02,
+        });
+
+        doc.setFontSize(30);
+        doc.text(company, cx, headTop + 1.35, {
+          align: "center",
+          maxWidth: w - 0.5,
+        });
+
+        // Green accent rule under the company name.
+        doc.setFillColor(...GREEN);
+        doc.roundedRect(cx - 0.7, headTop + 1.7, 1.4, 0.07, 0.035, 0.035, "F");
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(15);
-        doc.setTextColor(60, 60, 60);
-        doc.text(`We are doing some work in ${city} today!`, cx, 4.2, {
-          align: "center",
-          maxWidth: half - 0.7,
-        });
+        doc.setFontSize(11);
+        doc.text("Trusted local service", cx, headTop + 2.15, { align: "center" });
 
-        doc.setFontSize(12);
-        doc.setTextColor(90, 90, 90);
-        doc.text("Scan to get a fast, free quote", cx, 6.2, {
-          align: "center",
-          maxWidth: half - 0.7,
-        });
-
-        const qrSize = 2.2;
-        doc.addImage(qr, "PNG", cx - qrSize / 2, 6.5, qrSize, qrSize);
+        // ---- White middle section: dynamic message ----
+        const midY = headTop + headH + 0.7;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(13);
+        doc.setTextColor(...INK);
+        doc.text("We are doing some work in", cx, midY, { align: "center" });
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(20, 20, 20);
-        doc.text("Powered by Van AI", cx, 9.4, { align: "center" });
+        doc.setFontSize(24);
+        doc.setTextColor(...BLUE);
+        doc.text(`${city} today!`, cx, midY + 0.55, {
+          align: "center",
+          maxWidth: w - 0.4,
+        });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11.5);
+        doc.setTextColor(80, 88, 100);
+        doc.text(
+          "While our team is in the area, get a fast, free quote — no obligation.",
+          cx,
+          midY + 1.15,
+          { align: "center", maxWidth: w - 0.5 },
+        );
+
+        // ---- Green footer block: CTA + QR ----
+        const footH = 2.7;
+        const footTop = 10.7 - footH;
+        doc.setFillColor(...GREEN);
+        doc.roundedRect(x, footTop, w, footH, 0.14, 0.14, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(15);
+        doc.text("Scan to get a", cx, footTop + 0.5, { align: "center" });
+        doc.text("fast, free quote", cx, footTop + 0.85, { align: "center" });
+
+        // QR code on a white rounded tile.
+        const qrSize = 1.25;
+        const tile = qrSize + 0.2;
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(cx - tile / 2, footTop + 1.05, tile, tile, 0.1, 0.1, "F");
+        doc.addImage(qr, "PNG", cx - qrSize / 2, footTop + 1.15, qrSize, qrSize);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text("Powered by Van AI", cx, footTop + footH - 0.22, { align: "center" });
       };
 
       drawHanger(0);
@@ -107,6 +178,7 @@ export function RadiusMarketing({
       setGenerating(false);
     }
   }
+
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-5">
