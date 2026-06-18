@@ -125,6 +125,7 @@ function MetricCard({
 }
 
 function Dashboard() {
+  const [radiusOpen, setRadiusOpen] = useState(false);
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: fetchJobsWithCustomers,
