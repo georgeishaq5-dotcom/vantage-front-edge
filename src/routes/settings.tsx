@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Users, Plug, PhoneCall } from "lucide-react";
@@ -168,6 +169,9 @@ function SettingsPage() {
 
         <JobberImport />
       </div>
+
+      <DeleteAccountSection />
+
         </TabsContent>
 
         <TabsContent value="presets" className="mt-4 md:mt-6">
