@@ -124,6 +124,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Vantage",
+              url: "https://vantage-front-edge.lovable.app",
+              description:
+                "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
+            },
+            {
+              "@type": "WebSite",
+              name: "Vantage: Field Service Manager",
+              url: "https://vantage-front-edge.lovable.app",
+              description:
+                "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
+            },
+          ],
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
