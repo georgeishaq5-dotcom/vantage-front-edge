@@ -464,31 +464,33 @@ function WorkOrderBody({
       </div>
       )}
 
-      {/* Sticky action */}
-      <div className="sticky bottom-0 border-t border-sidebar-border bg-sidebar px-5 py-4">
-        <Button
-          variant="revenue"
-          className="h-14 w-full text-base"
-          disabled={completing || mutation.isPending || lockedByOther}
-          onClick={() => {
-            setCompleting(true);
-            mutation.mutate();
-          }}
-        >
-          {lockedByOther ? (
-            <Lock className="h-5 w-5" />
-          ) : mutation.isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <CheckCircle2 className="h-5 w-5" />
-          )}
-          {lockedByOther
-            ? "Locked — another user is editing"
-            : mutation.isPending
-              ? "Completing…"
-              : "Complete Job & Generate Invoice"}
-        </Button>
-      </div>
+      {/* Sticky action — hidden on the Radius tab which has its own CTAs */}
+      {tab !== "radius" && (
+        <div className="sticky bottom-0 border-t border-sidebar-border bg-sidebar px-5 py-4">
+          <Button
+            variant="revenue"
+            className="h-14 w-full text-base"
+            disabled={completing || mutation.isPending || lockedByOther}
+            onClick={() => {
+              setCompleting(true);
+              mutation.mutate();
+            }}
+          >
+            {lockedByOther ? (
+              <Lock className="h-5 w-5" />
+            ) : mutation.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-5 w-5" />
+            )}
+            {lockedByOther
+              ? "Locked — another user is editing"
+              : mutation.isPending
+                ? "Completing…"
+                : "Complete Job & Generate Invoice"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
