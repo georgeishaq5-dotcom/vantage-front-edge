@@ -84,7 +84,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex items-center gap-2.5 pl-2">
             <img
-              src="/vantage-logo.png"
+              src={vantageLogo}
               alt="Vantage logo"
               className="h-8 w-auto object-contain"
             />
