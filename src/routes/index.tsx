@@ -34,7 +34,9 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Track weekly revenue, pending invoices, and today's scheduled jobs.",
       },
+      { property: "og:url", content: "https://vantage-front-edge.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://vantage-front-edge.lovable.app/" }],
   }),
   component: Dashboard,
 });
