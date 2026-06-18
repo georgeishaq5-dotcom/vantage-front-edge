@@ -105,9 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
       { name: "twitter:title", content: "Vantage: Field Service Manager" },
-      { name: "description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
-      { property: "og:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
-      { name: "twitter:description", content: "Vantage FSM Core is a front-end application for managing field service operations." },
+      { name: "twitter:description", content: "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth." },
       { name: "google-site-verification", content: "y6X7f2siEE2wTWBOVGGH61wnTv6FdkxhqN1TBZzl51I" },
     ],
     links: [
