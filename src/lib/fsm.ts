@@ -142,17 +142,24 @@ function splitName(full: string): { first: string; last: string } {
 }
 
 export async function createCustomer(input: NewCustomer): Promise<Customer> {
-  const { first, last } = splitName(input.full_name);
-  const row = {
-    ...input,
-    first_name: input.first_name ?? first,
-    last_name: input.last_name ?? last,
-    // Keep the new `address` column in sync with the legacy `service_address`.
-    address: input.address ?? input.service_address ?? null,
-  };
-  const { data, error } = await db.from("customers").insert(row).select().single();
-  if (error) throw error;
-  return data as Customer;
+  try {
+    const company_id = await getCurrentCompanyId();
+    const { first, last } = splitName(input.full_name);
+    const row = {
+      ...input,
+      company_id,
+      first_name: input.first_name ?? first,
+      last_name: input.last_name ?? last,
+      // Keep the new `address` column in sync with the legacy `service_address`.
+      address: input.address ?? input.service_address ?? null,
+    };
+    const { data, error } = await db.from("customers").insert(row).select().single();
+    if (error) throw error;
+    return data as Customer;
+  } catch (err) {
+    console.error("[fsm] createCustomer failed:", err);
+    throw err;
+  }
 }
 
 export interface NewJob {
@@ -170,15 +177,22 @@ export interface NewJob {
 }
 
 export async function createJob(input: NewJob): Promise<Job> {
-  const row = {
-    ...input,
-    description: input.description ?? input.title,
-    // Mirror the legacy `quote_amount` into the canonical `total_amount`.
-    total_amount: input.total_amount ?? input.quote_amount,
-  };
-  const { data, error } = await db.from("jobs").insert(row).select().single();
-  if (error) throw error;
-  return data as Job;
+  try {
+    const company_id = await getCurrentCompanyId();
+    const row = {
+      ...input,
+      company_id,
+      description: input.description ?? input.title,
+      // Mirror the legacy `quote_amount` into the canonical `total_amount`.
+      total_amount: input.total_amount ?? input.quote_amount,
+    };
+    const { data, error } = await db.from("jobs").insert(row).select().single();
+    if (error) throw error;
+    return data as Job;
+  } catch (err) {
+    console.error("[fsm] createJob failed:", err);
+    throw err;
+  }
 }
 
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
