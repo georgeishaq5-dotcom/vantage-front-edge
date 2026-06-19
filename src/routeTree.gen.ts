@@ -14,6 +14,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuotesRouteImport } from './routes/quotes'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as EstimatesRouteImport } from './routes/estimates'
@@ -48,6 +49,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const QuotesRoute = QuotesRouteImport.update({
   id: '/quotes',
   path: '/quotes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LedgerRoute = LedgerRouteImport.update({
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/privacy': typeof PrivacyRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/privacy': typeof PrivacyRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/estimates': typeof EstimatesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/privacy': typeof PrivacyRoute
   '/quotes': typeof QuotesRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/jobs'
     | '/ledger'
+    | '/privacy'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/jobs'
     | '/ledger'
+    | '/privacy'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/jobs'
     | '/ledger'
+    | '/privacy'
     | '/quotes'
     | '/settings'
     | '/sitemap.xml'
@@ -216,6 +228,7 @@ export interface RootRouteChildren {
   EstimatesRoute: typeof EstimatesRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
+  PrivacyRoute: typeof PrivacyRoute
   QuotesRoute: typeof QuotesRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       path: '/quotes'
       fullPath: '/quotes'
       preLoaderRoute: typeof QuotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ledger': {
@@ -355,6 +375,7 @@ const rootRouteChildren: RootRouteChildren = {
   EstimatesRoute: EstimatesRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
+  PrivacyRoute: PrivacyRoute,
   QuotesRoute: QuotesRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
