@@ -62,11 +62,17 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+  const { ensureConsent, granted } = useAiConsent();
 
-  const open = useCallback((prefill?: string) => {
-    setIsOpen(true);
-    if (prefill) setInput(prefill);
-  }, []);
+  const open = useCallback(
+    (prefill?: string) => {
+      // Gate the AI agent behind explicit consent before opening the chat.
+      if (!ensureConsent()) return;
+      setIsOpen(true);
+      if (prefill) setInput(prefill);
+    },
+    [ensureConsent],
+  );
 
   const close = useCallback(() => setIsOpen(false), []);
 
