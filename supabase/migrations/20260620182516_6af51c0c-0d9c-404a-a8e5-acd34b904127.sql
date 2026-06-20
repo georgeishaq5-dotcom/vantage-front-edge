@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ai_consent_granted boolean NOT NULL DEFAULT false;

@@ -302,6 +302,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_consent_granted: boolean
           company_id: string | null
           company_name: string | null
           created_at: string
@@ -315,6 +316,7 @@ export type Database = {
           years_in_business: string | null
         }
         Insert: {
+          ai_consent_granted?: boolean
           company_id?: string | null
           company_name?: string | null
           created_at?: string
@@ -328,6 +330,7 @@ export type Database = {
           years_in_business?: string | null
         }
         Update: {
+          ai_consent_granted?: boolean
           company_id?: string | null
           company_name?: string | null
           created_at?: string
