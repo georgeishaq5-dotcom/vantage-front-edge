@@ -15,6 +15,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import vantageLogo from "@/assets/vantage-logo.png";
