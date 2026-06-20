@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAiConsent } from "@/components/AiConsentGate";
 
 type VanChatContextValue = {
   open: (prefill?: string) => void;
@@ -61,11 +62,17 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
   });
 
   const isLoading = status === "submitted" || status === "streaming";
+  const { ensureConsent, granted } = useAiConsent();
 
-  const open = useCallback((prefill?: string) => {
-    setIsOpen(true);
-    if (prefill) setInput(prefill);
-  }, []);
+  const open = useCallback(
+    (prefill?: string) => {
+      // Gate the AI agent behind explicit consent before opening the chat.
+      if (!ensureConsent()) return;
+      setIsOpen(true);
+      if (prefill) setInput(prefill);
+    },
+    [ensureConsent],
+  );
 
   const close = useCallback(() => setIsOpen(false), []);
 
@@ -83,9 +90,10 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
   const send = useCallback(() => {
     const text = input.trim();
     if (!text || isLoading) return;
+    if (!granted) return;
     void sendMessage({ text });
     setInput("");
-  }, [input, isLoading, sendMessage]);
+  }, [input, isLoading, sendMessage, granted]);
 
   return (
     <VanChatContext.Provider value={{ open, close }}>

@@ -15,6 +15,7 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import vantageLogo from "@/assets/vantage-logo.png";
@@ -31,6 +32,7 @@ const NAV = [
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
   { label: "My Team", to: "/team", icon: Users },
+  { label: "Upgrade", to: "/upgrade", icon: Sparkles },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
