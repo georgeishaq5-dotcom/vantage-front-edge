@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -26,6 +27,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const UpgradeRoute = UpgradeRouteImport.update({
+  id: '/upgrade',
+  path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TimesheetsRoute = TimesheetsRouteImport.update({
   id: '/timesheets',
   path: '/timesheets',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/timesheets': typeof TimesheetsRoute
+  '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/timesheets': typeof TimesheetsRoute
+  '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
   '/timesheets': typeof TimesheetsRoute
+  '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
 }
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/timesheets'
+    | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
   fileRoutesByTo: FileRoutesByTo
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/timesheets'
+    | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
   id:
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/timesheets'
+    | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
   fileRoutesById: FileRoutesById
@@ -234,11 +246,19 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
   TimesheetsRoute: typeof TimesheetsRoute
+  UpgradeRoute: typeof UpgradeRoute
   ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upgrade': {
+      id: '/upgrade'
+      path: '/upgrade'
+      fullPath: '/upgrade'
+      preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/timesheets': {
       id: '/timesheets'
       path: '/timesheets'
@@ -381,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
   TimesheetsRoute: TimesheetsRoute,
+  UpgradeRoute: UpgradeRoute,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport

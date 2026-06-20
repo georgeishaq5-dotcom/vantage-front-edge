@@ -176,6 +176,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <NotificationsProvider>
         <AuthGate>
+          <AiConsentProvider>
           <VanChatProvider>
             <div className="flex min-h-screen w-full bg-background">
               <AppSidebar />
