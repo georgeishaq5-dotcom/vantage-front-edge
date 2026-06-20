@@ -34,6 +34,7 @@ const MORE = [
   { label: "Estimates List", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "My Team", to: "/team", icon: Users },
+  { label: "Upgrade", to: "/upgrade", icon: Sparkles },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
