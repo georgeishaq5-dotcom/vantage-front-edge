@@ -12,6 +12,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
