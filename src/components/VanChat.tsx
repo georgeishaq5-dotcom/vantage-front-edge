@@ -90,9 +90,10 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
   const send = useCallback(() => {
     const text = input.trim();
     if (!text || isLoading) return;
+    if (!granted) return;
     void sendMessage({ text });
     setInput("");
-  }, [input, isLoading, sendMessage]);
+  }, [input, isLoading, sendMessage, granted]);
 
   return (
     <VanChatContext.Provider value={{ open, close }}>
