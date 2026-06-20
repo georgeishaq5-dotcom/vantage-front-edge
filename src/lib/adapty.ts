@@ -1,9 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import {
-  adapty,
-  type AdaptyPaywall,
-  type AdaptyPaywallProduct,
-} from "@adapty/capacitor";
+import type { AdaptyPaywall, AdaptyPaywallProduct } from "@adapty/capacitor";
 
 /**
  * Adapty public SDK key.
@@ -26,10 +22,19 @@ export function isAdaptyAvailable(): boolean {
 
 let activated = false;
 
+// Lazy-load the native module so SSR/prerender never evaluates it at import time.
+async function getAdapty() {
+  const mod = await import("@adapty/capacitor");
+  return mod.adapty;
+}
+
 async function ensureActivated() {
-  if (activated) return;
-  await adapty.activate({ apiKey: ADAPTY_PUBLIC_SDK_KEY });
-  activated = true;
+  const adapty = await getAdapty();
+  if (!activated) {
+    await adapty.activate({ apiKey: ADAPTY_PUBLIC_SDK_KEY });
+    activated = true;
+  }
+  return adapty;
 }
 
 export type PaywallData = {
@@ -39,7 +44,7 @@ export type PaywallData = {
 
 /** Fetch the configured paywall and its products from Adapty (native only). */
 export async function loadPaywall(): Promise<PaywallData> {
-  await ensureActivated();
+  const adapty = await ensureActivated();
   const paywall = await adapty.getPaywall({ placementId: ADAPTY_PLACEMENT_ID });
   const products = await adapty.getPaywallProducts({ paywall });
   return { paywall, products };
@@ -47,12 +52,12 @@ export async function loadPaywall(): Promise<PaywallData> {
 
 /** Trigger a purchase for the given product (native only). */
 export async function purchaseProduct(product: AdaptyPaywallProduct) {
-  await ensureActivated();
+  const adapty = await ensureActivated();
   return adapty.makePurchase({ product });
 }
 
 /** Restore previously made purchases (required by Apple, native only). */
 export async function restorePurchases() {
-  await ensureActivated();
+  const adapty = await ensureActivated();
   return adapty.restorePurchases();
 }
