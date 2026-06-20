@@ -188,6 +188,7 @@ function RootComponent() {
               <BottomNav />
             </div>
           </VanChatProvider>
+          </AiConsentProvider>
         </AuthGate>
         <Toaster richColors position="top-right" />
       </NotificationsProvider>
