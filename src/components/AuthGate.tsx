@@ -100,6 +100,20 @@ function AuthScreen() {
     setBusy(false);
   }
 
+  async function handleApple() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("apple", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Apple sign-in failed");
+      setBusy(false);
+      return;
+    }
+    if (result.redirected) return;
+    setBusy(false);
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-sidebar px-4">
       <div className="w-full max-w-sm rounded-2xl border border-sidebar-border bg-card p-8 shadow-2xl">
