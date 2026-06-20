@@ -58,6 +58,44 @@ function PrivacyPage() {
             or storage is completely secure.
           </p>
 
+          <h2 className="text-xl font-bold">
+            <strong>AI Data Processing</strong>
+          </h2>
+          <p className="font-semibold">
+            Vantage includes AI features (such as "Van", our AI operator). This section explains
+            how those features handle your data.
+          </p>
+          <ul className="list-disc space-y-2 pl-6">
+            <li>
+              <strong>What personal information the AI feature collects:</strong> the chat prompts
+              and messages you type to the AI, together with related business data you reference or
+              that is provided as context — including job details, scheduling information, customer
+              records, and account information associated with your workspace.
+            </li>
+            <li>
+              <strong>Why the data is collected:</strong> solely to generate automated insights,
+              recommendations, summaries, and responses that you request. We do not use this data
+              for advertising, and we do not sell it.
+            </li>
+            <li>
+              <strong>Where the data is processed:</strong> prompts and the necessary context are
+              processed on our secure backend infrastructure and then forwarded to a third-party AI
+              processing provider. Processing may occur on servers operated by that provider.
+            </li>
+            <li>
+              <strong>Whether the data is sent to an external LLM:</strong> yes. Your prompts and
+              the associated job data are transmitted to an external third-party large language
+              model (LLM) provider for processing. That provider processes the data only to return
+              a response and does not use your data to train its models.
+            </li>
+          </ul>
+          <p className="font-semibold">
+            AI features are optional and gated behind your explicit, in-app consent. If you decline,
+            the AI features are disabled and no prompts or job data are sent to the AI provider.
+          </p>
+
+
+
           <h2 className="text-xl font-semibold">4. Sharing of Information</h2>
           <p>
             We share information only with service providers that help us operate the Service (such
