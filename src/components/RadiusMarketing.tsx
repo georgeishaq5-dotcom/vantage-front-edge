@@ -240,6 +240,7 @@ function NeighborTexts({
 }) {
   const runFind = useServerFn(findNeighbors);
   const runBlast = useServerFn(blastNeighbors);
+  const { requirePro } = useFeatureGate();
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -248,6 +249,7 @@ function NeighborTexts({
   const [matches, setMatches] = useState<NeighborMatch[] | null>(null);
 
   async function scan() {
+    if (!requirePro("route_density")) return;
     if (!jobAddress) {
       toast.error("This job has no service address to map.");
       return;
