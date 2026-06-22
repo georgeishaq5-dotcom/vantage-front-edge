@@ -46,6 +46,17 @@ type FormValues = z.infer<typeof schema>;
 export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { pro, openPaywall } = useFeatureGate();
+  const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
+
+  function handleOpenChange(o: boolean) {
+    if (o && !pro && customers.length >= FREE_CUSTOMER_CAP) {
+      openPaywall("customer_storage");
+      return;
+    }
+    setOpen(o);
+    if (!o) reset();
+  }
 
   const {
     register,
