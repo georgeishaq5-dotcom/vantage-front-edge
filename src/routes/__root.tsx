@@ -16,6 +16,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
 import { AiConsentProvider } from "@/components/AiConsentGate";
+import { FeatureGateProvider } from "@/components/FeatureGate";
 import { NotificationsProvider } from "@/lib/notifications";
 import { HeaderBar } from "@/components/HeaderBar";
 import { Toaster } from "@/components/ui/sonner";
