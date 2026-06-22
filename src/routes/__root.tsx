@@ -179,6 +179,7 @@ function RootComponent() {
       <NotificationsProvider>
         <AuthGate>
           <AiConsentProvider>
+          <FeatureGateProvider>
           <VanChatProvider>
             <div className="flex min-h-screen w-full bg-background">
               <AppSidebar />
@@ -190,6 +191,7 @@ function RootComponent() {
               <BottomNav />
             </div>
           </VanChatProvider>
+          </FeatureGateProvider>
           </AiConsentProvider>
         </AuthGate>
         <Toaster richColors position="top-right" />
