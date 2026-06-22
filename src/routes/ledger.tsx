@@ -430,8 +430,10 @@ function NeighborHook({ entry }: { entry: LedgerEntry }) {
 
 function AuditorPanel({ overdue }: { overdue: ReturnType<typeof collectOverdue> }) {
   const [sent, setSent] = useState<Record<string, boolean>>({});
+  const { requirePro } = useFeatureGate();
 
   function sendFollowUp(id: string, name: string) {
+    if (!requirePro("auto_collections")) return;
     setSent((s) => ({ ...s, [id]: true }));
     toast.success("Follow-up sent", {
       description: `A polite collection SMS was simulated to ${name}.`,
