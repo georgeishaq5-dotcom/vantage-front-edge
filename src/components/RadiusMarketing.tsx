@@ -304,6 +304,7 @@ function NeighborTexts({
 
   async function textCustomers() {
     if (textable.length === 0) return;
+    if (!requirePro("auto_collections")) return;
     setSending(true);
     try {
       const result = await runBlast({
