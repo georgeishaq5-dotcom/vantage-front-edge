@@ -89,13 +89,7 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const customerType = watch("customer_type");
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) reset();
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? <Button variant="revenue">Add New Customer</Button>}
       </DialogTrigger>
