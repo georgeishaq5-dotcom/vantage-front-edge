@@ -1255,3 +1255,25 @@ export async function completeOnboarding(profession: string): Promise<void> {
   if (error) throw error;
 }
 
+
+/**
+ * Records consumption of one automated (Pro) job for the current workspace,
+ * incrementing companies.automated_jobs_count. The first 3 are free-trial; see
+ * src/lib/entitlements.ts for the access model.
+ */
+export async function consumeAutomatedJob(): Promise<number> {
+  const companyId = await getCurrentCompanyId();
+  const { data: current, error: readError } = await db
+    .from("companies")
+    .select("automated_jobs_count")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (readError) throw readError;
+  const next = (current?.automated_jobs_count ?? 0) + 1;
+  const { error } = await db
+    .from("companies")
+    .update({ automated_jobs_count: next })
+    .eq("id", companyId);
+  if (error) throw error;
+  return next;
+}

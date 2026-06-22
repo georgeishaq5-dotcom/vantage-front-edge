@@ -2,8 +2,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+import { useFeatureGate } from "@/components/FeatureGate";
+import { fetchCustomers } from "@/lib/fsm";
+import { FREE_CUSTOMER_CAP } from "@/lib/entitlements";
 
 import {
   Dialog,
@@ -42,6 +46,17 @@ type FormValues = z.infer<typeof schema>;
 export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { pro, openPaywall } = useFeatureGate();
+  const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
+
+  function handleOpenChange(o: boolean) {
+    if (o && !pro && customers.length >= FREE_CUSTOMER_CAP) {
+      openPaywall("customer_storage");
+      return;
+    }
+    setOpen(o);
+    if (!o) reset();
+  }
 
   const {
     register,
@@ -74,13 +89,7 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const customerType = watch("customer_type");
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) reset();
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? <Button variant="revenue">Add New Customer</Button>}
       </DialogTrigger>

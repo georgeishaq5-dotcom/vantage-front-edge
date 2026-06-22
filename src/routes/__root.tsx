@@ -16,6 +16,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AuthGate } from "@/components/AuthGate";
 import { VanChatProvider } from "@/components/VanChat";
 import { AiConsentProvider } from "@/components/AiConsentGate";
+import { FeatureGateProvider } from "@/components/FeatureGate";
 import { NotificationsProvider } from "@/lib/notifications";
 import { HeaderBar } from "@/components/HeaderBar";
 import { Toaster } from "@/components/ui/sonner";
@@ -178,6 +179,7 @@ function RootComponent() {
       <NotificationsProvider>
         <AuthGate>
           <AiConsentProvider>
+          <FeatureGateProvider>
           <VanChatProvider>
             <div className="flex min-h-screen w-full bg-background">
               <AppSidebar />
@@ -189,6 +191,7 @@ function RootComponent() {
               <BottomNav />
             </div>
           </VanChatProvider>
+          </FeatureGateProvider>
           </AiConsentProvider>
         </AuthGate>
         <Toaster richColors position="top-right" />

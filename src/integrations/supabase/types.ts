@@ -76,21 +76,27 @@ export type Database = {
       }
       companies: {
         Row: {
+          automated_jobs_count: number
           created_at: string
           id: string
           name: string
+          subscription_status: string
           updated_at: string
         }
         Insert: {
+          automated_jobs_count?: number
           created_at?: string
           id?: string
           name: string
+          subscription_status?: string
           updated_at?: string
         }
         Update: {
+          automated_jobs_count?: number
           created_at?: string
           id?: string
           name?: string
+          subscription_status?: string
           updated_at?: string
         }
         Relationships: []
