@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EditCustomerModal } from "@/components/EditCustomerModal";
+import { useFeatureGate } from "@/components/FeatureGate";
 import { sendPromoSms } from "@/lib/sms.functions";
 import {
   Sheet,
