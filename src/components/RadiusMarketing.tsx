@@ -38,6 +38,7 @@ export function RadiusMarketing({
 }) {
   const { data: profile } = useQuery({ queryKey: ["my_profile"], queryFn: fetchMyProfile });
   const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
+  const { requirePro } = useFeatureGate();
 
   const company = profile?.company_name?.trim() || "Vantage";
   const city = cityFromAddress(customer?.service_address);
@@ -46,6 +47,7 @@ export function RadiusMarketing({
   const [generating, setGenerating] = useState(false);
 
   async function generateFlyer() {
+    if (!requirePro("weather_marketing")) return;
     setGenerating(true);
     try {
       const leadUrl = `${window.location.origin}/?lead=1`;
