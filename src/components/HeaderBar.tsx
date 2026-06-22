@@ -22,7 +22,7 @@ export function HeaderBar() {
         <img
           src={vantageLogo}
           alt={`${companyName} field service management logo`}
-          className="h-8 w-auto shrink-0 object-contain md:h-10"
+          className="h-8 w-auto shrink-0 bg-transparent object-contain md:h-10"
         />
         <span className="truncate text-lg font-bold tracking-tight text-foreground md:text-xl">
           {companyName}
