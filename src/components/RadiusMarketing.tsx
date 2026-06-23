@@ -47,6 +47,11 @@ export function RadiusMarketing({
   const jobAddress = customer?.service_address ?? null;
 
   const [generating, setGenerating] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const flyerRef = useRef<HTMLDivElement>(null);
+
+  const phone = profile?.phone?.trim() || "(555) 123-4567";
+  const website = "www.vantage-fsm.com";
 
   async function generateFlyer() {
     if (!requirePro("weather_marketing")) return;
@@ -54,126 +59,39 @@ export function RadiusMarketing({
     try {
       const leadUrl = `${window.location.origin}/?lead=1`;
       const qr = await QRCode.toDataURL(leadUrl, { margin: 1, width: 600 });
+      setQrDataUrl(qr);
 
-      const doc = new jsPDF({ unit: "in", format: "letter" });
-      const pageW = 8.5;
-      const half = pageW / 2;
+      // Wait for the off-screen flyer to render with the fresh QR code.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-      // Brand palette pulled from the Vantage logo.
-      const BLUE: [number, number, number] = [30, 79, 255];
-      const GREEN: [number, number, number] = [16, 185, 129];
-      const INK: [number, number, number] = [17, 24, 39];
+      const node = flyerRef.current;
+      if (!node) throw new Error("Flyer could not be rendered.");
 
-      // Cut/divider line between the two vertical door hangers.
-      doc.setDrawColor(190);
-      doc.setLineDashPattern([0.08, 0.08], 0);
-      doc.line(half, 0, half, 11);
-      doc.setLineDashPattern([], 0);
+      const canvas = await html2canvas(node, {
+        scale: 3,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        logging: false,
+      });
 
-      const drawHanger = (offsetX: number) => {
-        const pad = 0.28;
-        const x = offsetX + pad;
-        const w = half - pad * 2;
-        const cx = offsetX + half / 2;
-
-        // Outer card with rounded corners.
-        doc.setDrawColor(225);
-        doc.setLineWidth(0.012);
-        doc.roundedRect(x, 0.3, w, 10.4, 0.18, 0.18, "S");
-
-        // ---- Door-knob cutout ----
-        doc.setFillColor(245, 246, 248);
-        doc.setDrawColor(205);
-        doc.circle(cx, 1.0, 0.42, "FD");
-        doc.setFillColor(255, 255, 255);
-        doc.circle(cx, 1.0, 0.32, "F");
-        // Slot connecting the hole to the top edge.
-        doc.setFillColor(245, 246, 248);
-        doc.roundedRect(cx - 0.09, 0.42, 0.18, 0.5, 0.09, 0.09, "F");
-        doc.setDrawColor(205);
-        doc.line(cx - 0.09, 0.42, cx - 0.09, 0.7);
-        doc.line(cx + 0.09, 0.42, cx + 0.09, 0.7);
-
-        // ---- Blue header block ----
-        const headTop = 1.7;
-        const headH = 2.5;
-        doc.setFillColor(...BLUE);
-        doc.roundedRect(x, headTop, w, headH, 0.14, 0.14, "F");
-
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(11);
-        doc.text("YOUR NEIGHBORHOOD CREW", cx, headTop + 0.5, {
-          align: "center",
-          charSpace: 0.02,
-        });
-
-        doc.setFontSize(30);
-        doc.text(company, cx, headTop + 1.35, {
-          align: "center",
-          maxWidth: w - 0.5,
-        });
-
-        // Green accent rule under the company name.
-        doc.setFillColor(...GREEN);
-        doc.roundedRect(cx - 0.7, headTop + 1.95, 1.4, 0.07, 0.035, 0.035, "F");
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        doc.text("Trusted local service", cx, headTop + 2.3, { align: "center" });
-
-        // ---- White middle section: dynamic message ----
-        const midY = headTop + headH + 0.7;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(13);
-        doc.setTextColor(...INK);
-        doc.text("We are doing some work in", cx, midY, { align: "center" });
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(24);
-        doc.setTextColor(...BLUE);
-        doc.text(`${city} today!`, cx, midY + 0.55, {
-          align: "center",
-          maxWidth: w - 0.4,
-        });
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11.5);
-        doc.setTextColor(80, 88, 100);
-        doc.text(
-          "While our team is in the area, get a fast, free quote — no obligation.",
-          cx,
-          midY + 1.15,
-          { align: "center", maxWidth: w - 0.5 },
-        );
-
-        // ---- Green footer block: CTA + QR ----
-        const footH = 2.7;
-        const footTop = 10.7 - footH;
-        doc.setFillColor(...GREEN);
-        doc.roundedRect(x, footTop, w, footH, 0.14, 0.14, "F");
-
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(15);
-        doc.text("Scan to get a", cx, footTop + 0.5, { align: "center" });
-        doc.text("fast, free quote", cx, footTop + 0.85, { align: "center" });
-
-        // QR code on a white rounded tile.
-        const qrSize = 1.25;
-        const tile = qrSize + 0.2;
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(cx - tile / 2, footTop + 1.05, tile, tile, 0.1, 0.1, "F");
-        doc.addImage(qr, "PNG", cx - qrSize / 2, footTop + 1.15, qrSize, qrSize);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.5);
-        doc.setTextColor(255, 255, 255);
-        doc.text("Powered by Van AI", cx, footTop + footH - 0.22, { align: "center" });
-      };
-
-      drawHanger(0);
-      drawHanger(half);
+      const imgData = canvas.toDataURL("image/png");
+      // Landscape letter so the two vertical panels sit side by side.
+      const doc = new jsPDF({ unit: "in", format: "letter", orientation: "landscape" });
+      const pageW = 11;
+      const pageH = 8.5;
+      const margin = 0.3;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let w = maxW;
+      let h = w / ratio;
+      if (h > maxH) {
+        h = maxH;
+        w = h * ratio;
+      }
+      const x = (pageW - w) / 2;
+      const y = (pageH - h) / 2;
+      doc.addImage(imgData, "PNG", x, y, w, h);
 
       doc.save(`${company.replace(/\s+/g, "-")}-door-hangers.pdf`);
       toast.success("Door hanger flyer generated.");
