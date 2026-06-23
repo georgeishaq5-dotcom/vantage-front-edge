@@ -1,26 +1,17 @@
 import { cn } from "@/lib/utils";
+import vantageLogo from "@/assets/vantage-logo.png";
 
 /**
- * Vantage brand mark — a sleek, sharp "V" whose right arm extends into an
- * upward trend line with an arrowhead. Inherits the brand accent via the
- * `text-brand` color on the wrapping element (uses currentColor).
+ * Vantage brand mark — the official "V" logo image. Sizing is controlled via
+ * the `className` (e.g. `h-7 w-9`); the image is contained and sits on a
+ * transparent background so it works on both light and dark surfaces.
  */
 export function VantageLogo({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 44 32"
-      className={cn("text-brand", className)}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={4}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {/* The V + ascending trend line */}
-      <path d="M4 7 L16 27 L25 11 L32 15 L40 4" />
-      {/* Arrowhead capping the trend line */}
-      <path d="M33 4 L40 4 L40 11" />
-    </svg>
+    <img
+      src={vantageLogo}
+      alt="Vantage logo"
+      className={cn("bg-transparent object-contain", className)}
+    />
   );
 }
