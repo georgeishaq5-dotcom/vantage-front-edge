@@ -50,7 +50,7 @@ export function RadiusMarketing({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const flyerRef = useRef<HTMLDivElement>(null);
 
-  const phone = profile?.phone?.trim() || "(555) 123-4567";
+  const phone = "(555) 123-4567";
   const website = "www.vantage-fsm.com";
 
   async function generateFlyer() {
