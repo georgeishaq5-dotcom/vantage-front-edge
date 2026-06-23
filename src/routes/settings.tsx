@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { JobberImport } from "@/components/JobberImport";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Users, Plug, PhoneCall } from "lucide-react";
+import { CreditCard, Users, Plug, PhoneCall, ShieldCheck } from "lucide-react";
 
 
 export const Route = createFileRoute("/settings")({
@@ -170,6 +170,26 @@ function SettingsPage() {
         <FinancialReports />
 
         <JobberImport />
+
+        <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-foreground">Legal &amp; Privacy</h2>
+              <p className="text-sm text-muted-foreground">
+                Review how we collect, use, and protect your data.
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 flex items-center justify-between border-t border-border pt-5">
+            <p className="text-sm text-muted-foreground">Read our full Privacy Policy.</p>
+            <Button asChild variant="secondary">
+              <Link to="/privacy-policy">View Privacy Policy</Link>
+            </Button>
+          </div>
+        </div>
       </div>
 
       <DeleteAccountSection />
