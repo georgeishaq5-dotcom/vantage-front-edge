@@ -105,6 +105,21 @@ export function RadiusMarketing({
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-5">
+      {/* Off-screen flyer used as the print template for PDF capture. */}
+      <div
+        aria-hidden
+        style={{ position: "fixed", left: -99999, top: 0, pointerEvents: "none" }}
+      >
+        <DoorHangerFlyer
+          ref={flyerRef}
+          company={company}
+          city={city}
+          phone={phone}
+          website={website}
+          qrDataUrl={qrDataUrl}
+        />
+      </div>
+
       <div className="flex items-start gap-3 rounded-xl border border-revenue/40 bg-revenue/10 p-4">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-revenue text-revenue-foreground">
           <Megaphone className="h-5 w-5" />
