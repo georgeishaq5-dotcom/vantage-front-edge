@@ -3,10 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import QRCode from "qrcode";
 import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas-pro";
 import { toast } from "sonner";
 import { FileDown, Loader2, MapPin, Megaphone, Send, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DoorHangerFlyer } from "@/components/DoorHangerFlyer";
 import { useFeatureGate } from "@/components/FeatureGate";
 import { fetchCustomers, fetchMyProfile, type Customer, type JobWithCustomer } from "@/lib/fsm";
 import { loadGoogleMaps, isMapsConfigured } from "@/lib/google-maps";
