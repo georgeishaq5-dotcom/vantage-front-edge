@@ -19,6 +19,7 @@ import { AiConsentProvider } from "@/components/AiConsentGate";
 import { FeatureGateProvider } from "@/components/FeatureGate";
 import { NotificationsProvider } from "@/lib/notifications";
 import { HeaderBar } from "@/components/HeaderBar";
+import { TermsUpdateModal } from "@/components/TermsUpdateModal";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -189,6 +190,7 @@ function RootComponent() {
                 <Outlet />
               </main>
               <BottomNav />
+              <TermsUpdateModal />
             </div>
           </VanChatProvider>
           </FeatureGateProvider>
