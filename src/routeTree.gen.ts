@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as TimesheetsRouteImport } from './routes/timesheets'
+import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -19,8 +20,10 @@ import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as EulaRouteImport } from './routes/eula'
 import { Route as EstimatesRouteImport } from './routes/estimates'
 import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AiHubRouteImport } from './routes/ai-hub'
@@ -36,6 +39,11 @@ const UpgradeRoute = UpgradeRouteImport.update({
 const TimesheetsRoute = TimesheetsRouteImport.update({
   id: '/timesheets',
   path: '/timesheets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeamRoute = TeamRouteImport.update({
@@ -78,6 +86,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EulaRoute = EulaRouteImport.update({
+  id: '/eula',
+  path: '/eula',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EstimatesRoute = EstimatesRouteImport.update({
   id: '/estimates',
   path: '/estimates',
@@ -86,6 +99,11 @@ const EstimatesRoute = EstimatesRouteImport.update({
 const CustomersRoute = CustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampaignsRoute = CampaignsRouteImport.update({
@@ -124,8 +142,10 @@ export interface FileRoutesByFullPath {
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
   '/estimates': typeof EstimatesRoute
+  '/eula': typeof EulaRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/privacy': typeof PrivacyRoute
@@ -134,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
@@ -144,8 +165,10 @@ export interface FileRoutesByTo {
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
   '/estimates': typeof EstimatesRoute
+  '/eula': typeof EulaRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/privacy': typeof PrivacyRoute
@@ -154,6 +177,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
@@ -165,8 +189,10 @@ export interface FileRoutesById {
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
   '/estimates': typeof EstimatesRoute
+  '/eula': typeof EulaRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/privacy': typeof PrivacyRoute
@@ -175,6 +201,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
@@ -187,8 +214,10 @@ export interface FileRouteTypes {
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
+    | '/cookie-policy'
     | '/customers'
     | '/estimates'
+    | '/eula'
     | '/jobs'
     | '/ledger'
     | '/privacy'
@@ -197,6 +226,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/terms-of-service'
     | '/timesheets'
     | '/upgrade'
     | '/api/chat'
@@ -207,8 +237,10 @@ export interface FileRouteTypes {
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
+    | '/cookie-policy'
     | '/customers'
     | '/estimates'
+    | '/eula'
     | '/jobs'
     | '/ledger'
     | '/privacy'
@@ -217,6 +249,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/terms-of-service'
     | '/timesheets'
     | '/upgrade'
     | '/api/chat'
@@ -227,8 +260,10 @@ export interface FileRouteTypes {
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
+    | '/cookie-policy'
     | '/customers'
     | '/estimates'
+    | '/eula'
     | '/jobs'
     | '/ledger'
     | '/privacy'
@@ -237,6 +272,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/team'
+    | '/terms-of-service'
     | '/timesheets'
     | '/upgrade'
     | '/api/chat'
@@ -248,8 +284,10 @@ export interface RootRouteChildren {
   AiHubRoute: typeof AiHubRoute
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
+  CookiePolicyRoute: typeof CookiePolicyRoute
   CustomersRoute: typeof CustomersRouteWithChildren
   EstimatesRoute: typeof EstimatesRoute
+  EulaRoute: typeof EulaRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -258,6 +296,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
   TimesheetsRoute: typeof TimesheetsRoute
   UpgradeRoute: typeof UpgradeRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -277,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/timesheets'
       fullPath: '/timesheets'
       preLoaderRoute: typeof TimesheetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/team': {
@@ -335,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/eula': {
+      id: '/eula'
+      path: '/eula'
+      fullPath: '/eula'
+      preLoaderRoute: typeof EulaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/estimates': {
       id: '/estimates'
       path: '/estimates'
@@ -347,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/customers'
       preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campaigns': {
@@ -411,8 +471,10 @@ const rootRouteChildren: RootRouteChildren = {
   AiHubRoute: AiHubRoute,
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
+  CookiePolicyRoute: CookiePolicyRoute,
   CustomersRoute: CustomersRouteWithChildren,
   EstimatesRoute: EstimatesRoute,
+  EulaRoute: EulaRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
   PrivacyRoute: PrivacyRoute,
@@ -421,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
   TimesheetsRoute: TimesheetsRoute,
   UpgradeRoute: UpgradeRoute,
   ApiChatRoute: ApiChatRoute,

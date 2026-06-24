@@ -9,7 +9,7 @@ import { JobberImport } from "@/components/JobberImport";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Users, Plug, PhoneCall, ShieldCheck } from "lucide-react";
+import { CreditCard, Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
 
 
 export const Route = createFileRoute("/settings")({
@@ -183,12 +183,24 @@ function SettingsPage() {
               </p>
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between border-t border-border pt-5">
-            <p className="text-sm text-muted-foreground">Read our full Privacy Policy.</p>
-            <Button asChild variant="secondary">
-              <Link to="/privacy-policy">View Privacy Policy</Link>
-            </Button>
+          <div className="mt-5 divide-y divide-border border-t border-border">
+            {[
+              { to: "/privacy-policy", label: "Privacy Policy" },
+              { to: "/terms-of-service", label: "Terms of Service" },
+              { to: "/eula", label: "End User License Agreement" },
+              { to: "/cookie-policy", label: "Cookie Policy" },
+            ].map((doc) => (
+              <Link
+                key={doc.to}
+                to={doc.to}
+                className="flex items-center justify-between py-3.5 text-sm font-medium text-foreground transition-colors hover:text-revenue"
+              >
+                <span>{doc.label}</span>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </Link>
+            ))}
           </div>
+
         </div>
       </div>
 

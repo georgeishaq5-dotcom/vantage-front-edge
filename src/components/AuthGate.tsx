@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
@@ -169,6 +170,20 @@ function AuthScreen() {
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             {mode === "signup" ? "Create workspace" : "Sign in"}
           </Button>
+
+          {mode === "signup" && (
+            <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
+              By creating an account, you agree to our{" "}
+              <Link to="/terms-of-service" className="font-medium text-brand hover:underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy-policy" className="font-medium text-brand hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          )}
         </form>
 
         <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
