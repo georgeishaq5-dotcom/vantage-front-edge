@@ -1,25 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, FileClock, CalendarClock, Info, Sparkles, TrendingUp, MessageSquare, CloudRain, Sun, Snowflake, Megaphone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DollarSign,
+  FileClock,
+  CalendarClock,
+  Info,
+  Sparkles,
+  TrendingUp,
+  MessageSquare,
+  CloudRain,
+  Sun,
+  Snowflake,
+  Megaphone,
+} from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { RadiusCampaignModal } from "@/components/RadiusCampaignModal";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useVanChat } from "@/components/VanChat";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  fetchJobsWithCustomers,
-  formatCurrency,
-  formatDate,
-  type JobWithCustomer,
-} from "@/lib/fsm";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { fetchJobsWithCustomers, formatCurrency, formatDate, type JobWithCustomer } from "@/lib/fsm";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -132,6 +135,27 @@ function Dashboard() {
     queryKey: ["jobs"],
     queryFn: fetchJobsWithCustomers,
   });
+  // --- PASTE START ---
+  useEffect(() => {
+    const testSupabaseFetch = async () => {
+      console.log("1. Starting Supabase fetch test...");
+
+      const { data, error } = await supabase
+        .from("Customers") // Ensure this matches your actual table name in Supabase
+        .select("*")
+        .limit(5);
+
+      if (error) {
+        console.error("❌ Supabase Fetch Error:", error.message, error.details);
+        return;
+      }
+
+      console.log("✅ Supabase Data Successfully Pulled:", data);
+    };
+
+    testSupabaseFetch();
+  }, []);
+  // --- PASTE END ---
 
   const weeklyRevenue = jobs
     .filter((j) => j.status === "Paid" && withinDays(j.service_date, 7))
@@ -145,10 +169,7 @@ function Dashboard() {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
-        <PageHeader
-          title="Dashboard"
-          description="A snapshot of revenue, invoicing, and today's field work."
-        />
+        <PageHeader title="Dashboard" description="A snapshot of revenue, invoicing, and today's field work." />
 
         <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
           <MetricCard
@@ -196,14 +217,10 @@ function Dashboard() {
         </Button>
         <RadiusCampaignModal open={radiusOpen} onOpenChange={setRadiusOpen} />
 
-
-
         <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
           <MarketingActivityCard />
         </div>
-
-
 
         <section className="mt-5 md:mt-8 rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -217,13 +234,7 @@ function Dashboard() {
   );
 }
 
-function RoiAuditCard({
-  pendingTotal,
-  weeklyRevenue,
-}: {
-  pendingTotal: number;
-  weeklyRevenue: number;
-}) {
+function RoiAuditCard({ pendingTotal, weeklyRevenue }: { pendingTotal: number; weeklyRevenue: number }) {
   // Vantage's generated value: recovered invoices + estimated upsell lift.
   const recoveredValue = pendingTotal * 0.6;
   const upsellLift = weeklyRevenue * 0.18;
@@ -251,9 +262,7 @@ function RoiAuditCard({
 
       <div className="mt-5 rounded-lg bg-revenue-muted/60 p-4">
         <p className="text-xs font-medium text-muted-foreground">Total value generated</p>
-        <p className="mt-1 text-2xl md:text-3xl font-extrabold tracking-tight text-revenue">
-          {formatCurrency(total)}
-        </p>
+        <p className="mt-1 text-2xl md:text-3xl font-extrabold tracking-tight text-revenue">{formatCurrency(total)}</p>
       </div>
 
       <ul className="mt-4 flex flex-col gap-2.5">
@@ -309,18 +318,13 @@ function MarketingActivityCard() {
         {drafts.map((d) => {
           const Icon = d.icon;
           return (
-            <li
-              key={d.trigger}
-              className="rounded-lg border border-border bg-secondary/30 p-3"
-            >
+            <li key={d.trigger} className="rounded-lg border border-border bg-secondary/30 p-3">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground">
                   <Icon className={`h-3.5 w-3.5 ${d.color}`} />
                   {d.trigger}
                 </span>
-                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {d.time}
-                </span>
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{d.time}</span>
               </div>
               <p className="mt-1.5 text-sm text-muted-foreground">{d.text}</p>
             </li>
@@ -331,18 +335,12 @@ function MarketingActivityCard() {
   );
 }
 
-
-
 function JobsTable({ jobs, loading }: { jobs: JobWithCustomer[]; loading: boolean }) {
   if (loading) {
     return <div className="px-6 py-10 text-center text-sm text-muted-foreground">Loading jobs…</div>;
   }
   if (jobs.length === 0) {
-    return (
-      <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-        No jobs scheduled for today.
-      </div>
-    );
+    return <div className="px-6 py-10 text-center text-sm text-muted-foreground">No jobs scheduled for today.</div>;
   }
   return (
     <div className="overflow-x-auto">
