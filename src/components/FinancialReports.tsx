@@ -56,12 +56,29 @@ export function FinancialReports() {
   async function exportXlsx() {
     if (!guard()) return;
     try {
-      const XLSX = await import("xlsx");
-      const ws = XLSX.utils.aoa_to_sheet([HEADERS, ...toRows(report)]);
-      ws["!cols"] = [{ wch: 14 }, { wch: 22 }, { wch: 12 }, { wch: 26 }, { wch: 14 }, { wch: 12 }, { wch: 14 }];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Revenue");
-      XLSX.writeFile(wb, `vantage-financials-${STAMP()}.xlsx`);
+      const ExcelJSModule = await import("exceljs");
+      const ExcelJS = ("default" in ExcelJSModule ? ExcelJSModule.default : ExcelJSModule) as typeof import("exceljs");
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet("Revenue");
+      ws.columns = [
+        { width: 14 },
+        { width: 22 },
+        { width: 12 },
+        { width: 26 },
+        { width: 14 },
+        { width: 12 },
+        { width: 14 },
+      ];
+      ws.addRow(HEADERS);
+      ws.getRow(1).font = { bold: true };
+      for (const row of toRows(report)) ws.addRow(row);
+      const buffer = await wb.xlsx.writeBuffer();
+      download(
+        new Blob([buffer], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }),
+        `vantage-financials-${STAMP()}.xlsx`,
+      );
       toast.success("Excel report exported");
     } catch {
       toast.error("Could not generate the Excel file.");
