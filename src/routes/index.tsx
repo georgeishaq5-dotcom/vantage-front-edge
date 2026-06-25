@@ -20,6 +20,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { RadiusCampaignModal } from "@/components/RadiusCampaignModal";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PendingActionsCard } from "@/components/PendingActionsCard";
+import { AiQuoteDrafts } from "@/components/AiQuoteDrafts";
 import { useVanChat } from "@/components/VanChat";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchJobsWithCustomers, formatCurrency, formatDate, type JobWithCustomer } from "@/lib/fsm";
