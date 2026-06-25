@@ -20,6 +20,8 @@ import { PageHeader } from "@/components/PageHeader";
 import { RadiusCampaignModal } from "@/components/RadiusCampaignModal";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PendingActionsCard } from "@/components/PendingActionsCard";
+import { AiQuoteDrafts } from "@/components/AiQuoteDrafts";
 import { useVanChat } from "@/components/VanChat";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchJobsWithCustomers, formatCurrency, formatDate, type JobWithCustomer } from "@/lib/fsm";
@@ -220,6 +222,11 @@ function Dashboard() {
           Launch Radius Campaign
         </Button>
         <RadiusCampaignModal open={radiusOpen} onOpenChange={setRadiusOpen} />
+
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
+          <PendingActionsCard />
+          <AiQuoteDrafts />
+        </div>
 
         <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
