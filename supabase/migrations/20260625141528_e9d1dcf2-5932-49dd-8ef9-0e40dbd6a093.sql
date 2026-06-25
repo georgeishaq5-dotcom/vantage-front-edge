@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.job_in_current_company(uuid) FROM PUBLIC, anon, authenticated;

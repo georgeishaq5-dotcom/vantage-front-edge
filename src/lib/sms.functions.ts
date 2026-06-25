@@ -25,7 +25,12 @@ function normalizeE164(raw: string): string {
 export const sendPromoSms = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => SendPromoSmsInput.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { data: canManage, error: roleError } = await context.supabase.rpc("can_manage");
+    if (roleError || !canManage) {
+      throw new Error("Forbidden: manager or admin role required");
+    }
+
     const lovableApiKey = process.env.LOVABLE_API_KEY;
     const twilioApiKey = process.env.TWILIO_API_KEY;
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");

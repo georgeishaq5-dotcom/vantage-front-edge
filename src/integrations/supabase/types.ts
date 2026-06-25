@@ -17,6 +17,7 @@ export type Database = {
       agent_rules: {
         Row: {
           auto_approve_limit: number
+          company_id: string | null
           created_at: string
           follow_up_trigger: string
           handoff_keyword: string
@@ -36,6 +37,7 @@ export type Database = {
         }
         Insert: {
           auto_approve_limit?: number
+          company_id?: string | null
           created_at?: string
           follow_up_trigger?: string
           handoff_keyword?: string
@@ -55,6 +57,7 @@ export type Database = {
         }
         Update: {
           auto_approve_limit?: number
+          company_id?: string | null
           created_at?: string
           follow_up_trigger?: string
           handoff_keyword?: string
@@ -467,6 +470,7 @@ export type Database = {
         Returns: boolean
       }
       is_assigned_to_job: { Args: { _job_id: string }; Returns: boolean }
+      job_in_current_company: { Args: { _job_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "dispatcher" | "field_tech"
