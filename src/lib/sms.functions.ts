@@ -23,6 +23,7 @@ function normalizeE164(raw: string): string {
 }
 
 export const sendPromoSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => SendPromoSmsInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;
