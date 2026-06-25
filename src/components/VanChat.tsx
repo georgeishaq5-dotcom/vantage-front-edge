@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAiConsent } from "@/components/AiConsentGate";
+import { supabase } from "@/integrations/supabase/client";
 
 type VanChatContextValue = {
   open: (prefill?: string) => void;
@@ -53,7 +54,14 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+      headers: async (): Promise<Record<string, string>> => {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      },
+    }),
     messages: [INTRO],
     onError: (err) => {
       console.error("[VanChat] stream error:", err);

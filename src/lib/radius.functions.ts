@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 const TWILIO_GATEWAY = "https://connector-gateway.lovable.dev/twilio";
@@ -52,6 +53,7 @@ const FindNeighborsInput = z.object({
 
 /** Geocode the job + each customer and return those within a 5-mile radius. */
 export const findNeighbors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => FindNeighborsInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;
@@ -114,6 +116,7 @@ const BlastInput = z.object({
 
 /** Send the templated "we're in your area" SMS to each nearby past customer. */
 export const blastNeighbors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => BlastInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;

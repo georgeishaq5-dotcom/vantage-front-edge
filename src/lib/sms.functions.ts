@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
 
@@ -22,6 +23,7 @@ function normalizeE164(raw: string): string {
 }
 
 export const sendPromoSms = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => SendPromoSmsInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;

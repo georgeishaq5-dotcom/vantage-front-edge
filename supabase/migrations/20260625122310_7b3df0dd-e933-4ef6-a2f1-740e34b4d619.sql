@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.prevent_company_billing_change() FROM PUBLIC, anon, authenticated;
