@@ -57,7 +57,7 @@ export function FinancialReports() {
     if (!guard()) return;
     try {
       const ExcelJSModule = await import("exceljs");
-      const ExcelJS = (ExcelJSModule as { default?: typeof ExcelJSModule }).default ?? ExcelJSModule;
+      const ExcelJS = ("default" in ExcelJSModule ? ExcelJSModule.default : ExcelJSModule) as typeof import("exceljs");
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Revenue");
       ws.columns = [
