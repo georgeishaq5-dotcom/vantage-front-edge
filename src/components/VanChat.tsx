@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAiConsent } from "@/components/AiConsentGate";
+import { supabase } from "@/integrations/supabase/client";
 
 type VanChatContextValue = {
   open: (prefill?: string) => void;
