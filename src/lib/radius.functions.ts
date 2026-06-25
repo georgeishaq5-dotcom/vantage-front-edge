@@ -55,7 +55,12 @@ const FindNeighborsInput = z.object({
 export const findNeighbors = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => FindNeighborsInput.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { data: canManage, error: roleError } = await context.supabase.rpc("can_manage");
+    if (roleError || !canManage) {
+      throw new Error("Forbidden: manager or admin role required");
+    }
+
     const lovableApiKey = process.env.LOVABLE_API_KEY;
     const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
