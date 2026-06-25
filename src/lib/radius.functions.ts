@@ -116,6 +116,7 @@ const BlastInput = z.object({
 
 /** Send the templated "we're in your area" SMS to each nearby past customer. */
 export const blastNeighbors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => BlastInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;
