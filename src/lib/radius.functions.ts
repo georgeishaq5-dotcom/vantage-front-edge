@@ -53,6 +53,7 @@ const FindNeighborsInput = z.object({
 
 /** Geocode the job + each customer and return those within a 5-mile radius. */
 export const findNeighbors = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input) => FindNeighborsInput.parse(input))
   .handler(async ({ data }) => {
     const lovableApiKey = process.env.LOVABLE_API_KEY;
