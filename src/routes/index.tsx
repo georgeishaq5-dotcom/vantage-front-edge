@@ -222,6 +222,11 @@ function Dashboard() {
         <RadiusCampaignModal open={radiusOpen} onOpenChange={setRadiusOpen} />
 
         <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
+          <PendingActionsCard />
+          <AiQuoteDrafts />
+        </div>
+
+        <div className="mt-4 md:mt-6 grid grid-cols-1 gap-3 md:gap-5 lg:grid-cols-2">
           <RoiAuditCard pendingTotal={pendingTotal} weeklyRevenue={weeklyRevenue} />
           <MarketingActivityCard />
         </div>
