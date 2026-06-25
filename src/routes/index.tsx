@@ -135,27 +135,31 @@ function Dashboard() {
     queryKey: ["jobs"],
     queryFn: fetchJobsWithCustomers,
   });
-  // --- PASTE START ---
+  // Debug: verify the Customers/Jobs relational ledger plumbing is wired up.
   useEffect(() => {
-    const testSupabaseFetch = async () => {
-      console.log("1. Starting Supabase fetch test...");
+    const verifyLedgerTables = async () => {
+      const [customersRes, jobsRes] = await Promise.all([
+        supabase.from("customers").select("*").limit(5),
+        supabase.from("jobs").select("*, customers(full_name)").limit(5),
+      ]);
 
-      const { data, error } = await supabase
-        .from("Customers") // Ensure this matches your actual table name in Supabase
-        .select("*")
-        .limit(5);
-
-      if (error) {
-        console.error("❌ Supabase Fetch Error:", error.message, error.details);
+      if (customersRes.error || jobsRes.error) {
+        console.error(
+          "❌ Supabase Fetch Error:",
+          customersRes.error ?? jobsRes.error,
+        );
         return;
       }
 
-      console.log("✅ Supabase Data Successfully Pulled:", data);
+      console.log("✅ Supabase Data Successfully Pulled:", {
+        customers: customersRes.data,
+        jobs: jobsRes.data,
+      });
     };
 
-    testSupabaseFetch();
+    verifyLedgerTables();
   }, []);
-  // --- PASTE END ---
+
 
   const weeklyRevenue = jobs
     .filter((j) => j.status === "Paid" && withinDays(j.service_date, 7))
