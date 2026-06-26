@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { ManageSubscriptionSection } from "@/components/ManageSubscriptionSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
+import { Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
 
 
 export const Route = createFileRoute("/settings")({
@@ -76,28 +77,7 @@ function SettingsPage() {
 
       {/* Business administration */}
       <div className="mt-4 md:mt-6 grid grid-cols-1 gap-6">
-        <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary text-foreground">
-              <CreditCard className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-foreground">Billing</h2>
-              <p className="text-sm text-muted-foreground">
-                Manage your subscription plan and payment method.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5 flex items-center justify-between border-t border-border pt-5">
-            <div>
-              <p className="text-sm font-medium text-foreground">Pro Plan</p>
-              <p className="text-xs text-muted-foreground">$199 / month · renews monthly</p>
-            </div>
-            <Button variant="secondary" disabled>
-              Manage Billing
-            </Button>
-          </div>
-        </div>
+        <ManageSubscriptionSection />
 
         <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-center gap-3">
