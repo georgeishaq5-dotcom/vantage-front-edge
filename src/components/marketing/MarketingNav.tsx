@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 
 import { VantageLogo } from "@/components/VantageLogo";
 import { Button } from "@/components/ui/button";
+import { AppLink } from "@/components/marketing/AppLink";
 
 const LINKS = [
   { to: "/features", label: "Features" },
@@ -40,14 +41,14 @@ export function MarketingNav() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
+          <AppLink
             to="/dashboard"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Sign in
-          </Link>
+          </AppLink>
           <Button asChild variant="brand" size="default">
-            <Link to="/dashboard">Get started free</Link>
+            <AppLink to="/dashboard">Get started free</AppLink>
           </Button>
         </div>
 
@@ -76,10 +77,10 @@ export function MarketingNav() {
             ))}
             <div className="mt-2 flex flex-col gap-2 px-2">
               <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                <Link to="/dashboard">Sign in</Link>
+                <AppLink to="/dashboard">Sign in</AppLink>
               </Button>
               <Button asChild variant="brand" onClick={() => setOpen(false)}>
-                <Link to="/dashboard">Get started free</Link>
+                <AppLink to="/dashboard">Get started free</AppLink>
               </Button>
             </div>
           </nav>

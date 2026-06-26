@@ -1,25 +1,26 @@
 import { Link } from "@tanstack/react-router";
 import { VantageLogo } from "@/components/VantageLogo";
+import { AppLink } from "@/components/marketing/AppLink";
 
 const COLUMNS = [
   {
     title: "Product",
     links: [
-      { to: "/features", label: "Features" },
-      { to: "/pricing", label: "Pricing" },
-      { to: "/dashboard", label: "Sign in" },
+      { to: "/features", label: "Features", external: false },
+      { to: "/pricing", label: "Pricing", external: false },
+      { to: "/dashboard", label: "Sign in", external: true },
     ],
   },
   {
     title: "Company",
-    links: [{ to: "/about", label: "About" }],
+    links: [{ to: "/about", label: "About", external: false }],
   },
   {
     title: "Legal",
     links: [
-      { to: "/privacy-policy", label: "Privacy policy" },
-      { to: "/terms-of-service", label: "Terms of service" },
-      { to: "/cookie-policy", label: "Cookie policy" },
+      { to: "/privacy-policy", label: "Privacy policy", external: false },
+      { to: "/terms-of-service", label: "Terms of service", external: false },
+      { to: "/cookie-policy", label: "Cookie policy", external: false },
     ],
   },
 ];
@@ -51,16 +52,27 @@ export function MarketingFooter() {
                 {col.title}
               </h3>
               <ul className="mt-4 space-y-3">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.to}
-                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
+                {col.links.map((link) =>
+                  link.external ? (
+                    <li key={link.label}>
+                      <AppLink
+                        to={link.to}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </AppLink>
+                    </li>
+                  ) : (
+                    <li key={link.label}>
+                      <Link
+                        to={link.to}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ),
+                )}
               </ul>
             </div>
           ))}

@@ -26,6 +26,9 @@ import { useVanChat } from "@/components/VanChat";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { fetchJobsWithCustomers, formatCurrency, formatDate, type JobWithCustomer } from "@/lib/fsm";
 
+// Note: domain-based redirect (app.vantage-fsm.com vs marketing domain) for
+// this route is handled centrally in __root.tsx, since the same rule
+// applies to every app route, not just /dashboard.
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [

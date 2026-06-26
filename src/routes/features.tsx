@@ -14,8 +14,11 @@ import {
 import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { Reveal } from "@/components/marketing/Reveal";
+import { AppLink } from "@/components/marketing/AppLink";
 import { Button } from "@/components/ui/button";
 
+// Note: app.vantage-fsm.com -> /dashboard redirect for this path is
+// handled centrally in __root.tsx.
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: [
@@ -184,10 +187,10 @@ function FeaturesPage() {
                 Start free — no card required until you've seen it work.
               </p>
               <Button asChild size="lg" variant="revenue" className="mt-7 h-12 px-8 text-base">
-                <Link to="/dashboard">
+                <AppLink to="/dashboard">
                   Start free trial
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </AppLink>
               </Button>
             </div>
           </Reveal>

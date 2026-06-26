@@ -12,14 +12,23 @@ import { MarketingNav } from "@/components/marketing/MarketingNav";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { WeatherTriggerDemo } from "@/components/marketing/WeatherTriggerDemo";
 import { Reveal } from "@/components/marketing/Reveal";
+import { AppLink } from "@/components/marketing/AppLink";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveHostContext, toAppUrl } from "@/lib/site-host";
 
+// Note: app.vantage-fsm.com -> marketing-page redirect is handled centrally
+// in __root.tsx, since the same rule applies to every marketing path.
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
+    // A logged-in visitor on the marketing domain should land in the
+    // product, not see the marketing homepage again.
     const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      throw redirect({ to: "/dashboard" });
+    if (!data.session) return;
+
+    const ctx = await resolveHostContext();
+    if (ctx) {
+      throw redirect({ href: toAppUrl("/dashboard", ctx) });
     }
   },
   component: HomePage,
@@ -82,10 +91,10 @@ function HomePage() {
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button asChild size="lg" variant="brand" className="h-12 px-7 text-base">
-                  <Link to="/dashboard">
+                  <AppLink to="/dashboard">
                     Start free trial
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </AppLink>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
                   <Link to="/features">See how it works</Link>
@@ -170,10 +179,10 @@ function HomePage() {
                 Set up your first weather trigger in the next ten minutes.
               </p>
               <Button asChild size="lg" variant="revenue" className="mt-7 h-12 px-8 text-base">
-                <Link to="/dashboard">
+                <AppLink to="/dashboard">
                   Start free trial
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </AppLink>
               </Button>
             </div>
           </Reveal>

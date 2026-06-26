@@ -3,6 +3,7 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
+  redirect,
   useRouter,
   HeadContent,
   Scripts,
@@ -18,6 +19,7 @@ import { VanChatProvider } from "@/components/VanChat";
 import { AiConsentProvider } from "@/components/AiConsentGate";
 import { FeatureGateProvider } from "@/components/FeatureGate";
 import { NotificationsProvider } from "@/lib/notifications";
+import { isAppHost, resolveHostContext, toAppUrl } from "@/lib/site-host";
 import { HeaderBar } from "@/components/HeaderBar";
 import { TermsUpdateModal } from "@/components/TermsUpdateModal";
 import { Toaster } from "@/components/ui/sonner";
@@ -82,7 +84,37 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+// Paths that belong to the public marketing site. Everything else is part
+// of the product and should only ever be served from app.vantage-fsm.com.
+const MARKETING_PATHS = new Set(["/", "/features", "/pricing", "/about"]);
+
+// Server/infrastructure routes that must work identically on every
+// hostname and should never be redirected (API endpoints, sitemap, etc).
+function isInfrastructureRoute(pathname: string): boolean {
+  return pathname.startsWith("/api/") || pathname === "/sitemap.xml";
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ location }) => {
+    if (isInfrastructureRoute(location.pathname)) return;
+
+    const ctx = await resolveHostContext();
+    if (!ctx) return;
+
+    const onAppHost = isAppHost(ctx.hostname);
+    const isMarketingPath = MARKETING_PATHS.has(location.pathname);
+
+    if (onAppHost && isMarketingPath) {
+      // The product's host should never render the marketing pages.
+      throw redirect({ href: toAppUrl("/dashboard", ctx) });
+    }
+
+    if (!onAppHost && !isMarketingPath) {
+      // Any app screen (dashboard, jobs, customers, etc.) reached on the
+      // plain marketing domain belongs on the app subdomain instead.
+      throw redirect({ href: toAppUrl(location.href, ctx) });
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
