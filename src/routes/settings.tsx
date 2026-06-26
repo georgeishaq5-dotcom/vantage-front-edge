@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
+import { ManageSubscriptionSection } from "@/components/ManageSubscriptionSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
