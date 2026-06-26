@@ -89,16 +89,16 @@ function AuthScreen() {
 
   async function handleGoogle() {
     setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
     });
-    if (result.error) {
+    if (error) {
       toast.error("Google sign-in failed");
       setBusy(false);
       return;
     }
-    if (result.redirected) return;
-    setBusy(false);
+    // Supabase redirects the page itself on success; no further action needed here.
   }
 
   async function handleApple() {
