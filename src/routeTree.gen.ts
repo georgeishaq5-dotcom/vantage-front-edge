@@ -18,15 +18,19 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EulaRouteImport } from './routes/eula'
 import { Route as EstimatesRouteImport } from './routes/estimates'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AiHubRouteImport } from './routes/ai-hub'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -76,6 +80,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LedgerRoute = LedgerRouteImport.update({
   id: '/ledger',
   path: '/ledger',
@@ -86,6 +95,11 @@ const JobsRoute = JobsRouteImport.update({
   path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EulaRoute = EulaRouteImport.update({
   id: '/eula',
   path: '/eula',
@@ -94,6 +108,11 @@ const EulaRoute = EulaRouteImport.update({
 const EstimatesRoute = EstimatesRouteImport.update({
   id: '/estimates',
   path: '/estimates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersRoute = CustomersRouteImport.update({
@@ -121,6 +140,11 @@ const AiHubRoute = AiHubRouteImport.update({
   path: '/ai-hub',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -139,15 +163,19 @@ const ApiChatRoute = ApiChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
+  '/features': typeof FeaturesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
@@ -162,15 +190,19 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
+  '/features': typeof FeaturesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
@@ -186,15 +218,19 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/ai-hub': typeof AiHubRoute
   '/calendar': typeof CalendarRoute
   '/campaigns': typeof CampaignsRoute
   '/cookie-policy': typeof CookiePolicyRoute
   '/customers': typeof CustomersRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
+  '/features': typeof FeaturesRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
@@ -211,15 +247,19 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
     | '/cookie-policy'
     | '/customers'
+    | '/dashboard'
     | '/estimates'
     | '/eula'
+    | '/features'
     | '/jobs'
     | '/ledger'
+    | '/pricing'
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
@@ -234,15 +274,19 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
     | '/cookie-policy'
     | '/customers'
+    | '/dashboard'
     | '/estimates'
     | '/eula'
+    | '/features'
     | '/jobs'
     | '/ledger'
+    | '/pricing'
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
@@ -257,15 +301,19 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/ai-hub'
     | '/calendar'
     | '/campaigns'
     | '/cookie-policy'
     | '/customers'
+    | '/dashboard'
     | '/estimates'
     | '/eula'
+    | '/features'
     | '/jobs'
     | '/ledger'
+    | '/pricing'
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
@@ -281,15 +329,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AiHubRoute: typeof AiHubRoute
   CalendarRoute: typeof CalendarRoute
   CampaignsRoute: typeof CampaignsRoute
   CookiePolicyRoute: typeof CookiePolicyRoute
   CustomersRoute: typeof CustomersRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
   EstimatesRoute: typeof EstimatesRoute
   EulaRoute: typeof EulaRoute
+  FeaturesRoute: typeof FeaturesRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   QuotesRoute: typeof QuotesRoute
@@ -367,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ledger': {
       id: '/ledger'
       path: '/ledger'
@@ -381,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/eula': {
       id: '/eula'
       path: '/eula'
@@ -393,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/estimates'
       fullPath: '/estimates'
       preLoaderRoute: typeof EstimatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customers': {
@@ -428,6 +501,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-hub'
       fullPath: '/ai-hub'
       preLoaderRoute: typeof AiHubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -468,15 +548,19 @@ const CustomersRouteWithChildren = CustomersRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AiHubRoute: AiHubRoute,
   CalendarRoute: CalendarRoute,
   CampaignsRoute: CampaignsRoute,
   CookiePolicyRoute: CookiePolicyRoute,
   CustomersRoute: CustomersRouteWithChildren,
+  DashboardRoute: DashboardRoute,
   EstimatesRoute: EstimatesRoute,
   EulaRoute: EulaRoute,
+  FeaturesRoute: FeaturesRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   QuotesRoute: QuotesRoute,
@@ -491,3 +575,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
