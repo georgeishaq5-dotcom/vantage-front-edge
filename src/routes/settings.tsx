@@ -10,7 +10,7 @@ import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { ManageSubscriptionSection } from "@/components/ManageSubscriptionSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
+import { Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
 
 
 export const Route = createFileRoute("/settings")({
