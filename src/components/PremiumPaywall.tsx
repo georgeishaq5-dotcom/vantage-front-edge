@@ -122,9 +122,14 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
           ))}
         </ul>
 
+        <p className="mt-7 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-center text-xs font-medium leading-relaxed text-muted-foreground">
+          This subscription auto-renews monthly at $99.00. You may easily cancel
+          at any time via your in-app Settings.
+        </p>
+
         <Button
           variant="revenue"
-          className="mt-7 h-12 w-full text-base font-bold"
+          className="mt-3 h-12 w-full text-base font-bold"
           disabled={purchasing}
           onClick={handleSubscribe}
         >
