@@ -92,7 +92,13 @@ const MARKETING_PATHS = new Set(["/", "/features", "/pricing", "/about"]);
 // Server/infrastructure routes that must work identically on every
 // hostname and should never be redirected (API endpoints, sitemap, etc).
 function isInfrastructureRoute(pathname: string): boolean {
-  return pathname.startsWith("/api/") || pathname === "/sitemap.xml";
+  return (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/lovable/") ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/email/unsubscribe" ||
+    pathname === "/unsubscribe"
+  );
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
