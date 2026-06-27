@@ -92,7 +92,13 @@ const MARKETING_PATHS = new Set(["/", "/features", "/pricing", "/about"]);
 // Server/infrastructure routes that must work identically on every
 // hostname and should never be redirected (API endpoints, sitemap, etc).
 function isInfrastructureRoute(pathname: string): boolean {
-  return pathname.startsWith("/api/") || pathname === "/sitemap.xml";
+  return (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/lovable/") ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/email/unsubscribe" ||
+    pathname === "/unsubscribe"
+  );
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -209,11 +215,13 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const isMarketingRoute = MARKETING_PATHS.has(location.pathname);
+  const isPublicRoute = location.pathname === "/unsubscribe";
 
   // The marketing site (home, features, pricing, about) is public and has
   // its own nav/footer per-page — it must never be wrapped in AuthGate,
-  // the app sidebar, or any of the app-only providers below.
-  if (isMarketingRoute) {
+  // the app sidebar, or any of the app-only providers below. The unsubscribe
+  // page is also public so email recipients can opt out without signing in.
+  if (isMarketingRoute || isPublicRoute) {
     return (
       <QueryClientProvider client={queryClient}>
         <Outlet />
