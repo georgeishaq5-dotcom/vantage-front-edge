@@ -33,6 +33,7 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
   const native = isAdaptyAvailable();
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [consented, setConsented] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["adapty-paywall"],
@@ -122,15 +123,36 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
           ))}
         </ul>
 
-        <p className="mt-7 rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-center text-xs font-medium leading-relaxed text-muted-foreground">
-          This subscription auto-renews monthly at $99.00. You may easily cancel
-          at any time via your in-app Settings.
-        </p>
+        {/* Auto-renewal disclosure */}
+        <div className="mt-7 rounded-lg border border-amber-200/40 bg-amber-50/10 px-4 py-3 text-xs leading-relaxed text-foreground/80">
+          <p className="font-semibold text-foreground">Subscription Terms</p>
+          <p className="mt-1">
+            You are subscribing to <span className="font-medium">Vantage {PRO_PLAN_NAME}</span> at{" "}
+            <span className="font-medium">$99.00/month</span>. Your subscription renews
+            automatically each month until you cancel. To cancel at any time, go to{" "}
+            <span className="font-medium">Settings → Manage Subscription</span> — no need to
+            contact support.
+          </p>
+        </div>
+
+        {/* Explicit consent checkbox */}
+        <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-xs text-foreground/80">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-revenue"
+            checked={consented}
+            onChange={(e) => setConsented(e.target.checked)}
+          />
+          <span>
+            I understand this subscription auto-renews at <span className="font-medium">$99.00/month</span> until
+            I cancel.
+          </span>
+        </label>
 
         <Button
           variant="revenue"
           className="mt-3 h-12 w-full text-base font-bold"
-          disabled={purchasing}
+          disabled={purchasing || !consented}
           onClick={handleSubscribe}
         >
           {purchasing ? (

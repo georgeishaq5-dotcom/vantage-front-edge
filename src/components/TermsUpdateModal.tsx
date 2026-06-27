@@ -3,33 +3,44 @@ import { Link } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Bump this version string whenever the legal terms are updated. Users who have
  * not yet accepted the current version will be shown the modal on next load.
  */
 const CURRENT_TERMS_VERSION = "2026-06-24";
-const STORAGE_KEY = "vantage.terms.acceptedVersion";
 
 export function TermsUpdateModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      const accepted = window.localStorage.getItem(STORAGE_KEY);
-      if (accepted !== CURRENT_TERMS_VERSION) setOpen(true);
-    } catch {
-      // localStorage unavailable — fail silently, don't block the app.
-    }
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("terms_accepted_version")
+        .eq("id", user.id)
+        .single();
+
+      if (data?.terms_accepted_version !== CURRENT_TERMS_VERSION) {
+        setOpen(true);
+      }
+    })();
   }, []);
 
-  const handleAgree = () => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, CURRENT_TERMS_VERSION);
-    } catch {
-      // ignore
-    }
+  const handleAgree = async () => {
     setOpen(false);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase
+      .from("profiles")
+      .update({ terms_accepted_version: CURRENT_TERMS_VERSION })
+      .eq("id", user.id);
   };
 
   if (!open) return null;

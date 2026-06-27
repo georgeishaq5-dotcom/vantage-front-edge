@@ -1,0 +1,84 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+bun run dev          # start dev server (Vite + TanStack Start)
+bun run build        # production build (Nitro + Vite)
+bun run lint         # ESLint
+bun run format       # Prettier (write)
+```
+
+The project uses **bun** as the package manager (`bun.lock`, `bunfig.toml`). Use `bun` instead of `npm` for installs and scripts.
+
+## Architecture
+
+**Vantage** is a field service management (FSM) SaaS for trades businesses (landscaping, HVAC, plumbing, etc.). It runs on **TanStack Start** (SSR React) + **Supabase** backend, deployed to Vercel via Nitro.
+
+### Dual-hostname split
+
+The same codebase serves two distinct sites:
+
+| Host | Purpose |
+|------|---------|
+| `vantage-fsm.com` | Public marketing site |
+| `app.vantage-fsm.com` | The product app (dashboard, jobs, customers…) |
+
+`src/routes/__root.tsx` handles the redirect logic. `MARKETING_PATHS` (`/`, `/features`, `/pricing`, `/about`) are public; everything else requires auth and the `app.` subdomain. The helpers live in `src/lib/site-host.ts` using `createIsomorphicFn` so server-only imports are tree-shaken from the client bundle.
+
+### Routing
+
+TanStack Start file-based routing — every `.tsx` file in `src/routes/` is a route. Dynamic segments use bare `$` (e.g., `customers.$customerId.tsx`). `src/routeTree.gen.ts` is auto-generated; **never edit it by hand**. See `src/routes/README.md` for the full convention table.
+
+### Data layer
+
+All data access goes through Supabase. Two patterns are used:
+
+- **Client queries**: `src/integrations/supabase/client.ts` — lazy-initialised proxy; import as `import { supabase } from "@/integrations/supabase/client"`. Used in React Query hooks (`@tanstack/react-query`).
+- **Server functions** (`.functions.ts` files in `src/lib/`): called from server-side TanStack Start function routes. Database mutations on the client attach `company_id` explicitly (matching RLS policy `company_id = current_company_id()`); `getCurrentCompanyId()` in `src/lib/fsm.ts` provisions a company on first call if missing.
+
+The canonical domain types (`Customer`, `Job`, `JobStatus`, etc.) and all pure DB helper functions live in `src/lib/fsm.ts`. This is the main data-access module.
+
+### Entitlements / feature gating
+
+`src/lib/entitlements.ts` defines the "Profit-First" freemium model: 3 free automated jobs, then Pro subscription ($99/mo). `useEntitlements` hook (`src/hooks/useEntitlements.ts`) queries `companies.automated_jobs_count` + `subscription_status`. Components call `useFeatureGate()` → `requirePro(feature)` to gate premium features; on failure it opens `PremiumPaywall`. The `FeatureGateProvider` wraps all app routes in `__root.tsx`.
+
+### Auth flow
+
+`AuthGate` (`src/components/AuthGate.tsx`) wraps all app routes. Unauthenticated users see the sign-in screen (email/password, Google OAuth, Apple OAuth via Lovable Cloud Auth). After sign-in, `OnboardingGate` intercepts new users for the trade/profession setup flow before they reach the app.
+
+### AI — "Van"
+
+`POST /api/chat` (`src/routes/api/chat.ts`) streams responses via the Vercel AI SDK (`ai` package) using the **Lovable AI Gateway** (`src/lib/ai-gateway.server.ts`). The gateway is OpenAI-compatible; the chat route verifies the Supabase Bearer token before processing. The chat UI component is `src/components/VanChat.tsx`.
+
+### Server entry
+
+`src/server.ts` / `src/start.ts` are the SSR entry points wired through `vite.config.ts` → `@lovable.dev/vite-tanstack-config`. Do **not** add duplicate Vite plugins already included by that config (tanstackStart, viteReact, tailwindcss, tsConfigPaths, nitro, etc.).
+
+### UI components
+
+`src/components/ui/` contains shadcn/ui primitives (Radix UI + Tailwind). Do not edit these directly — regenerate via the shadcn CLI. Business components live directly in `src/components/`.
+
+### Mobile (Capacitor)
+
+`capacitor.config.ts` targets `app.lovable.vantage` bundle ID and loads the live published site (`https://vantage-front-edge.lovable.app`) via a WebView. To ship a native offline build, remove the `server` block from `capacitor.config.ts` and run `bun run build` before `npx cap sync`.
+
+### Environment variables
+
+Required at runtime:
+
+| Variable | Used by |
+|----------|---------|
+| `VITE_SUPABASE_URL` / `SUPABASE_URL` | Supabase client (client/server) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_PUBLISHABLE_KEY` | Supabase client (client/server) |
+| `LOVABLE_API_KEY` | Van AI gateway (`/api/chat`) |
+
+### Database migrations
+
+`supabase/migrations/` contains timestamped SQL migrations managed by the Supabase CLI. Run migrations against a local Supabase instance with `supabase db push` or `supabase migration up`.
+
+### Path alias
+
+`@/` maps to `src/` (configured in `tsconfig.json` and picked up automatically by the vite config).

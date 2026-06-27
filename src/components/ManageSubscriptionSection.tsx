@@ -1,21 +1,33 @@
-import { CreditCard, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
-/**
- * Stripe Customer Portal URL. Set VITE_STRIPE_PORTAL_URL to your live portal
- * link (Billing → Customer portal in the Stripe dashboard). Falls back to the
- * generic Stripe-hosted login portal so the button always resolves.
- */
-const PORTAL_URL =
-  import.meta.env.VITE_STRIPE_PORTAL_URL ?? "https://billing.stripe.com/p/login";
+const PORTAL_FALLBACK = "https://billing.stripe.com/p/login";
 
-/**
- * One-click subscription management. Links directly to the Stripe Customer
- * Portal so operators can update payment methods, pause, or cancel their plan
- * without contacting support — satisfying FTC "click-to-cancel" requirements.
- */
 export function ManageSubscriptionSection() {
+  const [loading, setLoading] = useState(false);
+
+  async function handleManage() {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/billing/portal", {
+        method: "POST",
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : {},
+      });
+      const url = res.ok ? (await res.json() as { url: string }).url : PORTAL_FALLBACK;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch {
+      window.open(PORTAL_FALLBACK, "_blank", "noopener,noreferrer");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -34,11 +46,18 @@ export function ManageSubscriptionSection() {
           Your subscription is billed at <span className="font-medium text-foreground">$99.00 / month</span> and
           auto-renews. Cancel any time — no need to contact support.
         </p>
-        <Button asChild variant="revenue" className="shrink-0">
-          <a href={PORTAL_URL} target="_blank" rel="noopener noreferrer">
-            Manage Subscription
-            <ExternalLink className="ml-2 h-4 w-4" />
-          </a>
+        <Button
+          variant="revenue"
+          className="shrink-0"
+          disabled={loading}
+          onClick={handleManage}
+        >
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <ExternalLink className="mr-2 h-4 w-4" />
+          )}
+          Manage Subscription
         </Button>
       </div>
     </div>

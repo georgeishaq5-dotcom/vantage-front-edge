@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 
 import { VantageLogo } from "@/components/VantageLogo";
 import { Button } from "@/components/ui/button";
 import { AppLink } from "@/components/marketing/AppLink";
+import { supabase } from "@/integrations/supabase/client";
 
 const LINKS = [
   { to: "/features", label: "Features" },
@@ -14,6 +15,15 @@ const LINKS = [
 
 export function MarketingNav() {
   const [open, setOpen] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSession(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-lg">
@@ -41,15 +51,23 @@ export function MarketingNav() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <AppLink
-            to="/dashboard"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Sign in
-          </AppLink>
-          <Button asChild variant="brand" size="default">
-            <AppLink to="/dashboard">Get started free</AppLink>
-          </Button>
+          {hasSession ? (
+            <Button asChild variant="brand" size="default">
+              <AppLink to="/dashboard">Go to dashboard</AppLink>
+            </Button>
+          ) : (
+            <>
+              <AppLink
+                to="/dashboard"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Sign in
+              </AppLink>
+              <Button asChild variant="brand" size="default">
+                <AppLink to="/dashboard">Get started free</AppLink>
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -76,12 +94,20 @@ export function MarketingNav() {
               </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 px-2">
-              <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                <AppLink to="/dashboard">Sign in</AppLink>
-              </Button>
-              <Button asChild variant="brand" onClick={() => setOpen(false)}>
-                <AppLink to="/dashboard">Get started free</AppLink>
-              </Button>
+              {hasSession ? (
+                <Button asChild variant="brand" onClick={() => setOpen(false)}>
+                  <AppLink to="/dashboard">Go to dashboard</AppLink>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild variant="outline" onClick={() => setOpen(false)}>
+                    <AppLink to="/dashboard">Sign in</AppLink>
+                  </Button>
+                  <Button asChild variant="brand" onClick={() => setOpen(false)}>
+                    <AppLink to="/dashboard">Get started free</AppLink>
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         </div>

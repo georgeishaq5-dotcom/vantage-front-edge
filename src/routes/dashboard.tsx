@@ -84,7 +84,7 @@ function MetricCard({
     <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
       <div className="flex items-center justify-between gap-1">
         <div className="flex min-w-0 items-center gap-1">
-          <span className="truncate text-xs font-medium text-muted-foreground md:text-sm">{label}</span>
+          <span className="text-xs font-medium text-muted-foreground md:text-sm">{label}</span>
           {tooltip && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -144,8 +144,8 @@ function Dashboard() {
   useEffect(() => {
     const verifyLedgerTables = async () => {
       const [customersRes, jobsRes] = await Promise.all([
-        supabase.from("customers").select("*").limit(5),
-        supabase.from("jobs").select("*, customers(full_name)").limit(5),
+        supabase.from("customers").select("*"),
+        supabase.from("jobs").select("*, customers(full_name)"),
       ]);
 
       if (customersRes.error || jobsRes.error) {
@@ -209,10 +209,10 @@ function Dashboard() {
           <MetricCard
             emerald
             label="Vantage View"
-            value={formatCurrency(pendingTotal * 0.6 + weeklyRevenue * 0.18 + 1850)}
+            value={formatCurrency(pendingTotal * 0.6 + weeklyRevenue * 0.18)}
             hint="Value generated this month"
             icon={<TrendingUp className="h-5 w-5" />}
-            tooltip="Estimated value Vantage generated: recovered invoices, upsell lift, and marketing-driven bookings."
+            tooltip="Estimated value Vantage generated: recovered invoices and upsell lift."
           />
         </div>
 
@@ -256,9 +256,8 @@ function RoiAuditCard({ pendingTotal, weeklyRevenue }: { pendingTotal: number; w
   const rows = [
     { label: "Invoices recovered by Van", value: recoveredValue },
     { label: "Upsell lift (tiered quotes)", value: upsellLift },
-    { label: "Marketing-driven bookings", value: 1850 },
   ];
-  const total = generatedValue + 1850;
+  const total = generatedValue;
 
   return (
     <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">

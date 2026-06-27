@@ -83,6 +83,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          stripe_customer_id: string | null
           subscription_status: string
           updated_at: string
         }
@@ -91,6 +92,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          stripe_customer_id?: string | null
           subscription_status?: string
           updated_at?: string
         }
@@ -99,6 +101,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          stripe_customer_id?: string | null
           subscription_status?: string
           updated_at?: string
         }

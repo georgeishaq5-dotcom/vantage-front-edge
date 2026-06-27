@@ -94,8 +94,26 @@ export function EditCustomerModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!fullName.trim()) {
+            const name = fullName.trim();
+            if (!name) {
               toast.error("Full name is required");
+              return;
+            }
+            if (name.length > 120) {
+              toast.error("Full name must be 120 characters or fewer");
+              return;
+            }
+            const trimmedEmail = email.trim();
+            if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+              toast.error("Enter a valid email address");
+              return;
+            }
+            if (trimmedEmail.length > 255) {
+              toast.error("Email must be 255 characters or fewer");
+              return;
+            }
+            if (address.trim().length > 255) {
+              toast.error("Address must be 255 characters or fewer");
               return;
             }
             mutation.mutate();
@@ -109,6 +127,7 @@ export function EditCustomerModal({
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Maria Delgado"
+              maxLength={120}
             />
           </div>
 
@@ -136,6 +155,7 @@ export function EditCustomerModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@email.com"
+              maxLength={255}
             />
           </div>
 

@@ -216,6 +216,7 @@ export function CreateJobModal() {
                   id="base_price"
                   type="number"
                   min={0}
+                  max={999999}
                   value={basePrice}
                   onChange={(e) => setBasePrice(e.target.value)}
                   className="pl-7"
@@ -273,7 +274,14 @@ export function CreateJobModal() {
                 type="button"
                 variant="revenue"
                 disabled={estimateMutation.isPending || !estCustomerId}
-                onClick={() => estimateMutation.mutate()}
+                onClick={() => {
+                  const price = Number(basePrice);
+                  if (isNaN(price) || price < 0 || price > 999999) {
+                    toast.error("Base price must be between $0 and $999,999");
+                    return;
+                  }
+                  estimateMutation.mutate();
+                }}
               >
                 {estimateMutation.isPending ? "Saving…" : "Create Estimate"}
               </Button>
@@ -287,6 +295,14 @@ export function CreateJobModal() {
                 e.preventDefault();
                 if (!customerId) {
                   toast.error("Please select a customer");
+                  return;
+                }
+                if (title.trim().length > 200) {
+                  toast.error("Job title must be 200 characters or fewer");
+                  return;
+                }
+                if (siteNotes.trim().length > 2000) {
+                  toast.error("Site notes must be 2000 characters or fewer");
                   return;
                 }
                 jobMutation.mutate();
@@ -318,6 +334,7 @@ export function CreateJobModal() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Quarterly HVAC inspection (optional)"
+                  maxLength={200}
                 />
               </div>
 
@@ -357,6 +374,7 @@ export function CreateJobModal() {
                   value={siteNotes}
                   onChange={(e) => setSiteNotes(e.target.value)}
                   placeholder="Access instructions, gate codes, pets, parking…"
+                  maxLength={2000}
                 />
               </div>
 
