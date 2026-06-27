@@ -215,11 +215,13 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const isMarketingRoute = MARKETING_PATHS.has(location.pathname);
+  const isPublicRoute = location.pathname === "/unsubscribe";
 
   // The marketing site (home, features, pricing, about) is public and has
   // its own nav/footer per-page — it must never be wrapped in AuthGate,
-  // the app sidebar, or any of the app-only providers below.
-  if (isMarketingRoute) {
+  // the app sidebar, or any of the app-only providers below. The unsubscribe
+  // page is also public so email recipients can opt out without signing in.
+  if (isMarketingRoute || isPublicRoute) {
     return (
       <QueryClientProvider client={queryClient}>
         <Outlet />
