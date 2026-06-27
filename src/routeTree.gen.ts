@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as TeamRouteImport } from './routes/team'
@@ -46,6 +47,11 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TimesheetsRoute = TimesheetsRouteImport.update({
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
@@ -343,6 +352,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
+    | '/unsubscribe'
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
+    | '/unsubscribe'
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
+    | '/unsubscribe'
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
@@ -449,6 +461,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   TimesheetsRoute: typeof TimesheetsRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   UpgradeRoute: typeof UpgradeRoute
   ApiChatRoute: typeof ApiChatRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
@@ -468,6 +481,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/timesheets': {
@@ -732,6 +752,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   TimesheetsRoute: TimesheetsRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   UpgradeRoute: UpgradeRoute,
   ApiChatRoute: ApiChatRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
