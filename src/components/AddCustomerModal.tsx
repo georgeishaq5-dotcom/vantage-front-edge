@@ -7,7 +7,6 @@ import { toast } from "sonner";
 
 import { useFeatureGate } from "@/components/FeatureGate";
 import { fetchCustomers } from "@/lib/fsm";
-import { FREE_CUSTOMER_CAP } from "@/lib/entitlements";
 
 import {
   Dialog,
@@ -46,11 +45,11 @@ type FormValues = z.infer<typeof schema>;
 export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { pro, openPaywall } = useFeatureGate();
+  const { customerCap, openPaywall } = useFeatureGate();
   const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
 
   function handleOpenChange(o: boolean) {
-    if (o && !pro && customers.length >= FREE_CUSTOMER_CAP) {
+    if (o && customers.length >= customerCap) {
       openPaywall("customer_storage");
       return;
     }

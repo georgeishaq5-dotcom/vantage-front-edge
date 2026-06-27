@@ -8,20 +8,29 @@ import {
 
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { PremiumPaywall } from "@/components/PremiumPaywall";
-import type { PremiumFeature } from "@/lib/entitlements";
+import { planAllows, type Plan, type PremiumFeature } from "@/lib/entitlements";
 
 type FeatureGateContextValue = {
-  /** True when the workspace currently has Pro access. */
-  pro: boolean;
+  /** The workspace's effective plan (accounts for the reverse trial). */
+  plan: Plan;
   subscribed: boolean;
-  trialRemaining: number;
+  isTrial: boolean;
+  trialDaysRemaining: number;
   isLoading: boolean;
+  /** Crew seats included on the current plan (Infinity = unlimited). */
+  seatLimit: number;
+  /** Customer storage cap on the current plan (Infinity = unlimited). */
+  customerCap: number;
+  /** Active-job cap on the current plan (Infinity = unlimited). */
+  activeJobCap: number;
   /**
-   * Returns true if the workspace may use the feature. Otherwise opens the
+   * Returns true if the current plan may use the feature. Otherwise opens the
    * upgrade paywall and returns false. Use to wrap premium click handlers.
    */
+  requireFeature: (feature: PremiumFeature) => boolean;
+  /** @deprecated Use {@link requireFeature}. Retained for back-compat. */
   requirePro: (feature: PremiumFeature) => boolean;
-  /** Force-open the paywall for a feature (e.g. from a locked tab). */
+  /** Force-open the paywall for a feature (e.g. from a locked tab or a cap). */
   openPaywall: (feature?: PremiumFeature) => void;
 };
 
@@ -34,7 +43,16 @@ export function useFeatureGate() {
 }
 
 export function FeatureGateProvider({ children }: { children: ReactNode }) {
-  const { pro, subscribed, trialRemaining, isLoading } = useEntitlements();
+  const {
+    plan,
+    subscribed,
+    isTrial,
+    trialDaysRemaining,
+    isLoading,
+    seatLimit,
+    customerCap,
+    activeJobCap,
+  } = useEntitlements();
   const [activeFeature, setActiveFeature] = useState<PremiumFeature | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -43,18 +61,30 @@ export function FeatureGateProvider({ children }: { children: ReactNode }) {
     setOpen(true);
   }, []);
 
-  const requirePro = useCallback(
+  const requireFeature = useCallback(
     (feature: PremiumFeature) => {
-      if (pro) return true;
+      if (planAllows(plan, feature)) return true;
       openPaywall(feature);
       return false;
     },
-    [pro, openPaywall],
+    [plan, openPaywall],
   );
 
   return (
     <FeatureGateContext.Provider
-      value={{ pro, subscribed, trialRemaining, isLoading, requirePro, openPaywall }}
+      value={{
+        plan,
+        subscribed,
+        isTrial,
+        trialDaysRemaining,
+        isLoading,
+        seatLimit,
+        customerCap,
+        activeJobCap,
+        requireFeature,
+        requirePro: requireFeature,
+        openPaywall,
+      }}
     >
       {children}
 

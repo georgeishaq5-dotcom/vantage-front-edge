@@ -8,6 +8,7 @@ import { FinancialReports } from "@/components/FinancialReports";
 import { JobberImport } from "@/components/JobberImport";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { ManageSubscriptionSection } from "@/components/ManageSubscriptionSection";
+import { PlanSwitcherSection } from "@/components/PlanSwitcherSection";
 import { TradePresetsPanel } from "@/components/TradePresetsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plug, PhoneCall, ShieldCheck, ChevronRight } from "lucide-react";
@@ -78,6 +79,8 @@ function SettingsPage() {
       {/* Business administration */}
       <div className="mt-4 md:mt-6 grid grid-cols-1 gap-6">
         <ManageSubscriptionSection />
+
+        <PlanSwitcherSection />
 
         <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
           <div className="flex items-center gap-3">

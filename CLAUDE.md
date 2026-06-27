@@ -43,7 +43,9 @@ The canonical domain types (`Customer`, `Job`, `JobStatus`, etc.) and all pure D
 
 ### Entitlements / feature gating
 
-`src/lib/entitlements.ts` defines the "Profit-First" freemium model: 3 free automated jobs, then Pro subscription ($99/mo). `useEntitlements` hook (`src/hooks/useEntitlements.ts`) queries `companies.automated_jobs_count` + `subscription_status`. Components call `useFeatureGate()` → `requirePro(feature)` to gate premium features; on failure it opens `PremiumPaywall`. The `FeatureGateProvider` wraps all app routes in `__root.tsx`.
+`src/lib/entitlements.ts` defines a three-plan model: **Starter** (free), **Growth** ($49/mo), **Crew** ($99/mo). Every workspace starts on a 30-day **reverse trial** with full Crew access, then falls back to its paid `plan` (defaulting to `free`) once `companies.trial_ends_at` passes — never locked out. The *effective* plan is the higher of the paid tier (`companies.plan` when `subscription_status === "active"`) and the Crew-level trial; `resolveEffectivePlan` computes it. `FEATURE_MIN_PLAN` maps each `PremiumFeature` to its minimum plan, and per-plan caps live in `CREW_SEAT_LIMITS` / `CUSTOMER_CAPS` / `ACTIVE_JOB_CAPS`.
+
+`useEntitlements` hook (`src/hooks/useEntitlements.ts`) queries `companies.plan` + `subscription_status` + `trial_ends_at` and exposes `plan`, `isTrial`, `trialDaysRemaining`, `canUseFeature`, and the caps. Components call `useFeatureGate()` → `requireFeature(feature)` to gate premium features (or check `seatLimit`/`customerCap`/`activeJobCap` for resource caps); on failure it opens `PremiumPaywall`, which sells the plan the feature requires. The `FeatureGateProvider` wraps all app routes in `__root.tsx`.
 
 ### Auth flow
 
@@ -73,7 +75,15 @@ Required at runtime:
 |----------|---------|
 | `VITE_SUPABASE_URL` / `SUPABASE_URL` | Supabase client (client/server) |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_PUBLISHABLE_KEY` | Supabase client (client/server) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server admin client (`client.server.ts`), Stripe webhook |
 | `LOVABLE_API_KEY` | Van AI gateway (`/api/chat`) |
+| `STRIPE_SECRET_KEY` | Stripe checkout / portal / webhook |
+| `STRIPE_WEBHOOK_SECRET` | Verifies `/api/billing/webhook` signatures |
+| `STRIPE_PRICE_GROWTH` / `STRIPE_PRICE_CREW` | Stripe Price IDs per paid plan (`/api/billing/checkout`) |
+
+### Billing (Stripe)
+
+Paid plans are sold via **Stripe Checkout** and applied by a **webhook** — the client never sets `plan` directly. `PremiumPaywall` → `POST /api/billing/checkout` creates a subscription Checkout session for the plan the locked feature requires (`requiredPlanFor`); on success Stripe calls `POST /api/billing/webhook`, which writes `companies.plan` + `subscription_status` (and `stripe_customer_id`) via the service-role client. `prevent_company_billing_change` (DB trigger) freezes those columns for everyone except admins and the service role. `ManageSubscriptionSection` → `POST /api/billing/portal` opens the Stripe billing portal. Plan↔Price mapping lives in `src/lib/billing.server.ts`. For QA/manual ops, admins can set the plan directly (no payment) via `setCompanyPlan` (`src/lib/billing.functions.ts`), surfaced by `PlanSwitcherSection` in Settings.
 
 ### Database migrations
 

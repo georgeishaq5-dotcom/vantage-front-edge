@@ -34,7 +34,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
 import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
+import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
@@ -161,9 +163,19 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
+  id: '/api/billing/webhook',
+  path: '/api/billing/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingPortalRoute = ApiBillingPortalRouteImport.update({
   id: '/api/billing/portal',
   path: '/api/billing/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
+  id: '/api/billing/checkout',
+  path: '/api/billing/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -193,7 +205,9 @@ export interface FileRoutesByFullPath {
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -221,7 +235,9 @@ export interface FileRoutesByTo {
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -250,7 +266,9 @@ export interface FileRoutesById {
   '/upgrade': typeof UpgradeRoute
   '/api/chat': typeof ApiChatRoute
   '/customers/$customerId': typeof CustomersCustomerIdRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -280,7 +298,9 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
+    | '/api/billing/checkout'
     | '/api/billing/portal'
+    | '/api/billing/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,7 +328,9 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
+    | '/api/billing/checkout'
     | '/api/billing/portal'
+    | '/api/billing/webhook'
   id:
     | '__root__'
     | '/'
@@ -336,7 +358,9 @@ export interface FileRouteTypes {
     | '/upgrade'
     | '/api/chat'
     | '/customers/$customerId'
+    | '/api/billing/checkout'
     | '/api/billing/portal'
+    | '/api/billing/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -364,7 +388,9 @@ export interface RootRouteChildren {
   TimesheetsRoute: typeof TimesheetsRoute
   UpgradeRoute: typeof UpgradeRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingPortalRoute: typeof ApiBillingPortalRoute
+  ApiBillingWebhookRoute: typeof ApiBillingWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -544,11 +570,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/billing/webhook': {
+      id: '/api/billing/webhook'
+      path: '/api/billing/webhook'
+      fullPath: '/api/billing/webhook'
+      preLoaderRoute: typeof ApiBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/portal': {
       id: '/api/billing/portal'
       path: '/api/billing/portal'
       fullPath: '/api/billing/portal'
       preLoaderRoute: typeof ApiBillingPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/checkout': {
+      id: '/api/billing/checkout'
+      path: '/api/billing/checkout'
+      fullPath: '/api/billing/checkout'
+      preLoaderRoute: typeof ApiBillingCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -591,7 +631,9 @@ const rootRouteChildren: RootRouteChildren = {
   TimesheetsRoute: TimesheetsRoute,
   UpgradeRoute: UpgradeRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingPortalRoute: ApiBillingPortalRoute,
+  ApiBillingWebhookRoute: ApiBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

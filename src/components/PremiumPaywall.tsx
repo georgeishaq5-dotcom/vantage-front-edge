@@ -4,11 +4,11 @@ import { Check, Loader2, Sparkles, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   FEATURE_LABELS,
-  PRO_BENEFITS,
-  PRO_PLAN_NAME,
-  PRO_PLAN_PRICE,
+  PLAN_META,
+  requiredPlanFor,
   type PremiumFeature,
 } from "@/lib/entitlements";
 import {
@@ -19,21 +19,25 @@ import {
 } from "@/lib/adapty";
 
 type PremiumPaywallProps = {
-  /** Which locked feature triggered the paywall (tailors the headline). */
+  /** Which locked feature triggered the paywall (tailors plan + headline). */
   feature?: PremiumFeature;
   /** When provided, renders a close button (modal usage). */
   onClose?: () => void;
 };
 
 /**
- * The "Unlock Your Autonomous Digital Employee" upgrade screen. Reused both as
- * the standalone /upgrade route and inside the feature-gate modal.
+ * The upgrade screen. The plan it sells (Growth vs Crew) is derived from the
+ * locked feature that triggered it — see FEATURE_MIN_PLAN. Reused both as the
+ * standalone /upgrade route and inside the feature-gate modal.
  */
 export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
   const native = isAdaptyAvailable();
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [consented, setConsented] = useState(false);
+
+  const plan = requiredPlanFor(feature);
+  const meta = PLAN_META[plan];
 
   const { data } = useQuery({
     queryKey: ["adapty-paywall"],
@@ -44,18 +48,42 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
   const firstProduct = data?.products?.[0];
 
   async function handleSubscribe() {
-    if (!native || !firstProduct) {
-      toast.info("Subscriptions activate inside the installed iOS/Android app.");
+    // Native (iOS/Android) purchases go through Adapty / the app store.
+    if (native && firstProduct) {
+      setPurchasing(true);
+      try {
+        await purchaseProduct(firstProduct);
+        toast.success(`Welcome to ${meta.name}! Your subscription is active.`);
+        onClose?.();
+      } catch {
+        toast.error("Purchase could not be completed.");
+      } finally {
+        setPurchasing(false);
+      }
       return;
     }
+
+    // Web: hand off to Stripe Checkout for the plan this feature requires.
     setPurchasing(true);
     try {
-      await purchaseProduct(firstProduct);
-      toast.success("Welcome to Pro! Your subscription is active.");
-      onClose?.();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {}),
+        },
+        body: JSON.stringify({ plan }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const { url } = (await res.json()) as { url: string };
+      window.location.href = url;
     } catch {
-      toast.error("Purchase could not be completed.");
-    } finally {
+      toast.error("Could not start checkout. Please try again.");
       setPurchasing(false);
     }
   }
@@ -95,17 +123,19 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
         <div className="pointer-events-none absolute -bottom-12 -right-8 h-44 w-44 animate-pulse rounded-full bg-white/10 blur-3xl [animation-delay:700ms]" />
         <span className="relative inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white backdrop-blur">
           <Sparkles className="h-3.5 w-3.5" />
-          {PRO_PLAN_NAME} · {PRO_PLAN_PRICE}
+          {meta.name} · {meta.price}
         </span>
         <h2 className="relative mt-4 text-2xl font-extrabold leading-tight text-white sm:text-3xl">
-          Unlock Your Autonomous
-          <br />
-          Digital Employee
+          Upgrade to {meta.name}
         </h2>
-        {feature && (
+        {feature ? (
           <p className="relative mt-3 text-sm font-medium text-white/90">
-            {FEATURE_LABELS[feature]} is a Pro feature. Upgrade to keep your
-            operation running on autopilot.
+            {FEATURE_LABELS[feature]} is a {meta.name} feature. Upgrade to keep
+            your operation running on autopilot.
+          </p>
+        ) : (
+          <p className="relative mt-3 text-sm font-medium text-white/90">
+            {meta.tagline}
           </p>
         )}
       </div>
@@ -113,7 +143,7 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
       {/* Benefits */}
       <div className="px-6 py-6">
         <ul className="space-y-3">
-          {PRO_BENEFITS.map((benefit) => (
+          {meta.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-3 text-sm text-foreground">
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-revenue/15 text-revenue">
                 <Check className="h-3.5 w-3.5" />
@@ -127,8 +157,8 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
         <div className="mt-7 rounded-lg border border-amber-200/40 bg-amber-50/10 px-4 py-3 text-xs leading-relaxed text-foreground/80">
           <p className="font-semibold text-foreground">Subscription Terms</p>
           <p className="mt-1">
-            You are subscribing to <span className="font-medium">Vantage {PRO_PLAN_NAME}</span> at{" "}
-            <span className="font-medium">$99.00/month</span>. Your subscription renews
+            You are subscribing to <span className="font-medium">Vantage {meta.name}</span> at{" "}
+            <span className="font-medium">{meta.price}</span>. Your subscription renews
             automatically each month until you cancel. To cancel at any time, go to{" "}
             <span className="font-medium">Settings → Manage Subscription</span> — no need to
             contact support.
@@ -144,7 +174,7 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
             onChange={(e) => setConsented(e.target.checked)}
           />
           <span>
-            I understand this subscription auto-renews at <span className="font-medium">$99.00/month</span> until
+            I understand this subscription auto-renews at <span className="font-medium">{meta.price}</span> until
             I cancel.
           </span>
         </label>
@@ -160,7 +190,7 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
           ) : (
             <Zap className="h-5 w-5" />
           )}
-          Subscribe Now — {PRO_PLAN_PRICE}
+          Subscribe Now — {meta.price}
         </Button>
         <p className="mt-2 text-center text-xs text-muted-foreground">
           Cancel anytime. Billed through your app store account.
