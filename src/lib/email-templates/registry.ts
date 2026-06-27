@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { template as testEmailTemplate } from './test-email'
 
 export interface TemplateEntry {
   component: ComponentType<any>
