@@ -3,9 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, ShieldCheck, UserPlus, Mail } from "lucide-react";
+import { Building2, ShieldCheck, UserPlus, Mail, Users, Lock } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
+import { useFeatureGate } from "@/components/FeatureGate";
 import { MemberAvatar } from "@/components/CrewAssignment";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +73,10 @@ function TeamPage() {
     queryFn: fetchTeamMembers,
   });
   const me = useCurrentMember();
+  const { seatLimit } = useFeatureGate();
+  const seatLabel = Number.isFinite(seatLimit)
+    ? `${members.length} / ${seatLimit} crew seats`
+    : `${members.length} crew seats · unlimited`;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-5 md:px-8 md:py-8">
@@ -89,6 +94,10 @@ function TeamPage() {
         <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5 text-revenue" />
           RBAC: Owner/Admin · Dispatcher · Field Tech
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          {seatLabel}
         </span>
         {me && (
           <span className="inline-flex items-center gap-2 rounded-full border border-revenue/30 bg-revenue-muted px-3 py-1.5 text-xs font-medium text-revenue">
@@ -160,6 +169,12 @@ function MemberCard({ member, isMe }: { member: TeamMember; isMe: boolean }) {
 
 function TeamActions() {
   const isAdmin = useIsAdmin();
+  const { seatLimit, openPaywall } = useFeatureGate();
+  const { data: members = [] } = useQuery({
+    queryKey: ["team_members"],
+    queryFn: fetchTeamMembers,
+  });
+
   if (!isAdmin) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
@@ -168,6 +183,17 @@ function TeamActions() {
       </span>
     );
   }
+
+  // Crew = unlimited; lower plans cap the workspace at seatLimit members.
+  if (members.length >= seatLimit) {
+    return (
+      <Button variant="revenue" onClick={() => openPaywall()}>
+        <Lock className="h-4 w-4" />
+        Add more seats
+      </Button>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2">
       <InviteUserDialog />

@@ -34,6 +34,18 @@ export const Route = createFileRoute("/api/chat")({
             return new Response("Unauthorized", { status: 401 });
           }
 
+          const userId = claims.claims.sub as string;
+          const { data: reqCount, error: rlError } = await supabase.rpc(
+            "increment_chat_rate_limit",
+            { p_user_id: userId },
+          );
+          if (!rlError && reqCount > 20) {
+            return new Response("Too many requests", {
+              status: 429,
+              headers: { "Retry-After": "60" },
+            });
+          }
+
           const { messages } = (await request.json()) as ChatRequestBody;
           if (!Array.isArray(messages)) {
             return new Response("Messages are required", { status: 400 });

@@ -40,7 +40,7 @@ export function RadiusMarketing({
 }) {
   const { data: profile } = useQuery({ queryKey: ["my_profile"], queryFn: fetchMyProfile });
   const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
-  const { requirePro } = useFeatureGate();
+  const { requireFeature } = useFeatureGate();
 
   const company = profile?.company_name?.trim() || "Vantage";
   const city = cityFromAddress(customer?.service_address);
@@ -54,7 +54,7 @@ export function RadiusMarketing({
   const website = "www.vantage-fsm.com";
 
   async function generateFlyer() {
-    if (!requirePro("weather_marketing")) return;
+    if (!requireFeature("weather_marketing")) return;
     setGenerating(true);
     try {
       const leadUrl = `${window.location.origin}/?lead=1`;
@@ -175,7 +175,7 @@ function NeighborTexts({
 }) {
   const runFind = useServerFn(findNeighbors);
   const runBlast = useServerFn(blastNeighbors);
-  const { requirePro } = useFeatureGate();
+  const { requireFeature } = useFeatureGate();
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
@@ -184,7 +184,7 @@ function NeighborTexts({
   const [matches, setMatches] = useState<NeighborMatch[] | null>(null);
 
   async function scan() {
-    if (!requirePro("route_density")) return;
+    if (!requireFeature("route_density")) return;
     if (!jobAddress) {
       toast.error("This job has no service address to map.");
       return;
@@ -239,7 +239,7 @@ function NeighborTexts({
 
   async function textCustomers() {
     if (textable.length === 0) return;
-    if (!requirePro("auto_collections")) return;
+    if (!requireFeature("auto_collections")) return;
     setSending(true);
     try {
       const result = await runBlast({

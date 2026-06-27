@@ -28,8 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { createJob, fetchCustomers, formatCurrency, updateCustomer } from "@/lib/fsm";
+import { createJob, fetchCustomers, fetchJobs, formatCurrency, updateCustomer } from "@/lib/fsm";
 import { SatelliteMeasure, type MeasureResult } from "@/components/SatelliteMeasure";
+import { useFeatureGate } from "@/components/FeatureGate";
 
 interface Upgrade {
   key: string;
@@ -56,6 +57,22 @@ export function CreateJobModal() {
     queryKey: ["customers"],
     queryFn: fetchCustomers,
   });
+  const { data: jobs = [] } = useQuery({ queryKey: ["jobs"], queryFn: fetchJobs });
+  const { activeJobCap, openPaywall } = useFeatureGate();
+
+  // Active jobs = not yet completed/paid. Starter plans are capped; Growth/Crew
+  // are unlimited (cap is Infinity). Returns false and shows the paywall when
+  // creating another job would exceed the plan's cap.
+  function withinJobCap(): boolean {
+    const activeJobs = jobs.filter(
+      (j) => j.status === "Quoted" || j.status === "Scheduled",
+    ).length;
+    if (activeJobs >= activeJobCap) {
+      openPaywall("unlimited_jobs");
+      return false;
+    }
+    return true;
+  }
 
   // ---- Create Job tab state ----
   const [customerId, setCustomerId] = useState<string>("");
@@ -216,6 +233,7 @@ export function CreateJobModal() {
                   id="base_price"
                   type="number"
                   min={0}
+                  max={999999}
                   value={basePrice}
                   onChange={(e) => setBasePrice(e.target.value)}
                   className="pl-7"
@@ -273,7 +291,15 @@ export function CreateJobModal() {
                 type="button"
                 variant="revenue"
                 disabled={estimateMutation.isPending || !estCustomerId}
-                onClick={() => estimateMutation.mutate()}
+                onClick={() => {
+                  const price = Number(basePrice);
+                  if (isNaN(price) || price < 0 || price > 999999) {
+                    toast.error("Base price must be between $0 and $999,999");
+                    return;
+                  }
+                  if (!withinJobCap()) return;
+                  estimateMutation.mutate();
+                }}
               >
                 {estimateMutation.isPending ? "Saving…" : "Create Estimate"}
               </Button>
@@ -289,6 +315,15 @@ export function CreateJobModal() {
                   toast.error("Please select a customer");
                   return;
                 }
+                if (title.trim().length > 200) {
+                  toast.error("Job title must be 200 characters or fewer");
+                  return;
+                }
+                if (siteNotes.trim().length > 2000) {
+                  toast.error("Site notes must be 2000 characters or fewer");
+                  return;
+                }
+                if (!withinJobCap()) return;
                 jobMutation.mutate();
               }}
               className="space-y-5"
@@ -318,6 +353,7 @@ export function CreateJobModal() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Quarterly HVAC inspection (optional)"
+                  maxLength={200}
                 />
               </div>
 
@@ -357,6 +393,7 @@ export function CreateJobModal() {
                   value={siteNotes}
                   onChange={(e) => setSiteNotes(e.target.value)}
                   placeholder="Access instructions, gate codes, pets, parking…"
+                  maxLength={2000}
                 />
               </div>
 

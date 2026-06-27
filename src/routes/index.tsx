@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   CloudRain,
   MapPin,
@@ -6,6 +6,10 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
+  CalendarCheck,
+  User,
+  DollarSign,
+  BadgeCheck,
 } from "lucide-react";
 
 import { MarketingNav } from "@/components/marketing/MarketingNav";
@@ -14,23 +18,10 @@ import { WeatherTriggerDemo } from "@/components/marketing/WeatherTriggerDemo";
 import { Reveal } from "@/components/marketing/Reveal";
 import { AppLink } from "@/components/marketing/AppLink";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { resolveHostContext, toAppUrl } from "@/lib/site-host";
 
 // Note: app.vantage-fsm.com -> marketing-page redirect is handled centrally
 // in __root.tsx, since the same rule applies to every marketing path.
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    // A logged-in visitor on the marketing domain should land in the
-    // product, not see the marketing homepage again.
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) return;
-
-    const ctx = await resolveHostContext();
-    if (ctx) {
-      throw redirect({ href: toAppUrl("/dashboard", ctx) });
-    }
-  },
   component: HomePage,
 });
 
@@ -97,7 +88,7 @@ function HomePage() {
                   </AppLink>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
-                  <Link to="/features">See how it works</Link>
+                  <a href="#how-it-works">See how it works</a>
                 </Button>
               </div>
               <p className="mt-4 text-sm text-muted-foreground">
@@ -107,6 +98,176 @@ function HomePage() {
 
             <div className="flex justify-center md:justify-end">
               <WeatherTriggerDemo />
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="border-t border-border/60 py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <Reveal>
+              <div className="text-center">
+                <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+                  Here's how it works
+                </h2>
+                <p className="mt-3 text-base text-muted-foreground">
+                  Three steps from forecast to first payment.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="mt-16 flex flex-col gap-0">
+              {/* Step 1 */}
+              <Reveal delay={80}>
+                <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+                  <div className="flex gap-5">
+                    <div className="flex flex-col items-center">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-brand-foreground shadow">
+                        01
+                      </div>
+                      <div className="mt-3 w-px flex-1 border-l-2 border-dashed border-border" />
+                    </div>
+                    <div className="pb-14">
+                      <h3 className="text-xl font-bold text-foreground">
+                        Rain stops — leads hear from you first
+                      </h3>
+                      <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                        Vantage monitors the forecast 24/7 for every job site
+                        on your calendar. The moment the sky clears, it fires
+                        personalised texts to nearby prospects before your
+                        competition even checks the weather app.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center md:justify-end">
+                    <WeatherTriggerDemo />
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* Step 2 */}
+              <Reveal delay={160}>
+                <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+                  {/* Visual first on desktop (order-first) — text second */}
+                  <div className="order-last flex justify-center md:order-first md:justify-start">
+                    <div className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+                      <div className="border-b border-border/60 bg-secondary/40 px-5 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          New job booked
+                        </p>
+                      </div>
+                      <div className="space-y-4 p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-revenue/15">
+                            <CalendarCheck className="h-5 w-5 text-revenue" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">
+                              Mobile Detail — Thursday 3:00 PM
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Auto-scheduled from SMS reply
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 rounded-xl bg-secondary/50 px-4 py-3">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-foreground">
+                            Marcus T. — 1.2 mi away
+                          </span>
+                          <span className="ml-auto rounded-full bg-revenue/15 px-2 py-0.5 text-[11px] font-semibold text-revenue">
+                            Confirmed
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-revenue" />
+                          Nearest tech assigned automatically
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-5">
+                    <div className="flex flex-col items-center">
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-brand-foreground shadow">
+                        02
+                      </div>
+                      <div className="mt-3 w-px flex-1 border-l-2 border-dashed border-border" />
+                    </div>
+                    <div className="pb-14">
+                      <h3 className="text-xl font-bold text-foreground">
+                        Booking lands on the calendar
+                      </h3>
+                      <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                        When a lead replies YES, Vantage drops the job on the
+                        schedule and routes it to the nearest available
+                        tech — no phone tag, no back-and-forth.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+
+              {/* Step 3 */}
+              <Reveal delay={240}>
+                <div className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+                  <div className="flex gap-5">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-brand-foreground shadow">
+                      03
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">
+                        Get paid before you leave the driveway
+                      </h3>
+                      <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                        Stripe is built right in. Send a quote, collect a
+                        deposit up-front, and fire the final invoice from the
+                        job site the moment you're done — all in two taps.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex justify-center md:justify-end">
+                    <div className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+                      <div className="border-b border-border/60 bg-secondary/40 px-5 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Invoice · Stripe
+                        </p>
+                      </div>
+                      <div className="space-y-4 p-5">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              Mobile Detail — Marcus T.
+                            </p>
+                            <p className="mt-0.5 text-3xl font-extrabold tracking-tight text-foreground">
+                              $185<span className="text-lg font-medium text-muted-foreground">.00</span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 rounded-full bg-revenue/15 px-3 py-1">
+                            <BadgeCheck className="h-4 w-4 text-revenue" />
+                            <span className="text-sm font-semibold text-revenue">
+                              Paid
+                            </span>
+                          </div>
+                        </div>
+                        <div className="space-y-2 rounded-xl bg-secondary/50 p-3 text-sm">
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Interior + exterior detail</span>
+                            <span>$165</span>
+                          </div>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>Ceramic coating add-on</span>
+                            <span>$20</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <DollarSign className="h-3.5 w-3.5 text-revenue" />
+                          Payout arrives in your account in 2 days
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
