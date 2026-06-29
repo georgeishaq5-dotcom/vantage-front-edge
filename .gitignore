@@ -38,3 +38,6 @@ dist-ssr
 # Supabase CLI local state (link/auth), not source
 supabase/.temp/
 supabase/.branches/
+
+# Apple Sign in with Apple private keys — never commit (Apple issues the .p8 once)
+*.p8
