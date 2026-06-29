@@ -25,15 +25,17 @@
 -- RUN ORDER (the generated script handles the trigger; you do the rest):
 --   0. NEW project auth.users must be EMPTY (no stray test signups) or you'll
 --      hit PK / unique(email) conflicts.
---   1. Configure Google/Apple providers in the NEW project with the SAME OAuth
+--   1. Configure the Google provider in the NEW project with the SAME OAuth
 --      client id + secret as the old one, and matching redirect/Site URLs,
 --      BEFORE anyone logs in — the identity provider_id (sub) is client-bound.
+--      (Apple is intentionally out of scope — it was never set up; there are
+--      no Apple identity rows to migrate.)
 --   2. Paste + run THIS script's output in the NEW project. It disables the
 --      on_auth_user_created trigger, then inserts users + identities.
 --   3. Paste + run the stage5_generate_inserts.sql output (app data).
 --   4. Re-enable the trigger (printed as a reminder at the end of the output):
 --        ALTER TABLE auth.users ENABLE TRIGGER on_auth_user_created;
---   5. Smoke test: one email/password login, one Google login, one Apple login.
+--   5. Smoke test: one email/password login and one Google login.
 --
 -- NOTE: sessions / refresh_tokens are intentionally NOT migrated — users just
 --   sign in again. The non-generated column list is read from the OLD project;
