@@ -21,12 +21,26 @@
 --
 -- !! BEFORE IMPORTING INTO THE NEW PROJECT !!
 --   auth.users must already exist in the new project (profiles/user_roles/
---   team_members reference them). Import auth users FIRST. Critically, the
---   `on_auth_user_created` trigger (`handle_new_user`) auto-creates a company +
---   profile + user_role for each new auth user — if it fires during the auth
---   import it will collide with the INSERTs below (duplicate companies, PK
---   conflicts on profiles). Import auth users with that trigger disabled (or
---   otherwise not firing), THEN run this generated script.
+--   team_members reference them). Import auth users FIRST (stage5_generate_
+--   auth_inserts.sql). Hosted Supabase won't allow disabling the
+--   `on_auth_user_created` trigger, so it fires for every inserted auth user
+--   and auto-creates a throwaway company + profile + user_role row before
+--   this script runs. That's handled here:
+--     * profiles  — INSERT ... ON CONFLICT (id) DO UPDATE, so the real row
+--       overwrites the trigger's placeholder (name/company_id/etc.).
+--     * user_roles — INSERT ... ON CONFLICT (user_id, role) DO NOTHING, since
+--       unique(user_id, role) means a matching trigger-assigned role (e.g. the
+--       first migrated user defaults to 'admin') would otherwise collide.
+--     * companies — the trigger's throwaway company rows are NOT overwritten
+--       (they get a fresh random id, distinct from the real company id below)
+--       and are left as harmless orphaned debris once profiles.company_id is
+--       repointed at the real company. Clean them up after verifying the
+--       import, e.g.:
+--         DELETE FROM public.companies c
+--         WHERE NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.company_id = c.id)
+--           AND NOT EXISTS (SELECT 1 FROM public.customers cu WHERE cu.company_id = c.id)
+--           AND NOT EXISTS (SELECT 1 FROM public.jobs j WHERE j.company_id = c.id)
+--           AND NOT EXISTS (SELECT 1 FROM public.agent_rules r WHERE r.company_id = c.id);
 
 WITH
 companies_b AS (
@@ -38,7 +52,7 @@ companies_b AS (
 ),
 profiles_b AS (
   SELECT string_agg(format(
-    'INSERT INTO public.profiles (id, full_name, email, created_at, profession, onboarded, company_name, team_size, yearly_revenue, years_in_business, company_id, ai_consent_granted, terms_accepted_version) VALUES (%L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L);',
+    'INSERT INTO public.profiles (id, full_name, email, created_at, profession, onboarded, company_name, team_size, yearly_revenue, years_in_business, company_id, ai_consent_granted, terms_accepted_version) VALUES (%L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L, %L) ON CONFLICT (id) DO UPDATE SET full_name = excluded.full_name, email = excluded.email, created_at = excluded.created_at, profession = excluded.profession, onboarded = excluded.onboarded, company_name = excluded.company_name, team_size = excluded.team_size, yearly_revenue = excluded.yearly_revenue, years_in_business = excluded.years_in_business, company_id = excluded.company_id, ai_consent_granted = excluded.ai_consent_granted, terms_accepted_version = excluded.terms_accepted_version;',
     id, full_name, email, created_at, profession, onboarded, company_name, team_size, yearly_revenue, years_in_business, company_id, ai_consent_granted, terms_accepted_version
   ), E'\n' ORDER BY created_at) AS s
   FROM profiles
@@ -52,7 +66,7 @@ team_members_b AS (
 ),
 user_roles_b AS (
   SELECT string_agg(format(
-    'INSERT INTO public.user_roles (id, user_id, role, created_at) VALUES (%L, %L, %L, %L);',
+    'INSERT INTO public.user_roles (id, user_id, role, created_at) VALUES (%L, %L, %L, %L) ON CONFLICT (user_id, role) DO NOTHING;',
     id, user_id, role, created_at
   ), E'\n' ORDER BY created_at) AS s
   FROM user_roles

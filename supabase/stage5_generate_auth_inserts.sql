@@ -22,7 +22,7 @@
 --   write them. encrypted_password is bcrypt and portable across Supabase
 --   projects, so email/password logins keep working.
 --
--- RUN ORDER (the generated script handles the trigger; you do the rest):
+-- RUN ORDER:
 --   0. NEW project auth.users must be EMPTY (no stray test signups) or you'll
 --      hit PK / unique(email) conflicts.
 --   1. Configure the Google provider in the NEW project with the SAME OAuth
@@ -30,12 +30,17 @@
 --      BEFORE anyone logs in — the identity provider_id (sub) is client-bound.
 --      (Apple is intentionally out of scope — it was never set up; there are
 --      no Apple identity rows to migrate.)
---   2. Paste + run THIS script's output in the NEW project. It disables the
---      on_auth_user_created trigger, then inserts users + identities.
+--   2. Paste + run THIS script's output in the NEW project. Hosted Supabase
+--      does not allow disabling triggers on auth.users (42501: must be owner
+--      of table users) even as postgres, so on_auth_user_created fires for
+--      every inserted row. That's expected and handled downstream: it
+--      auto-creates a throwaway company + profile + user_role per user,
+--      which stage5_generate_inserts.sql's app-data import then overwrites
+--      (profiles) or no-ops around (user_roles) via ON CONFLICT. The
+--      trigger-created companies are harmless debris — see the cleanup
+--      query in stage5_generate_inserts.sql's header.
 --   3. Paste + run the stage5_generate_inserts.sql output (app data).
---   4. Re-enable the trigger (printed as a reminder at the end of the output):
---        ALTER TABLE auth.users ENABLE TRIGGER on_auth_user_created;
---   5. Smoke test: one email/password login and one Google login.
+--   4. Smoke test: one email/password login and one Google login.
 --
 -- NOTE: sessions / refresh_tokens are intentionally NOT migrated — users just
 --   sign in again. The non-generated column list is read from the OLD project;
@@ -68,12 +73,11 @@ identities_b AS (
 )
 SELECT
      E'BEGIN;\n\n'
-  || E'-- keep the auto-provision trigger from firing during the bulk import\n'
-  || E'ALTER TABLE auth.users DISABLE TRIGGER on_auth_user_created;\n\n'
+  || E'-- NOTE: on_auth_user_created WILL fire per row inserted below (hosted\n'
+  || E'-- Supabase does not permit disabling triggers on auth.users). It creates\n'
+  || E'-- a throwaway company + profile + user_role per user; the app-data\n'
+  || E'-- import (stage5_generate_inserts.sql) cleans that up.\n\n'
   || E'-- auth.users\n'      || COALESCE((SELECT s FROM users_b),      '-- (no rows)') || E'\n\n'
   || E'-- auth.identities\n' || COALESCE((SELECT s FROM identities_b), '-- (no rows)') || E'\n\n'
-  || E'COMMIT;\n\n'
-  || E'-- Trigger is left DISABLED on purpose. After you run the app-data\n'
-  || E'-- import (stage5_generate_inserts output), re-enable it:\n'
-  || E'--   ALTER TABLE auth.users ENABLE TRIGGER on_auth_user_created;\n'
+  || E'COMMIT;\n'
   AS auth_import_script;
