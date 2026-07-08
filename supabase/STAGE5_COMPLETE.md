@@ -5,9 +5,11 @@ a self-owned project (`fsywsxifrvdtziiwhkjf`). This is a running log —
 Stages 1-4 (schema rebuild + verification) were completed earlier (see git
 history: `d2bfec3` "WIP: Supabase migration off Lovable — paused after Stage
 4, before Stage 5"). This document covers Stage 5 (data + auth import) and
-Stage 7 (cutover), both now done. Stage 7b (email runtime) was attempted
-and deliberately abandoned as dead code, not a blocker — see below. Stage 8
-(full test pass) is still open — see the bottom of this doc.
+Stage 7 (cutover), both now done and confirmed working end-to-end. Stage 7b
+(email runtime) was attempted and deliberately abandoned as dead code, not
+a blocker — see below; real transactional email is being set up via
+Resend/Supabase Auth SMTP instead. Stage 8 (full test pass) is in progress
+— see the bottom of this doc for exactly what's left.
 
 ## What was fixed along the way
 
@@ -54,22 +56,21 @@ and deliberately abandoned as dead code, not a blocker — see below. Stage 8
 
 - Email/password login against NEW: pass (confirmed properly during cutover,
   see below).
-- Google login against NEW: **fails** with "missing OAuth secret" — the
-  Google provider's client id/secret haven't been configured on the NEW
-  project yet (see `stage5_generate_auth_inserts.sql` step 1). Parked, not
-  blocking — needs the OAuth client secret configured in the NEW project's
-  Auth provider settings before Google sign-in will work there.
+- Google login against NEW: initially failed with "missing OAuth secret" —
+  see the Stage 7 section below for the actual root cause and resolution
+  (it wasn't the client secret).
 
 ## Git / push status
 
-All Stage 5 fixes are committed locally on
-`claude/supabase-migration-status-5w885c` (commit `f924685` + this doc).
-**Push to GitHub is currently blocked** — the Claude GitHub App integration
-doesn't have write access to `georgeishaq5-dotcom/vantage-front-edge`
-(`403: Resource not accessible by integration`, confirmed both via the git
-remote and directly via the GitHub API). Nothing is lost — it's committed
-locally — but it needs the GitHub App's permissions/installation fixed
-before it can reach the remote branch.
+All work in this document is committed on branch
+`claude/supabase-migration-status-5w885c`. **The GitHub App integration
+still lacks write access** to `georgeishaq5-dotcom/vantage-front-edge`
+(`403: Resource not accessible by integration`, confirmed repeatedly both
+via the git relay and directly via the GitHub API, across the whole
+session). A personal access token was used as a one-time workaround to
+push the Stage 5/7 commits so nothing sat unpushed — see "Open items for
+next session" below for the real fix needed (GitHub App permissions, not
+another PAT workaround).
 
 ## Stage 7 — Cutover: COMPLETE
 
@@ -104,15 +105,29 @@ trailing slash) and redeploying again.
 customer data loads correctly — RLS + `company_id` scoping resolve against
 NEW end-to-end.
 
-**Still parked, not blocking:** Google login fails with "missing OAuth
-secret" — unaffected by the env var fix, same issue flagged back in Stage 5
-(the Google provider's client secret was never configured on the NEW
-project). Needs: Supabase dashboard → NEW project → Authentication →
-Providers → Google → add the client secret (same client ID as OLD) before
-Google sign-in will work.
+**Google OAuth "missing OAuth secret" — RESOLVED.** Root cause wasn't
+actually a missing client secret in Supabase (that was fixed earlier) — it
+was the Google Cloud OAuth consent screen sitting in **Testing** status
+with no test users added, which Google rejects for anyone outside that
+list. Added a test user, confirmed Google login now works end-to-end for
+that account. The app is currently under **Google's branding
+re-verification** (it flagged a domain-ownership mismatch and an app-name
+mismatch; both were fixed and the verification was resubmitted) — this is
+required to open Google login to all users, not just test-list accounts.
+Pending Google's review; doesn't block anything else in the meantime.
 
 **OLD project** (`erabfcnmgnrvzwjkrdry`) has been left running, untouched,
 as a rollback option — not yet decommissioned.
+
+## Transactional email — Resend via Supabase Auth SMTP
+
+Real transactional email (signup confirmation, password reset) is being
+set up the standard Supabase way instead of the abandoned Stage 7b pipeline
+(see below): Supabase Auth's built-in SMTP config on NEW, pointed at
+Resend. DKIM/SPF/DMARC DNS records have been added in Namecheap; Resend
+domain verification is **in progress, not yet confirmed**. This gates part
+of Stage 8 (see below) — signup's email-confirmation step won't work
+end-to-end until verification finishes.
 
 ---
 
@@ -166,39 +181,57 @@ be sourcing a real `LOVABLE_API_KEY` (and confirming whether
 `LOVABLE_SEND_URL` needs setting too) before re-running the cron schedule
 step.
 
-### Stage 8 — Full test pass against NEW in production
-Not started. Before running this, make sure:
-- [ ] Signup confirmation / password reset emails go through Supabase
-      Auth's own SMTP (Resend) config, not the abandoned Stage 7b pipeline
-      — confirm that's actually configured on NEW's Auth settings (separate
-      from anything in this repo) before relying on it during the test.
-- [ ] You have a disposable/test email address and a Stripe test-mode card
-      handy (`4242 4242 4242 4242` or whichever Stripe test card the
-      project's Stripe account is configured for).
-- [ ] Know which plan tier to exercise the paywall on (`Growth` $49/mo or
-      `Crew` $99/mo — see `src/lib/entitlements.ts` for
-      `FEATURE_MIN_PLAN`/caps) so you hit a real `requireFeature()` gate
-      during the test, not just the reverse-trial's full access.
+### Stage 8 — Full test pass against NEW in production: IN PROGRESS
 
-Test matrix to run:
-- [ ] **Signup**: new account, email/password — confirms `handle_new_user()`
+Started, not finished. Done so far (confirmed during cutover testing):
+- [x] **Dashboard**: login (email/password) and customer data load
+      correctly against NEW — RLS + `company_id` scoping verified working.
+
+Still outstanding, blocked/gated as noted:
+- [ ] **Signup + email confirmation** — blocked on Resend domain
+      verification finishing (see above). Confirms `handle_new_user()`
       trigger provisions company/profile/role correctly on NEW for a
-      genuinely new (non-migrated) user, not just the imported ones.
-- [ ] **Dashboard**: load jobs/customers/team as the migrated admin user —
-      confirms RLS scoping (already spot-checked during cutover, but do a
-      fuller pass: create/edit/delete a customer and a job).
+      genuinely new (non-migrated) user, not just the imported ones, and
+      that the confirmation email actually sends/delivers via Resend.
+- [ ] **Dashboard, fuller pass**: create/edit/delete a customer and a job
+      (only read was exercised during cutover, not writes).
 - [ ] **Stripe checkout**: `PremiumPaywall` → `POST /api/billing/checkout`
       → completes a real Checkout session → confirm the webhook
       (`POST /api/billing/webhook`) writes `companies.plan` +
       `subscription_status` correctly via the service-role client (this is
       NEW's service role key now, so this indirectly re-verifies the Stage
-      7 key rotation too).
+      7 key rotation too). Needs: disposable test email/Stripe test-mode
+      card, and pick a specific tier (`Growth` $49/mo or `Crew` $99/mo —
+      see `src/lib/entitlements.ts` `FEATURE_MIN_PLAN`/caps) so a real
+      `requireFeature()` gate gets exercised, not just reverse-trial access.
 - [ ] **Plan Switcher**: `PlanSwitcherSection` in Settings (admin QA path,
       no payment) — confirms `setCompanyPlan` writes succeed against NEW
       under the `prevent_company_billing_change` trigger's admin exception.
 
 ### After Stage 8 passes
-- [ ] Configure Google OAuth secret (parked item above) if needed for real
-      users, or confirm email/password-only is acceptable long-term.
 - [ ] Decide on an OLD-project decommission date once NEW has run stable
       in production for a while.
+
+---
+
+## Open items for next session
+
+1. **Finish Resend domain verification**, then complete Stage 8: signup +
+   email confirmation, Stripe checkout, Plan Switcher.
+2. **Google branding re-verification** — check whether Google has approved
+   it yet (opens Google login to all users, not just the added test
+   account).
+3. **GitHub App write access is still broken** — `403: Resource not
+   accessible by integration` on every push attempt this session (both via
+   the git relay and directly via the GitHub API). A one-time personal
+   access token was used as a workaround to get the Stage 5/7 commits
+   pushed; that's not a real fix. Check
+   `github.com/settings/installations` for the Claude GitHub App's access
+   to `georgeishaq5-dotcom/vantage-front-edge` and restore write
+   permissions so future commits can push normally without needing a PAT
+   each time.
+4. **UI gap noticed during testing**: no change-password entry point
+   anywhere on the login/account screens. Not urgent — flagged for the
+   upcoming broader UI pass rather than fixed ad hoc here.
+5. **OLD project** (`erabfcnmgnrvzwjkrdry`) — still fine to leave running
+   untouched until NEW is fully verified across all of Stage 8.
