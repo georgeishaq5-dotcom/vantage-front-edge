@@ -5,8 +5,9 @@ a self-owned project (`fsywsxifrvdtziiwhkjf`). This is a running log —
 Stages 1-4 (schema rebuild + verification) were completed earlier (see git
 history: `d2bfec3` "WIP: Supabase migration off Lovable — paused after Stage
 4, before Stage 5"). This document covers Stage 5 (data + auth import) and
-Stage 7 (cutover), both now done. Stages 7b (email runtime) and 8 (full test
-pass) are still open — see the bottom of this doc.
+Stage 7 (cutover), both now done. Stage 7b (email runtime) was attempted
+and deliberately abandoned as dead code, not a blocker — see below. Stage 8
+(full test pass) is still open — see the bottom of this doc.
 
 ## What was fixed along the way
 
@@ -117,35 +118,60 @@ as a rollback option — not yet decommissioned.
 
 ## What's left
 
-### Stage 7b — Email runtime setup on NEW
-Full instructions already written: `supabase/setup/EMAIL_RUNTIME_SETUP.md`
-+ `supabase/setup/email-runtime-setup.sql`. Not yet run against NEW. Needs:
-- NEW project's `service_role` key (Dashboard → Project Settings → API) —
-  same value now in `SUPABASE_SERVICE_ROLE_KEY` on Vercel.
-- The deployed app URL, no trailing slash: `https://app.vantage-fsm.com`.
+### Stage 7b — Email runtime setup on NEW: ABANDONED (deliberately, not a blocker)
 
-Before starting, check:
-- [ ] Extensions present on NEW: `pg_cron`, `pg_net`, `supabase_vault`,
-      `pgmq` (should already be there from the Stage 4 schema push — the
-      queues themselves are created by migration
-      `20260628100700_email_infra.sql`, confirm via
-      `SELECT queue_name FROM pgmq.list_queues();` — expect 4).
-- [ ] Whether OLD's Vault secret / cron job values (if you want to diff
-      against them for reference) are still reachable — OLD's SQL editor
-      only, no CLI access there.
-- [ ] `net.http_post` vs `extensions.http_post` — check which schema NEW
-      exposes it under before pasting the cron command (see "Gotchas" #1 in
-      the setup doc).
+Attempted, then reversed. Record of what happened and why:
 
-Then follow the checklist in `EMAIL_RUNTIME_SETUP.md` steps 1-6 (steps 1-2
-— schema/queues — should already be satisfied by Stage 4/5; start at step 3,
-run `email-runtime-setup.sql` with the two placeholders filled in).
+- Ran `email-runtime-setup.sql` against NEW: Vault secret
+  (`email_queue_service_role_key`) created, `pg_cron` job
+  `process-email-queue` scheduled (every 5s), confirmed firing correctly
+  against `POST https://app.vantage-fsm.com/lovable/email/queue/process`
+  (verified via `net._http_response`).
+- The endpoint returned `HTTP 500 {"error":"Server configuration error"}`.
+  Traced to `src/routes/lovable/email/queue/process.ts:67-77`: the route
+  requires `LOVABLE_API_KEY` (plus `VITE_SUPABASE_URL` and
+  `SUPABASE_SERVICE_ROLE_KEY`, both already confirmed working) and 500s if
+  any are missing. `LOVABLE_API_KEY` was confirmed **entirely absent** from
+  Vercel — not misnamed, not wrong-scoped, never set.
+- Before chasing that key down: confirmed via the actual
+  `@lovable.dev/email-js` package source (fetched from the npm registry
+  tarball, `dist/index.js`) that `sendLovableEmail()` is a thin HTTP client
+  that POSTs to Lovable's own hosted API,
+  `https://api.lovable.dev/v1/messaging/email/send`, authenticated with
+  that key. It's not a generic multi-provider wrapper and has no adapter
+  for Resend/SendGrid/etc. — this pipeline is Lovable-account-locked by
+  design, not something broken by the Vercel/Supabase migration.
+- Separately confirmed **nothing in the app actually calls this pipeline**.
+  Grepped every caller of `enqueue_email` / `POST /lovable/email/transactional/send`
+  across components, hooks, `src/lib/*.functions.ts`, and the Supabase
+  migrations (auth hooks) — the only references anywhere are the route
+  handlers themselves, their own type definitions, and the auto-generated
+  `routeTree.gen.ts`. No signup, invite, or job-notification flow triggers
+  an email through this queue. It's dormant infrastructure that predates
+  (and is unrelated to) the Resend-based transactional email already
+  working independently (via Supabase Auth's own SMTP config, a separate
+  mechanism entirely outside this pipeline and this repo's code).
+
+**Decision:** don't provision a Lovable Cloud API key for dead code. The
+`process-email-queue` cron job was unscheduled on NEW
+(`SELECT cron.unschedule('process-email-queue');`, verified 0 rows in
+`cron.job` for that name afterward). The Vault secret and the pgmq
+queues/tables were left in place — harmless dormant schema, not worth
+tearing out unless reclaiming the surface later becomes a priority.
+
+**Not a blocker for anything.** If this pipeline is ever revived
+intentionally, the setup docs (`EMAIL_RUNTIME_SETUP.md` +
+`email-runtime-setup.sql`) are still accurate and reusable — the fix would
+be sourcing a real `LOVABLE_API_KEY` (and confirming whether
+`LOVABLE_SEND_URL` needs setting too) before re-running the cron schedule
+step.
 
 ### Stage 8 — Full test pass against NEW in production
 Not started. Before running this, make sure:
-- [ ] Stage 7b (email) is done first if any of these flows send email
-      (signup confirmation, invites) — otherwise those steps will look
-      broken for an unrelated reason.
+- [ ] Signup confirmation / password reset emails go through Supabase
+      Auth's own SMTP (Resend) config, not the abandoned Stage 7b pipeline
+      — confirm that's actually configured on NEW's Auth settings (separate
+      from anything in this repo) before relying on it during the test.
 - [ ] You have a disposable/test email address and a Stripe test-mode card
       handy (`4242 4242 4242 4242` or whichever Stripe test card the
       project's Stripe account is configured for).
