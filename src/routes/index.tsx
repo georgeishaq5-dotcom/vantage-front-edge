@@ -8,16 +8,16 @@ import {
   ArrowRight,
   CheckCircle2,
   CalendarCheck,
-  User,
   DollarSign,
   BadgeCheck,
 } from "lucide-react";
 
 import { HomeNav } from "@/components/marketing/home/HomeNav";
 import { HomeFooter } from "@/components/marketing/home/HomeFooter";
-import { WeatherHud } from "@/components/marketing/home/WeatherHud";
+import { WeatherHud, LiveHeader } from "@/components/marketing/home/WeatherHud";
 import { FeatureCard } from "@/components/marketing/home/FeatureCard";
 import { GlitchReveal } from "@/components/marketing/home/GlitchReveal";
+import { CornerTicks } from "@/components/marketing/home/CornerTicks";
 import { useWeatherStage } from "@/components/marketing/home/useWeatherStage";
 import { AppLink } from "@/components/marketing/AppLink";
 
@@ -280,34 +280,57 @@ function HomePage() {
                   delay={140}
                   className="order-last flex justify-center lg:order-first lg:justify-start"
                 >
-                  <div className="w-full max-w-[430px] border border-[oklch(1_0_0/11%)] bg-[oklch(0.155_0.022_260)]">
-                    <div className="border-b border-[oklch(1_0_0/9%)] px-[18px] py-[13px] text-[10px] font-extrabold uppercase tracking-[0.24em] text-[oklch(0.55_0.02_257)]">
-                      New job booked
-                    </div>
-                    <div className="flex flex-col gap-[15px] p-[18px]">
-                      <div className="flex items-center gap-[13px]">
-                        <div className="grid h-[38px] w-[38px] shrink-0 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)]">
-                          <CalendarCheck className="h-[17px] w-[17px]" strokeWidth={2} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[oklch(0.95_0.006_247)]">
-                            Mobile Detail — Thursday 3:00 PM
-                          </p>
-                          <p className="mt-0.5 text-xs text-[oklch(0.55_0.02_257)]">
-                            Auto-scheduled from SMS reply
-                          </p>
+                  <div
+                    className="home-lm-panel relative w-full max-w-[430px] border border-[oklch(1_0_0/12%)]"
+                    style={{
+                      background:
+                        "linear-gradient(160deg, oklch(0.17 0.024 260), oklch(0.115 0.02 263))",
+                      boxShadow: "0 26px 62px -38px oklch(0.62 0.22 256 / 45%)",
+                    }}
+                  >
+                    <CornerTicks size={14} />
+                    <LiveHeader label="Schedule · Thursday" value="Auto-routing" />
+                    <div className="relative flex flex-col gap-2 overflow-hidden p-4">
+                      <div className="home-lm-scan" style={{ opacity: 0.55 }} />
+                      <div className="flex items-center gap-3">
+                        <span className="w-[52px] text-[10px] font-bold tracking-[0.08em] text-[oklch(0.5_0.02_257)]">
+                          2:00 PM
+                        </span>
+                        <span className="block h-[34px] flex-1 border border-dashed border-[oklch(1_0_0/10%)]" />
+                      </div>
+                      <div className="flex items-stretch gap-3">
+                        <span className="w-[52px] pt-[9px] text-[10px] font-extrabold tracking-[0.08em] text-[var(--sig)]">
+                          3:00 PM
+                        </span>
+                        <div
+                          className="relative min-h-[56px] flex-1 border border-[oklch(1_0_0/10%)]"
+                          style={{ animation: "home-lm-slot 5s ease-in-out infinite" }}
+                        >
+                          <div
+                            className="flex items-center gap-[11px] px-3 py-[9px]"
+                            style={{ animation: "home-lm-drop 5s ease-in-out infinite" }}
+                          >
+                            <div className="grid h-8 w-8 shrink-0 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)]">
+                              <CalendarCheck className="h-[15px] w-[15px]" strokeWidth={2} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[12.5px] font-bold text-[oklch(0.95_0.006_247)]">
+                                Mobile Detail — Marcus T.
+                              </p>
+                              <p className="mt-0.5 text-[10.5px] text-[oklch(0.55_0.02_257)]">
+                                Auto-scheduled · 1.2 mi away
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-[11px] border border-[oklch(1_0_0/9%)] bg-[oklch(0.128_0.02_262/70%)] px-[15px] py-3">
-                        <User className="h-3.5 w-3.5 text-[oklch(0.55_0.02_257)]" strokeWidth={2} />
-                        <span className="text-[13px] text-[oklch(0.9_0.008_247)]">
-                          Marcus T. — 1.2 mi away
+                      <div className="flex items-center gap-3">
+                        <span className="w-[52px] text-[10px] font-bold tracking-[0.08em] text-[oklch(0.5_0.02_257)]">
+                          4:00 PM
                         </span>
-                        <span className="ml-auto border border-[var(--sig)] px-2.5 py-[3px] text-[10px] font-extrabold uppercase tracking-[0.16em] text-[var(--sig)]">
-                          Confirmed
-                        </span>
+                        <span className="block h-[34px] flex-1 border border-dashed border-[oklch(1_0_0/10%)]" />
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-[oklch(0.55_0.02_257)]">
+                      <div className="mt-1 flex items-center gap-2 text-xs text-[oklch(0.55_0.02_257)]">
                         <CheckCircle2
                           className="h-[13px] w-[13px] text-[var(--sig)]"
                           strokeWidth={2}
@@ -350,29 +373,46 @@ function HomePage() {
                   delay={140}
                   className="flex justify-center lg:justify-end"
                 >
-                  <div className="w-full max-w-[430px] border border-[oklch(1_0_0/11%)] bg-[oklch(0.155_0.022_260)]">
-                    <div className="border-b border-[oklch(1_0_0/9%)] px-[18px] py-[13px] text-[10px] font-extrabold uppercase tracking-[0.24em] text-[oklch(0.55_0.02_257)]">
-                      Invoice · Stripe
-                    </div>
+                  <div
+                    className="home-lm-panel relative w-full max-w-[430px] overflow-hidden border border-[oklch(1_0_0/12%)]"
+                    style={{
+                      background:
+                        "linear-gradient(160deg, oklch(0.17 0.024 260), oklch(0.115 0.02 263))",
+                      boxShadow: "0 26px 62px -38px oklch(0.72 0.16 158 / 45%)",
+                    }}
+                  >
+                    <div className="home-lm-sweep" />
+                    <div className="home-lm-scan" style={{ opacity: 0.6 }} />
+                    <CornerTicks size={14} />
+                    <LiveHeader label="Invoice · Stripe" value="Cleared" />
                     <div className="flex flex-col gap-[15px] p-[18px]">
                       <div className="flex items-end justify-between">
                         <div>
-                          <p className="text-xs text-[oklch(0.55_0.02_257)]">
+                          <p className="text-[11px] text-[oklch(0.55_0.02_257)]">
                             Mobile Detail — Marcus T.
                           </p>
-                          <p className="mt-[3px] text-[32px] font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]">
+                          <p
+                            className="mt-1 text-[34px] font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]"
+                            style={{ animation: "home-lm-glow 2.8s ease-in-out infinite" }}
+                          >
                             $185
-                            <span className="text-[17px] font-medium text-[oklch(0.55_0.02_257)]">
+                            <span className="text-[18px] font-medium text-[oklch(0.55_0.02_257)]">
                               .00
                             </span>
                           </p>
                         </div>
-                        <div className="flex items-center gap-[7px] border border-[var(--sig)] px-[13px] py-[5px]">
-                          <BadgeCheck className="h-3.5 w-3.5 text-[var(--sig)]" strokeWidth={2} />
-                          <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-[var(--sig)]">
+                        <span
+                          className="inline-flex items-center gap-[7px] border-[1.5px] border-[var(--sig)] px-[13px] py-[6px] text-[var(--sig)]"
+                          style={{
+                            transformOrigin: "center",
+                            animation: "home-lm-stamp 4.2s ease-in-out infinite",
+                          }}
+                        >
+                          <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                          <span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">
                             Paid
                           </span>
-                        </div>
+                        </span>
                       </div>
                       <div className="flex flex-col gap-[9px] border border-[oklch(1_0_0/9%)] bg-[oklch(0.128_0.02_262/70%)] px-[15px] py-[13px] text-[13px]">
                         <div className="flex justify-between text-[oklch(0.67_0.02_257)]">
@@ -384,12 +424,23 @@ function HomePage() {
                           <span>$20</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-[oklch(0.55_0.02_257)]">
-                        <DollarSign
-                          className="h-[13px] w-[13px] text-[var(--sig)]"
-                          strokeWidth={2}
-                        />
-                        Payout arrives in your account in 2 days
+                      <div>
+                        <div className="mb-[7px] flex items-center justify-between text-[11px] text-[oklch(0.55_0.02_257)]">
+                          <span className="inline-flex items-center gap-[7px]">
+                            <DollarSign
+                              className="h-[13px] w-[13px] text-[var(--sig)]"
+                              strokeWidth={2}
+                            />
+                            Payout to your account
+                          </span>
+                          <span>2 days</span>
+                        </div>
+                        <div className="h-1 overflow-hidden bg-[oklch(1_0_0/8%)]">
+                          <div
+                            className="h-full bg-[var(--sig)]"
+                            style={{ animation: "home-lm-fill 4s ease-in-out infinite" }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
