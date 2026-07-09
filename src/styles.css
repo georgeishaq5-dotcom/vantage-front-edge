@@ -295,5 +295,4 @@
   .vhome .home-glx-run-text, .vhome .home-glx-run-soft { animation: none; }
   .vhome .home-feat-card, .vhome .home-feat-bar, .vhome .home-feat-sheen, .vhome .home-feat-icn, .vhome .home-feat-num, .vhome .home-feat-line { transition: none !important; }
   .vhome .home-feat-card:hover { transform: none; }
-  .vhome .home-lm-panel * { animation: none !important; }
 }
