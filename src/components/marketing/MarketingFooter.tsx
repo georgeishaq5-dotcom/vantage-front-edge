@@ -8,6 +8,7 @@ const COLUMNS = [
     links: [
       { to: "/features", label: "Features", external: false },
       { to: "/pricing", label: "Pricing", external: false },
+      { to: "/blog", label: "Blog", external: false },
       { to: "/dashboard", label: "Sign in", external: true },
     ],
   },

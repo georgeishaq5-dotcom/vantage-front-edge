@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://vantage-front-edge.lovable.app/sitemap.xml
+Sitemap: https://vantage-fsm.com/sitemap.xml

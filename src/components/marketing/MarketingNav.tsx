@@ -11,6 +11,7 @@ const LINKS = [
   { to: "/features", label: "Features" },
   { to: "/pricing", label: "Pricing" },
   { to: "/about", label: "About" },
+  { to: "/blog", label: "Blog" },
 ];
 
 export function MarketingNav() {

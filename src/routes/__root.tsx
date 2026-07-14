@@ -89,6 +89,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 // of the product and should only ever be served from app.vantage-fsm.com.
 const MARKETING_PATHS = new Set(["/", "/features", "/pricing", "/about"]);
 
+// The blog (/blog, /blog/$slug, ...) is also marketing-only, but its
+// dynamic slug segment can't be listed in the exact-match Set above.
+function isMarketingPath(pathname: string): boolean {
+  return MARKETING_PATHS.has(pathname) || pathname === "/blog" || pathname.startsWith("/blog/");
+}
+
 // Server/infrastructure routes that must work identically on every
 // hostname and should never be redirected (API endpoints, sitemap, etc).
 function isInfrastructureRoute(pathname: string): boolean {
@@ -109,14 +115,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     if (!ctx) return;
 
     const onAppHost = isAppHost(ctx.hostname);
-    const isMarketingPath = MARKETING_PATHS.has(location.pathname);
+    const isMarketing = isMarketingPath(location.pathname);
 
-    if (onAppHost && isMarketingPath) {
+    if (onAppHost && isMarketing) {
       // The product's host should never render the marketing pages.
       throw redirect({ href: toAppUrl("/dashboard", ctx) });
     }
 
-    if (!onAppHost && !isMarketingPath) {
+    if (!onAppHost && !isMarketing) {
       // Any app screen (dashboard, jobs, customers, etc.) reached on the
       // plain marketing domain belongs on the app subdomain instead.
       throw redirect({ href: toAppUrl(location.href, ctx) });
@@ -175,14 +181,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             {
               "@type": "Organization",
               name: "Vantage",
-              url: "https://vantage-front-edge.lovable.app",
+              url: "https://vantage-fsm.com",
               description:
                 "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
             },
             {
               "@type": "WebSite",
               name: "Vantage: Field Service Manager",
-              url: "https://vantage-front-edge.lovable.app",
+              url: "https://vantage-fsm.com",
               description:
                 "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
             },
@@ -214,7 +220,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
-  const isMarketingRoute = MARKETING_PATHS.has(location.pathname);
+  const isMarketingRoute = isMarketingPath(location.pathname);
   const isPublicRoute = location.pathname === "/unsubscribe";
 
   // The marketing site (home, features, pricing, about) is public and has
