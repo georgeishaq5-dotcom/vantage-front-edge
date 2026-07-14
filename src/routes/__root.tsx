@@ -215,12 +215,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const location = useLocation();
   const isMarketingRoute = MARKETING_PATHS.has(location.pathname);
-  const isPublicRoute = location.pathname === "/unsubscribe";
+  const isPublicRoute =
+    location.pathname === "/unsubscribe" || location.pathname === "/reset-password";
 
   // The marketing site (home, features, pricing, about) is public and has
   // its own nav/footer per-page — it must never be wrapped in AuthGate,
   // the app sidebar, or any of the app-only providers below. The unsubscribe
-  // page is also public so email recipients can opt out without signing in.
+  // page is also public so email recipients can opt out without signing in,
+  // and reset-password is public so users can set a new password from the
+  // recovery-link session before AuthGate would otherwise drop them into
+  // the app.
   if (isMarketingRoute || isPublicRoute) {
     return (
       <QueryClientProvider client={queryClient}>
