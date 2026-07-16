@@ -7,11 +7,22 @@ function extractMessage(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
   if (typeof err === "string" && err) return err;
   if (err && typeof err === "object") {
-    const withMessage = err as { message?: unknown; error_description?: unknown; msg?: unknown };
+    const withMessage = err as {
+      message?: unknown;
+      error_description?: unknown;
+      msg?: unknown;
+      status?: unknown;
+      code?: unknown;
+    };
     const candidate = withMessage.message ?? withMessage.error_description ?? withMessage.msg;
     if (typeof candidate === "string" && candidate) return candidate;
-    // Nothing usable on the object — surface its shape instead of "" or
-    // "[object Object]" so there's at least something to search logs for.
+    // No message text — the server (or a subclassed Error whose fields
+    // aren't JSON-enumerable) gave us nothing readable. Fall back to
+    // whatever status/code we do have rather than a bare "{}".
+    if (withMessage.status || withMessage.code) {
+      const parts = [withMessage.status, withMessage.code].filter(Boolean).join(" ");
+      return `Server error (${parts})`;
+    }
     try {
       const json = JSON.stringify(err);
       if (json && json !== "{}") return json;
