@@ -55,26 +55,50 @@ extraction for non-standard Supabase Auth error shapes.
   (DKIM/SPF/DMARC DNS records added in Namecheap) — **not yet confirmed
   verified**.
 
-## In progress
-
-**Stage 8 — Full test pass.** Started, not finished.
+**Stage 8 — Full test pass. ✅ Complete.**
 - ✅ Login and dashboard data load — confirmed working (during cutover
   testing).
-- ⬜ Signup + email confirmation — blocked on Resend domain verification
-  finishing.
-- ⬜ Stripe checkout.
-- ⬜ Plan Switcher.
+- ✅ Signup + email confirmation — confirmed working (Resend domain
+  verification finished).
+- ✅ Stripe checkout.
+- ✅ Plan Switcher.
+
+**Change-password entry point.** ✅ Complete — added to the
+login/account screens (previously flagged as a UI gap during Stage 7
+testing).
+
+## In progress
+
+- **Google branding re-verification** — resubmitted (domain ownership +
+  app name mismatch both fixed); still pending Google's review to open
+  Google login to all users. Not blocking anything else.
+- **GitHub App write access** — still lacks write access to this repo
+  (403 as of the Stage 5 commits, worked around with a one-time PAT).
+  Needs a real fix — check `github.com/settings/installations`.
+
+## Decommissioning OLD (`erabfcnmgnrvzwjkrdry`)
+
+Now that Stage 8 is fully complete, OLD is no longer needed by the live
+app — nothing in the codebase talks to it directly (the only
+`LOVABLE_API_KEY` references are the unrelated Lovable AI Gateway used
+by Van's chat, not this Supabase project). Decision: keep OLD **untouched
+as a cold fallback** rather than deleting it immediately, in case some
+untested edge case still depends on it.
+
+- **Fallback window:** ~1-2 weeks from today (2026-07-16), i.e. revisit
+  around **2026-07-30**.
+- **If nothing surfaces by then:** proceed to decommission — revoke/
+  rotate lingering keys, cancel or downgrade the Lovable project, strip
+  any remaining OLD references from docs.
+- **Risk of leaving it:** none beyond whatever Lovable/Supabase charges
+  for an idle project.
+- **Risk of deleting now:** low based on current code, but irreversible
+  if an untested path (report, export, cache) still points at OLD —
+  hence the wait.
 
 ## Open items for next session
 
-- Finish Resend domain verification, then complete Stage 8: signup/email
-  confirmation, Stripe checkout, Plan Switcher.
 - Check whether Google branding re-verification has been approved yet.
-- GitHub App still lacks write access to this repo (403). A one-time PAT
-  workaround was used for the Stage 5 commits; needs a real fix — check
-  `github.com/settings/installations` — so future commits push normally.
-- UI gap noticed during Stage 7 testing: no change-password entry point
-  on the login/account screens. Flagged for the upcoming broader UI
-  pass; not urgent.
-- OLD (`erabfcnmgnrvzwjkrdry`) — still fine to leave alone until NEW is
-  fully verified across all of Stage 8.
+- Fix GitHub App write access so future commits push without a PAT
+  workaround.
+- Revisit OLD decommissioning around 2026-07-30 (see above).
