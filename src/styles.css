@@ -278,6 +278,8 @@
   16% { opacity: 1; }
   100% { transform: translateY(-56px) scale(1); opacity: 0; }
 }
+@keyframes home-lm-rise { 0% { transform: scaleY(0.12); opacity: 0.35; } 60% { opacity: 1; } 100% { transform: scaleY(1); opacity: 1; } }
+@keyframes home-lm-typebar { 0%, 12% { transform: scaleX(0); } 55%, 100% { transform: scaleX(1); } }
 .vhome .home-lm-scan {
   position: absolute; inset: 0; pointer-events: none; z-index: 6;
   background-image: linear-gradient(to bottom, transparent 46%, color-mix(in oklch, var(--sig) 55%, transparent) 50%, transparent 54%);

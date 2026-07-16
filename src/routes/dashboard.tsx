@@ -14,6 +14,7 @@ import {
   Sun,
   Snowflake,
   Megaphone,
+  Bot,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -60,6 +61,20 @@ function withinDays(date: string | null, days: number): boolean {
   const d = new Date(date.slice(0, 10) + "T00:00:00").getTime();
   const now = Date.now();
   return d <= now && d >= now - days * 86_400_000;
+}
+
+/** Buckets paid job revenue into the last 12 trailing weeks, oldest first. */
+function weeklyRevenueSeries(jobs: JobWithCustomer[]): number[] {
+  const weeks = Array.from({ length: 12 }, () => 0);
+  const now = Date.now();
+  for (const job of jobs) {
+    if (job.status !== "Paid" || !job.service_date) continue;
+    const d = new Date(job.service_date.slice(0, 10) + "T00:00:00").getTime();
+    const weeksAgo = Math.floor((now - d) / (7 * 86_400_000));
+    if (weeksAgo < 0 || weeksAgo >= 12) continue;
+    weeks[11 - weeksAgo] += Number(job.quote_amount);
+  }
+  return weeks;
 }
 
 function MetricCard({
@@ -134,6 +149,70 @@ function MetricCard({
   );
 }
 
+function AskVanBanner() {
+  const van = useVanChat();
+  return (
+    <button
+      type="button"
+      onClick={() => van.open()}
+      className="flex w-full items-center gap-3.5 rounded-xl border border-revenue/25 bg-revenue-muted/40 p-3.5 text-left transition-colors hover:bg-revenue-muted/60 md:p-4"
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-revenue text-revenue-foreground">
+        <Bot className="h-[18px] w-[18px]" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold text-foreground">Talk or type — Van will handle it</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          No need to click around the app. Tell Van what you need — a quote, a reschedule, a reminder — and it
+          gets done.
+        </p>
+      </div>
+      <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-revenue">Ask Van →</span>
+    </button>
+  );
+}
+
+const WEEK_LABELS = ["12 wks ago", "9 wks ago", "6 wks ago", "3 wks ago", "This wk"];
+
+function RevenueChartCard({ series }: { series: number[] }) {
+  const max = Math.max(...series, 1);
+  const avg = series.reduce((sum, v) => sum + v, 0) / series.length;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-3 md:p-6 shadow-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Revenue · last 12 weeks</p>
+        <p className="text-xs font-semibold text-muted-foreground">
+          Avg <span className="text-revenue">{formatCurrency(avg)}</span> / wk
+        </p>
+      </div>
+      <div className="mt-4 flex h-[120px] items-end gap-1.5 border-b border-border">
+        {series.map((value, i) => {
+          const isLast = i === series.length - 1;
+          const heightPct = Math.max((value / max) * 100, 3);
+          return (
+            <div
+              key={i}
+              className={
+                isLast
+                  ? "min-w-0 flex-1 rounded-t-sm bg-revenue"
+                  : "min-w-0 flex-1 rounded-t-sm bg-revenue/25"
+              }
+              style={{ height: `${heightPct}%` }}
+              title={formatCurrency(value)}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-2 flex justify-between text-[9px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+        {WEEK_LABELS.map((label) => (
+          <span key={label}>{label}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const [radiusOpen, setRadiusOpen] = useState(false);
   const { data: jobs = [], isLoading } = useQuery({
@@ -174,11 +253,20 @@ function Dashboard() {
   const pendingTotal = pendingInvoices.reduce((sum, j) => sum + Number(j.quote_amount), 0);
 
   const todaysJobs = jobs.filter((j) => j.status === "Scheduled" && isToday(j.service_date));
+  const revenueSeries = weeklyRevenueSeries(jobs);
 
   return (
     <TooltipProvider delayDuration={150}>
       <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
         <PageHeader title="Dashboard" description="A snapshot of revenue, invoicing, and today's field work." />
+
+        <div className="mt-4 md:mt-6">
+          <AskVanBanner />
+        </div>
+
+        <div className="mt-4 md:mt-6">
+          <RevenueChartCard series={revenueSeries} />
+        </div>
 
         <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
           <MetricCard

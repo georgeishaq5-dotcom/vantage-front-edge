@@ -23,7 +23,7 @@ import vantageLogo from "@/assets/vantage-logo.png";
 
 import { supabase } from "@/integrations/supabase/client";
 
-const NAV = [
+const OPERATIONS_NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
   { label: "Van's AI Hub", to: "/ai-hub", icon: Bot },
   { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
@@ -31,6 +31,9 @@ const NAV = [
   { label: "Estimates", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
+] as const;
+
+const ACCOUNT_NAV = [
   { label: "My Team", to: "/team", icon: Users },
   { label: "Upgrade", to: "/upgrade", icon: Sparkles },
   { label: "Settings", to: "/settings", icon: Settings },
@@ -73,24 +76,24 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col self-start bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out md:flex",
-        collapsed ? "w-16" : "w-64",
+        "sticky top-0 hidden h-screen shrink-0 flex-col self-start border-r border-white/5 bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out md:flex",
+        collapsed ? "w-16" : "w-56",
       )}
     >
       <div
         className={cn(
-          "flex items-center py-6",
+          "flex h-[58px] items-center border-b border-white/5",
           collapsed ? "justify-center px-2" : "justify-between px-4",
         )}
       >
         {!collapsed && (
-          <div className="flex items-center gap-2.5 pl-2">
+          <div className="flex items-center gap-2.5">
             <img
               src={vantageLogo}
               alt="Vantage field service management logo"
-              className="h-8 w-auto bg-transparent object-contain"
+              className="h-[19px] w-auto bg-transparent object-contain"
             />
-            <span className="text-xl font-bold text-white tracking-tight">Vantage</span>
+            <span className="text-xs font-extrabold uppercase tracking-[0.22em] text-white">Vantage</span>
           </div>
         )}
         <button
@@ -98,51 +101,45 @@ export function AppSidebar() {
           onClick={toggleCollapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex h-9 w-9 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-white"
+          className="flex h-7 w-7 items-center justify-center text-sidebar-foreground/60 transition-colors hover:text-white"
         >
           {collapsed ? (
-            <PanelLeftOpen className="h-[18px] w-[18px]" />
+            <PanelLeftOpen className="h-4 w-4" />
           ) : (
-            <PanelLeftClose className="h-[18px] w-[18px]" />
+            <PanelLeftClose className="h-4 w-4" />
           )}
         </button>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 pt-2">
-        {NAV.map((item) => {
-          const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                collapsed && "justify-center px-0",
-                active
-                  ? "bg-sidebar-accent text-white"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-white",
-              )}
-            >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              {!collapsed && item.label}
-              {!collapsed && active && (
-                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 pt-3.5">
+        {!collapsed && (
+          <span className="block px-3 pb-2 text-[9px] font-extrabold uppercase tracking-[0.26em] text-sidebar-foreground/40">
+            Operations
+          </span>
+        )}
+        {OPERATIONS_NAV.map((item) => (
+          <SidebarNavLink key={item.to} item={item} pathname={pathname} collapsed={collapsed} />
+        ))}
+
+        {!collapsed && (
+          <span className="block px-3 pb-2 pt-4 text-[9px] font-extrabold uppercase tracking-[0.26em] text-sidebar-foreground/40">
+            Account
+          </span>
+        )}
+        {ACCOUNT_NAV.map((item) => (
+          <SidebarNavLink key={item.to} item={item} pathname={pathname} collapsed={collapsed} />
+        ))}
       </nav>
 
-      <div className="border-t border-sidebar-border px-4 py-4">
+      <div className="border-t border-white/5 px-4 py-3.5">
         {!collapsed && (
-          <div className="flex items-center gap-3 px-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-white">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-7 w-7 shrink-0 place-items-center bg-white/10 text-[10.5px] font-extrabold text-white">
               {initials}
-            </div>
+            </span>
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-xs font-medium text-white">{email || "Signed in"}</div>
-              <div className="text-[11px] text-sidebar-foreground/60">Staff account</div>
+              <div className="truncate text-[11.5px] font-bold text-white">{email || "Signed in"}</div>
+              <div className="text-[10.5px] text-sidebar-foreground/55">Staff account</div>
             </div>
           </div>
         )}
@@ -151,14 +148,43 @@ export function AppSidebar() {
           onClick={handleSignOut}
           title={collapsed ? "Sign out" : undefined}
           className={cn(
-            "mt-3 flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent/60 hover:text-white",
+            "mt-2.5 flex w-full items-center gap-2 py-1.5 text-[11.5px] font-semibold text-sidebar-foreground/70 transition-colors hover:text-white",
             collapsed && "mt-0 justify-center px-0",
           )}
         >
-          <LogOut className="h-[18px] w-[18px] shrink-0" />
+          <LogOut className="h-[13px] w-[13px] shrink-0" />
           {!collapsed && "Sign out"}
         </button>
       </div>
     </aside>
+  );
+}
+
+function SidebarNavLink({
+  item,
+  pathname,
+  collapsed,
+}: {
+  item: { label: string; to: string; icon: typeof LayoutDashboard };
+  pathname: string;
+  collapsed: boolean;
+}) {
+  const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
+  return (
+    <Link
+      key={item.to}
+      to={item.to}
+      title={collapsed ? item.label : undefined}
+      className={cn(
+        "relative flex h-9 items-center gap-2.5 px-3 text-xs font-semibold tracking-wide transition-colors",
+        collapsed && "justify-center px-0",
+        active
+          ? "bg-sidebar-accent text-white shadow-[inset_2px_0_0_var(--sidebar-primary)]"
+          : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-white",
+      )}
+    >
+      <item.icon className="h-[15px] w-[15px] shrink-0" />
+      {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+    </Link>
   );
 }
