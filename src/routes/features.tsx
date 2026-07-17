@@ -3,25 +3,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   CloudRain,
   MapPin,
-  CreditCard,
+  DollarSign,
   Calendar,
-  FileText,
-  BarChart3,
   ArrowRight,
-  CheckCircle2,
+  ArrowDown,
+  Send,
+  Check,
   CalendarCheck,
   BadgeCheck,
   Radar,
   Search,
-  Users,
+  TrendingUp,
   ShieldCheck,
-  Wrench,
+  Sun,
+  MessageSquare,
 } from "lucide-react";
 
 import { HomeNav } from "@/components/marketing/home/HomeNav";
 import { HomeFooter } from "@/components/marketing/home/HomeFooter";
 import { GlitchReveal } from "@/components/marketing/home/GlitchReveal";
-import { CornerTicks } from "@/components/marketing/home/CornerTicks";
 import { AppLink } from "@/components/marketing/AppLink";
 
 // Note: app.vantage-fsm.com -> /dashboard redirect for this path is
@@ -54,7 +54,16 @@ function CtaButton({ href, children, className }: { href: string; children: Reac
   );
 }
 
-function WireframeFloor({ className, opacity = 0.12 }: { className?: string; opacity?: number }) {
+function WireframeFloor({
+  className,
+  opacity = 0.12,
+  maskStops = [28, 72],
+}: {
+  className?: string;
+  opacity?: number;
+  maskStops?: [number, number];
+}) {
+  const [start, end] = maskStops;
   return (
     <div
       className={`pointer-events-none absolute -inset-x-[15%] ${className}`}
@@ -63,9 +72,8 @@ function WireframeFloor({ className, opacity = 0.12 }: { className?: string; opa
         backgroundSize: "58px 58px",
         transform: "perspective(620px) rotateX(63deg)",
         transformOrigin: "top center",
-        WebkitMaskImage:
-          "linear-gradient(to bottom, transparent, black 28%, black 72%, transparent)",
-        maskImage: "linear-gradient(to bottom, transparent, black 28%, black 72%, transparent)",
+        WebkitMaskImage: `linear-gradient(to bottom, transparent, black ${start}%, black ${end}%, transparent)`,
+        maskImage: `linear-gradient(to bottom, transparent, black ${start}%, black ${end}%, transparent)`,
       }}
     />
   );
@@ -91,6 +99,28 @@ function Bullets({ items }: { items: string[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * Diagonal corner-tick pair used only on the full-bleed feature panels
+ * (01/02) — the design mirrors which corner pair lights up per side,
+ * unlike the shared `CornerTicks` (all four corners) used on Home.
+ */
+function DiagonalTicks({ reverse }: { reverse?: boolean }) {
+  if (reverse) {
+    return (
+      <>
+        <span className="absolute -right-px -top-px z-[8] h-4 w-4 border-r border-t border-[var(--sig)]" />
+        <span className="absolute -bottom-px -left-px z-[8] h-4 w-4 border-b border-l border-[var(--sig)]" />
+      </>
+    );
+  }
+  return (
+    <>
+      <span className="absolute -left-px -top-px z-[8] h-4 w-4 border-l border-t border-[var(--sig)]" />
+      <span className="absolute -bottom-px -right-px z-[8] h-4 w-4 border-b border-r border-[var(--sig)]" />
+    </>
   );
 }
 
@@ -148,7 +178,7 @@ function FullBleedFeature({
       }}
     >
       <span className="home-feat-bar" />
-      <CornerTicks size={16} />
+      <DiagonalTicks reverse={reverse} />
       <FeatNum n={num} side={reverse ? "left" : "right"} />
       {!reverse && visual}
       <div
@@ -174,41 +204,67 @@ function FullBleedFeature({
 
 function OutreachVisual() {
   return (
-    <div className="relative z-[2] order-2 flex flex-1 basis-[320px] items-center justify-center overflow-hidden p-7 sm:p-12">
-      <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(oklch(1_0_0/6%)_1px,transparent_1px),linear-gradient(90deg,oklch(1_0_0/6%)_1px,transparent_1px)] [background-size:26px_26px]" />
-      <div className="home-lm-scan opacity-55" />
-      <div className="flex w-full max-w-[330px] flex-col gap-3.5">
-        <div className="flex gap-2.5">
-          {["Tue", "Wed"].map((d) => (
+    <>
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          WebkitMaskImage: "linear-gradient(to right, transparent 30%, black 70%)",
+          maskImage: "linear-gradient(to right, transparent 30%, black 70%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-35 [background-image:linear-gradient(oklch(1_0_0/6%)_1px,transparent_1px),linear-gradient(90deg,oklch(1_0_0/6%)_1px,transparent_1px)] [background-size:26px_26px]"
+          style={{ animation: "home-lm-drift 7s linear infinite" }}
+        />
+        <div className="home-lm-scan opacity-55" />
+      </div>
+      <div className="relative z-[2] order-2 flex flex-1 basis-[320px] items-center justify-center p-7 sm:p-12">
+        <div className="flex w-full max-w-[330px] flex-col gap-3.5">
+          <div className="flex gap-2.5">
+            {["Tue", "Wed"].map((d) => (
+              <div
+                key={d}
+                className="flex flex-1 flex-col items-center gap-2 border border-[oklch(1_0_0/10%)] bg-[oklch(0.128_0.02_262/78%)] px-2 py-3.5 text-[oklch(0.55_0.02_257)]"
+              >
+                <CloudRain className="h-[18px] w-[18px]" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.18em]">{d}</span>
+              </div>
+            ))}
             <div
-              key={d}
-              className="flex flex-1 flex-col items-center gap-2 border border-[oklch(1_0_0/10%)] bg-[oklch(0.128_0.02_262/78%)] px-2 py-3.5 text-[oklch(0.55_0.02_257)]"
+              className="flex flex-1 flex-col items-center gap-2 border border-[oklch(1_0_0/10%)] px-2 py-3.5 text-[var(--sig)]"
+              style={{ animation: "home-lm-slot 5.2s ease-in-out infinite" }}
             >
-              <Calendar className="h-[18px] w-[18px]" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.18em]">{d}</span>
+              <Sun className="h-[18px] w-[18px]" />
+              <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Thu</span>
             </div>
-          ))}
-          <div className="flex flex-1 flex-col items-center gap-2 border border-[oklch(1_0_0/10%)] px-2 py-3.5 text-[var(--sig)] home-lm-slot">
-            <CloudRain className="h-[18px] w-[18px]" />
-            <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Thu</span>
           </div>
-        </div>
-        <div className="flex justify-center text-[color-mix(in_oklch,var(--sig)_65%,transparent)]">
-          <ArrowRight className="h-4 w-4 rotate-90" />
-        </div>
-        <div className="home-lm-drop flex items-center gap-3 border border-[color-mix(in_oklch,var(--sig)_40%,transparent)] bg-[oklch(0.128_0.02_262/85%)] px-[15px] py-[13px]">
-          <div className="grid h-8 w-8 shrink-0 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)]">
-            <ArrowRight className="h-[15px] w-[15px]" />
+          <div className="flex justify-center text-[color-mix(in_oklch,var(--sig)_65%,transparent)]">
+            <ArrowDown className="h-4 w-4" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-[oklch(0.95_0.006_247)]">Clear skies Thursday — slot open</p>
-            <p className="mt-[3px] text-[10.5px] text-[oklch(0.55_0.02_257)]">Texting nearby leads automatically</p>
+          <div
+            className="flex items-center gap-3 border border-[color-mix(in_oklch,var(--sig)_40%,transparent)] bg-[oklch(0.128_0.02_262/85%)] px-[15px] py-[13px]"
+            style={{ animation: "home-lm-drop 5.2s ease-in-out infinite" }}
+          >
+            <div className="grid h-8 w-8 shrink-0 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)]">
+              <Send className="h-[15px] w-[15px]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[oklch(0.95_0.006_247)]">Clear skies Thursday — slot open</p>
+              <p className="mt-[3px] text-[10.5px] text-[oklch(0.55_0.02_257)]">Texting nearby leads automatically</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
+
+const GROWTH_BLIPS = [
+  { left: "16%", top: "32%", size: 9, shadow: 12, delay: "0.5s" },
+  { left: "40%", top: "26%", size: 8, shadow: 10, delay: "1.8s" },
+  { left: "10%", top: "62%", size: 8, shadow: 10, delay: "3.2s" },
+  { left: "42%", top: "72%", size: 9, shadow: 12, delay: "4.6s" },
+];
 
 function GrowthVisual() {
   return (
@@ -217,11 +273,26 @@ function GrowthVisual() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="home-lm-ping absolute left-[27%] top-1/2 h-[90px] w-[90px] rounded-full border border-[var(--sig)]"
-          style={{ animationDelay: `${i}s` }}
+          className="absolute left-[27%] top-1/2 h-[90px] w-[90px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--sig)]"
+          style={{ animation: "home-lm-ping 3s ease-out infinite", animationDelay: `${i}s` }}
         />
       ))}
       <div className="absolute left-[27%] top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[color-mix(in_oklch,var(--sig)_30%,transparent)]" />
+      {GROWTH_BLIPS.map((b) => (
+        <span
+          key={b.left + b.top}
+          className="absolute rounded-full bg-[var(--sig)]"
+          style={{
+            left: b.left,
+            top: b.top,
+            width: b.size,
+            height: b.size,
+            boxShadow: `0 0 ${b.shadow}px var(--sig)`,
+            animation: "home-lm-blip 6s linear infinite",
+            animationDelay: b.delay,
+          }}
+        />
+      ))}
       <div className="absolute left-[27%] top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)] shadow-[0_0_22px_color-mix(in_oklch,var(--sig)_60%,transparent)]">
         <MapPin className="h-[18px] w-[18px]" />
       </div>
@@ -275,8 +346,14 @@ function OperationsVisual() {
         </div>
         <div className="flex items-stretch gap-3">
           <span className="w-[52px] pt-[9px] text-[10px] font-extrabold tracking-[0.08em] text-[var(--sig)]">3:00 PM</span>
-          <div className="home-lm-slot relative min-h-[54px] flex-1 border border-[oklch(1_0_0/10%)]">
-            <div className="home-lm-drop flex items-center gap-[11px] px-3 py-[9px]">
+          <div
+            className="relative min-h-[54px] flex-1 border border-[oklch(1_0_0/10%)]"
+            style={{ animation: "home-lm-slot 5s ease-in-out infinite" }}
+          >
+            <div
+              className="flex items-center gap-[11px] px-3 py-[9px]"
+              style={{ animation: "home-lm-drop 5s ease-in-out infinite" }}
+            >
               <div className="grid h-[30px] w-[30px] shrink-0 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)]">
                 <CalendarCheck className="h-3.5 w-3.5" />
               </div>
@@ -304,8 +381,11 @@ function SalesVisual() {
       <div className="absolute left-1/2 top-1/2 w-[min(78%,340px)] -translate-x-1/2 -translate-y-1/2 border border-[oklch(1_0_0/12%)] bg-[oklch(0.128_0.02_262/82%)] px-5 py-[18px]">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-[oklch(0.55_0.02_257)]">Quote draft</span>
-          <span className="home-lm-stamp inline-flex items-center gap-1.5 border-[1.5px] border-[var(--sig)] px-2.5 py-1 text-[var(--sig)]">
-            <CheckCircle2 className="h-3 w-3" />
+          <span
+            className="inline-flex items-center gap-1.5 border-[1.5px] border-[var(--sig)] px-2.5 py-1 text-[var(--sig)]"
+            style={{ animation: "home-lm-stamp 4.6s ease-in-out infinite" }}
+          >
+            <Check className="h-3 w-3" />
             <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]">Approved</span>
           </span>
         </div>
@@ -313,10 +393,11 @@ function SalesVisual() {
           {[82, 64, 48].map((w, i) => (
             <span
               key={w}
-              className="home-lm-typebar block h-2 origin-left"
+              className="block h-2 origin-left"
               style={{
                 width: `${w}%`,
                 background: i === 0 ? "linear-gradient(90deg, var(--sig), color-mix(in oklch, var(--sig) 20%, transparent))" : "oklch(1 0 0 / 9%)",
+                animation: "home-lm-typebar 4.6s ease-in-out infinite",
                 animationDelay: `${i * 0.25}s`,
               }}
             />
@@ -327,7 +408,7 @@ function SalesVisual() {
             <span>Quote → scheduled job</span>
           </div>
           <div className="h-1 overflow-hidden bg-[oklch(1_0_0/8%)]">
-            <div className="home-lm-fill h-full bg-[var(--sig)]" />
+            <div className="h-full bg-[var(--sig)]" style={{ animation: "home-lm-fill 4.6s ease-in-out infinite" }} />
           </div>
         </div>
       </div>
@@ -414,9 +495,17 @@ function PaymentsVisual() {
       <div className="flex flex-wrap items-end justify-between gap-3.5">
         <div>
           <p className="text-[11px] text-[oklch(0.55_0.02_257)]">Balance collected on-site</p>
-          <p className="home-lm-glow mt-1 text-[44px] font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]">$1,240</p>
+          <p
+            className="mt-1 text-[44px] font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]"
+            style={{ animation: "home-lm-glow 2.8s ease-in-out infinite" }}
+          >
+            $1,240
+          </p>
         </div>
-        <span className="home-lm-stamp inline-flex items-center gap-1.5 border-[1.5px] border-[var(--sig)] px-3 py-1.5 text-[var(--sig)]">
+        <span
+          className="inline-flex items-center gap-1.5 border-[1.5px] border-[var(--sig)] px-3 py-1.5 text-[var(--sig)]"
+          style={{ animation: "home-lm-stamp 4.2s ease-in-out infinite" }}
+        >
           <BadgeCheck className="h-3.5 w-3.5" />
           <span className="text-[11px] font-extrabold uppercase tracking-[0.16em]">Paid</span>
         </span>
@@ -434,13 +523,13 @@ function PaymentsVisual() {
       <div>
         <div className="mb-1.5 flex items-center justify-between text-[11px] text-[oklch(0.55_0.02_257)]">
           <span className="inline-flex items-center gap-1.5">
-            <CreditCard className="h-3.5 w-3.5 text-[var(--sig)]" />
+            <DollarSign className="h-3.5 w-3.5 text-[var(--sig)]" />
             Payout to your account
           </span>
           <span>2 days</span>
         </div>
         <div className="h-1 overflow-hidden bg-[oklch(1_0_0/8%)]">
-          <div className="home-lm-fill h-full bg-[var(--sig)]" />
+          <div className="h-full bg-[var(--sig)]" style={{ animation: "home-lm-fill 4s ease-in-out infinite" }} />
         </div>
       </div>
     </>
@@ -454,7 +543,10 @@ function InsightVisual() {
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <span className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-[oklch(0.55_0.02_257)]">Revenue · this week</span>
         <span className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[var(--sig)]">
-          <span className="home-lm-live block h-[7px] w-[7px] rounded-full bg-[var(--sig)] shadow-[0_0_8px_var(--sig)]" />
+          <span
+            className="block h-[7px] w-[7px] rounded-full bg-[var(--sig)] shadow-[0_0_8px_var(--sig)]"
+            style={{ animation: "home-lm-live 1.4s ease-in-out infinite" }}
+          />
           Live ledger
         </span>
       </div>
@@ -462,11 +554,12 @@ function InsightVisual() {
         {bars.map((h, i) => (
           <span
             key={i}
-            className="home-lm-rise block flex-1 origin-bottom"
+            className="block flex-1 origin-bottom"
             style={{
               height: `${h}%`,
               background: i < 3 ? "oklch(1 0 0 / 13%)" : `color-mix(in oklch, var(--sig) ${32 + i * 10}%, transparent)`,
               boxShadow: i === bars.length - 1 ? "0 0 24px color-mix(in oklch, var(--sig) 40%, transparent)" : undefined,
+              animation: "home-lm-rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both",
               animationDelay: `${i * 0.12}s`,
             }}
           />
@@ -474,7 +567,12 @@ function InsightVisual() {
       </div>
       <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2.5">
         <span className="text-[11px] font-semibold text-[oklch(0.6_0.02_257)]">Outstanding invoices following up on their own</span>
-        <span className="home-lm-glow text-2xl font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]">$4,180</span>
+        <span
+          className="text-2xl font-extrabold tracking-tight text-[oklch(0.97_0.004_247)]"
+          style={{ animation: "home-lm-glow 2.6s ease-in-out infinite" }}
+        >
+          $4,180
+        </span>
       </div>
     </>
   );
@@ -487,24 +585,24 @@ const SOCIAL_PROOF = [
     body: "Every deposit and invoice runs through Stripe — the same payment infrastructure behind millions of businesses. Your money never touches us.",
   },
   {
-    icon: Wrench,
+    icon: CloudRain,
     title: "Built for outdoor trades",
     body: "Made specifically for landscaping, exterior cleaning, and home-services crews — not adapted from generic office software.",
   },
   {
-    icon: CreditCard,
+    icon: DollarSign,
     title: "Free until it earns its keep",
     body: "Start without a card and run real jobs through it. Pay only once you've seen the results in your own ledger.",
   },
 ];
 
 const ORBIT_NODES = [
-  { icon: CreditCard, x: "88%", y: "50%", delay: 0 },
+  { icon: DollarSign, x: "88%", y: "50%", delay: 0 },
   { icon: Calendar, x: "69%", y: "83%", delay: 0.7 },
   { icon: Radar, x: "31%", y: "83%", delay: 1.4 },
-  { icon: Users, x: "12%", y: "50%", delay: 2.1 },
+  { icon: CloudRain, x: "12%", y: "50%", delay: 2.1 },
   { icon: Search, x: "31%", y: "17%", delay: 2.8 },
-  { icon: BarChart3, x: "69%", y: "17%", delay: 3.5 },
+  { icon: TrendingUp, x: "69%", y: "17%", delay: 3.5 },
 ];
 
 function FeaturesPage() {
@@ -557,14 +655,22 @@ function FeaturesPage() {
               <span className="absolute left-1/2 top-0 -ml-[6px] -mt-[6px] h-3 w-3 rounded-full border-[1.5px] border-[var(--sig)] shadow-[0_0_12px_var(--sig)]" />
             </div>
             {[
-              { left: "71%", top: "26%", delay: "1.2s" },
-              { left: "24%", top: "64%", delay: "4.4s" },
-              { left: "62%", top: "76%", delay: "6.8s" },
+              { left: "71%", top: "26%", size: 8, shadow: 12, delay: "1.2s" },
+              { left: "24%", top: "64%", size: 8, shadow: 12, delay: "4.4s" },
+              { left: "62%", top: "76%", size: 7, shadow: 10, delay: "6.8s" },
             ].map((b) => (
               <span
                 key={b.left}
-                className="home-lm-blip absolute h-2 w-2 rounded-full bg-[var(--sig)] shadow-[0_0_12px_var(--sig)]"
-                style={{ left: b.left, top: b.top, animationDelay: b.delay }}
+                className="absolute rounded-full bg-[var(--sig)]"
+                style={{
+                  left: b.left,
+                  top: b.top,
+                  width: b.size,
+                  height: b.size,
+                  boxShadow: `0 0 ${b.shadow}px var(--sig)`,
+                  animation: "home-lm-blip 9s linear infinite",
+                  animationDelay: b.delay,
+                }}
               />
             ))}
           </div>
@@ -680,13 +786,21 @@ function FeaturesPage() {
                 {ORBIT_NODES.map((node) => (
                   <div
                     key={node.x + node.y}
-                    className="home-lm-float absolute grid h-[42px] w-[42px] -translate-x-1/2 -translate-y-1/2 place-items-center border border-[color-mix(in_oklch,var(--sig)_45%,transparent)] bg-[oklch(0.128_0.02_262)] text-[var(--sig)]"
-                    style={{ left: node.x, top: node.y, animationDelay: `${node.delay}s` }}
+                    className="absolute grid h-[42px] w-[42px] -translate-x-1/2 -translate-y-1/2 place-items-center border border-[color-mix(in_oklch,var(--sig)_45%,transparent)] bg-[oklch(0.128_0.02_262)] text-[var(--sig)]"
+                    style={{
+                      left: node.x,
+                      top: node.y,
+                      animation: "home-lm-float 5s ease-in-out infinite",
+                      animationDelay: `${node.delay}s`,
+                    }}
                   >
                     <node.icon className="h-[18px] w-[18px]" />
                   </div>
                 ))}
-                <span className="home-lm-ping absolute left-1/2 top-1/2 h-20 w-20 rounded-full border border-[var(--sig)]" />
+                <span
+                  className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--sig)]"
+                  style={{ animation: "home-lm-ping 2.8s ease-out infinite" }}
+                />
                 <div className="absolute left-1/2 top-1/2 grid h-[52px] w-[52px] -translate-x-1/2 -translate-y-1/2 place-items-center bg-[var(--sig)] text-[oklch(0.13_0.02_260)] shadow-[0_0_26px_color-mix(in_oklch,var(--sig)_60%,transparent)]">
                   <MapPin className="h-6 w-6" />
                 </div>
@@ -861,7 +975,7 @@ function FeaturesPage() {
 
         {/* ============ CTA ============ */}
         <section className="relative overflow-hidden border-t border-[oklch(1_0_0/8%)] bg-[oklch(0.1_0.022_263)] px-9 py-[140px]">
-          <WireframeFloor className="bottom-[-18%] h-[70%]" opacity={0.11} />
+          <WireframeFloor className="bottom-[-18%] h-[70%]" opacity={0.11} maskStops={[30, 70]} />
           <div
             className="pointer-events-none absolute inset-0"
             style={{ background: "radial-gradient(50% 45% at 50% 30%, oklch(0.62 0.22 256 / 8%), transparent)" }}
@@ -869,7 +983,7 @@ function FeaturesPage() {
           <div className="relative mx-auto flex max-w-[860px] flex-col items-center text-center">
             <GlitchReveal variant="soft">
               <div className="grid h-[46px] w-[46px] place-items-center border border-[var(--sig)] text-[var(--sig)]">
-                <FileText className="h-5 w-5" />
+                <MessageSquare className="h-5 w-5" />
               </div>
             </GlitchReveal>
             <GlitchReveal variant="text" delay={100}>
