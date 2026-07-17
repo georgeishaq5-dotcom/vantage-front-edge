@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
   LayoutDashboard,
-  Bot,
+  Truck,
   KanbanSquare,
-  CalendarDays,
+  Calendar,
   FileText,
   Clock,
   Contact,
@@ -15,19 +15,20 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
-  Sparkles,
+  Sparkle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import vantageLogo from "@/assets/vantage-logo.png";
 
-
 import { supabase } from "@/integrations/supabase/client";
 
+// Van's AI Hub is branded with a vehicle icon (matching the "Van" persona) in
+// the canonical design, rather than a generic robot glyph.
 const OPERATIONS_NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
-  { label: "Van's AI Hub", to: "/ai-hub", icon: Bot },
+  { label: "Van's AI Hub", to: "/ai-hub", icon: Truck },
   { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
-  { label: "Calendar", to: "/calendar", icon: CalendarDays },
+  { label: "Calendar", to: "/calendar", icon: Calendar },
   { label: "Estimates", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
@@ -35,7 +36,7 @@ const OPERATIONS_NAV = [
 
 const ACCOUNT_NAV = [
   { label: "My Team", to: "/team", icon: Users },
-  { label: "Upgrade", to: "/upgrade", icon: Sparkles },
+  { label: "Upgrade", to: "/upgrade", icon: Sparkle },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
@@ -76,14 +77,15 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col self-start border-r border-white/5 bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out md:flex",
+        "sticky top-0 hidden h-screen shrink-0 flex-col self-start bg-[oklch(0.112_0.02_263)] text-[oklch(0.95_0.006_247)] transition-[width] duration-300 ease-in-out md:flex",
+        "border-r border-[oklch(1_0_0/8%)]",
         collapsed ? "w-16" : "w-56",
       )}
     >
       <div
         className={cn(
-          "flex h-[58px] items-center border-b border-white/5",
-          collapsed ? "justify-center px-2" : "justify-between px-4",
+          "flex h-[58px] items-center border-b border-[oklch(1_0_0/8%)]",
+          collapsed ? "justify-center px-2" : "justify-between px-[18px]",
         )}
       >
         {!collapsed && (
@@ -93,7 +95,9 @@ export function AppSidebar() {
               alt="Vantage field service management logo"
               className="h-[19px] w-auto bg-transparent object-contain"
             />
-            <span className="text-xs font-extrabold uppercase tracking-[0.22em] text-white">Vantage</span>
+            <span className="text-xs font-extrabold uppercase tracking-[0.22em] text-[oklch(0.95_0.006_247)]">
+              Vantage
+            </span>
           </div>
         )}
         <button
@@ -101,7 +105,7 @@ export function AppSidebar() {
           onClick={toggleCollapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex h-7 w-7 items-center justify-center text-sidebar-foreground/60 transition-colors hover:text-white"
+          className="flex h-7 w-7 items-center justify-center text-[oklch(0.6_0.02_257)] transition-colors hover:text-[oklch(0.95_0.006_247)]"
         >
           {collapsed ? (
             <PanelLeftOpen className="h-4 w-4" />
@@ -113,7 +117,7 @@ export function AppSidebar() {
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 pt-3.5">
         {!collapsed && (
-          <span className="block px-3 pb-2 text-[9px] font-extrabold uppercase tracking-[0.26em] text-sidebar-foreground/40">
+          <span className="block px-3 pb-2 text-[9px] font-extrabold uppercase tracking-[0.26em] text-[oklch(0.45_0.02_257)]">
             Operations
           </span>
         )}
@@ -122,7 +126,7 @@ export function AppSidebar() {
         ))}
 
         {!collapsed && (
-          <span className="block px-3 pb-2 pt-4 text-[9px] font-extrabold uppercase tracking-[0.26em] text-sidebar-foreground/40">
+          <span className="block px-3 pb-2 pt-[18px] text-[9px] font-extrabold uppercase tracking-[0.26em] text-[oklch(0.45_0.02_257)]">
             Account
           </span>
         )}
@@ -131,15 +135,17 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-white/5 px-4 py-3.5">
+      <div className="border-t border-[oklch(1_0_0/8%)] px-[18px] py-3.5">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
-            <span className="grid h-7 w-7 shrink-0 place-items-center bg-white/10 text-[10.5px] font-extrabold text-white">
+            <span className="grid h-7 w-7 shrink-0 place-items-center bg-[oklch(0.3_0.02_260)] text-[10.5px] font-extrabold text-[oklch(0.95_0.006_247)]">
               {initials}
             </span>
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-[11.5px] font-bold text-white">{email || "Signed in"}</div>
-              <div className="text-[10.5px] text-sidebar-foreground/55">Staff account</div>
+              <div className="truncate text-[11.5px] font-bold text-[oklch(0.95_0.006_247)]">
+                {email || "Signed in"}
+              </div>
+              <div className="text-[10.5px] text-[oklch(0.55_0.02_257)]">Staff account</div>
             </div>
           </div>
         )}
@@ -148,7 +154,7 @@ export function AppSidebar() {
           onClick={handleSignOut}
           title={collapsed ? "Sign out" : undefined}
           className={cn(
-            "mt-2.5 flex w-full items-center gap-2 py-1.5 text-[11.5px] font-semibold text-sidebar-foreground/70 transition-colors hover:text-white",
+            "mt-2.5 flex w-full items-center gap-2 py-1.5 text-[11.5px] font-semibold text-[oklch(0.6_0.02_257)] transition-colors hover:text-[oklch(0.95_0.006_247)]",
             collapsed && "mt-0 justify-center px-0",
           )}
         >
@@ -176,11 +182,11 @@ function SidebarNavLink({
       to={item.to}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex h-9 items-center gap-2.5 px-3 text-xs font-semibold tracking-wide transition-colors",
+        "relative flex h-9 items-center gap-2.5 px-3 text-xs font-bold tracking-wide transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.98]",
         collapsed && "justify-center px-0",
         active
-          ? "bg-sidebar-accent text-white shadow-[inset_2px_0_0_var(--sidebar-primary)]"
-          : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-white",
+          ? "bg-[oklch(1_0_0/6%)] text-[oklch(0.95_0.006_247)] shadow-[inset_2px_0_0_oklch(0.72_0.16_158)]"
+          : "text-[oklch(0.6_0.02_257)] hover:text-[oklch(0.95_0.006_247)]",
       )}
     >
       <item.icon className="h-[15px] w-[15px] shrink-0" />
