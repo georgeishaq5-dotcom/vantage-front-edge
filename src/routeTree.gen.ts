@@ -16,6 +16,7 @@ import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as QuotesRouteImport } from './routes/quotes'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -77,6 +78,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuotesRoute = QuotesRouteImport.update({
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/quotes': typeof QuotesRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -383,6 +393,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -419,6 +430,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-policy'
     | '/quotes'
+    | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
     | '/team'
@@ -456,6 +468,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   QuotesRoute: typeof QuotesRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRoute
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quotes': {
@@ -747,6 +767,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   QuotesRoute: QuotesRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRoute,
