@@ -232,7 +232,7 @@
 
 /* ===== Home page: "live monitor" demo panels (hero HUD + process steps) ===== */
 @keyframes home-lm-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-@keyframes home-lm-radar { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes home-lm-radar { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
 @keyframes home-lm-blip {
   0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
   12% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -270,8 +270,8 @@
 @keyframes home-lm-float { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-5px); } }
 @keyframes home-lm-scan { 0% { background-position: 0 -25%; } 100% { background-position: 0 125%; } }
 @keyframes home-lm-sweep { 0% { transform: translateX(-170%) skewX(-14deg); } 55%, 100% { transform: translateX(340%) skewX(-14deg); } }
-@keyframes home-lm-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes home-lm-tick { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes home-lm-spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes home-lm-tick { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
 @keyframes home-lm-drift { from { background-position: 0 0, 0 0; } to { background-position: 0 26px, 26px 0; } }
 @keyframes home-lm-travel {
   0% { transform: translateY(-2px) scale(0.4); opacity: 0; }
