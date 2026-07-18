@@ -708,12 +708,12 @@ function HomePage() {
           <div className="pointer-events-none absolute left-1/2 top-[44%] aspect-square w-[min(82vw,780px)] -translate-x-1/2 -translate-y-1/2">
             <div className="absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color-mix(in_oklch,var(--sig)_16%,transparent)]" />
             <div
-              className="absolute left-1/2 top-1/2 h-[74%] w-[74%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-[color-mix(in_oklch,var(--sig)_22%,transparent)]"
+              className="absolute left-1/2 top-1/2 h-[74%] w-[74%] rounded-full border border-dashed border-[color-mix(in_oklch,var(--sig)_22%,transparent)]"
               style={{ animation: "home-lm-tick 42s linear infinite" }}
             />
             <div className="absolute left-1/2 top-1/2 h-[48%] w-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color-mix(in_oklch,var(--sig)_26%,transparent)]" />
             <div
-              className="absolute left-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 rounded-full [mask-image:radial-gradient(circle,transparent_32%,black_34%,black_70%,transparent_72%)] [-webkit-mask-image:radial-gradient(circle,transparent_32%,black_34%,black_70%,transparent_72%)]"
+              className="absolute left-1/2 top-1/2 h-full w-full rounded-full [mask-image:radial-gradient(circle,transparent_32%,black_34%,black_70%,transparent_72%)] [-webkit-mask-image:radial-gradient(circle,transparent_32%,black_34%,black_70%,transparent_72%)]"
               style={{
                 background:
                   "conic-gradient(color-mix(in oklch, var(--sig) 26%, transparent), transparent 58deg)",
