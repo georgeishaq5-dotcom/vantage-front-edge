@@ -22,6 +22,7 @@ import { FeatureGateProvider } from "@/components/FeatureGate";
 import { NotificationsProvider } from "@/lib/notifications";
 import { isAppHost, resolveHostContext, toAppUrl } from "@/lib/site-host";
 import { HeaderBar } from "@/components/HeaderBar";
+import { ThemeProvider, THEME_INIT_SCRIPT } from "@/components/ThemeProvider";
 import { TermsUpdateModal } from "@/components/TermsUpdateModal";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -108,6 +109,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const ctx = await resolveHostContext();
     if (!ctx) return;
 
+    // Vercel preview deployments get a single `*.vercel.app` host with no `app.`
+    // subdomain variant, so the marketing/app split can't work — a redirect to
+    // `app.<preview>.vercel.app` just hits a domain that doesn't resolve. Serve
+    // every route on the preview host instead. Production custom domains
+    // (vantage-fsm.com / app.vantage-fsm.com) keep the split below.
+    if (ctx.hostname.endsWith(".vercel.app")) return;
+
     const onAppHost = isAppHost(ctx.hostname);
     const isMarketingPath = MARKETING_PATHS.has(location.pathname);
 
@@ -144,10 +152,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Vantage" },
       { name: "theme-color", content: "#1e4fff" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/NMavsWjQPtYXu3wCmGZEAE594wI3/social-images/social-1781798128397-ChatGPT_Image_Jun_18,_2026,_11_33_55_AM.webp",
+      },
       { name: "twitter:title", content: "Vantage: Field Service Manager" },
-      { name: "twitter:description", content: "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth." },
+      {
+        name: "twitter:description",
+        content:
+          "Vantage is the all-in-one field service platform for quoting, dispatch, and automated growth.",
+      },
       { name: "google-site-verification", content: "y6X7f2siEE2wTWBOVGGH61wnTv6FdkxhqN1TBZzl51I" },
     ],
     links: [
@@ -201,6 +221,8 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/* Applies the saved theme class before first paint (app subdomain only). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
@@ -234,28 +256,30 @@ function RootComponent() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <NotificationsProvider>
-        <AuthGate>
-          <AiConsentProvider>
-          <FeatureGateProvider>
-          <VanChatProvider>
-            <div className="flex min-h-screen w-full bg-background">
-              <AppSidebar />
-              <main className="flex-1 overflow-x-hidden pb-16 md:pb-0">
-                <HeaderBar />
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-              </main>
-              <BottomNav />
-              <TermsUpdateModal />
-            </div>
-          </VanChatProvider>
-          </FeatureGateProvider>
-          </AiConsentProvider>
-        </AuthGate>
-        <Toaster richColors position="top-right" />
-      </NotificationsProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <NotificationsProvider>
+          <AuthGate>
+            <AiConsentProvider>
+              <FeatureGateProvider>
+                <VanChatProvider>
+                  <div className="flex min-h-screen w-full bg-background">
+                    <AppSidebar />
+                    <main className="flex-1 overflow-x-hidden pb-16 md:pb-0">
+                      <HeaderBar />
+                      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                      <Outlet />
+                    </main>
+                    <BottomNav />
+                    <TermsUpdateModal />
+                  </div>
+                </VanChatProvider>
+              </FeatureGateProvider>
+            </AiConsentProvider>
+          </AuthGate>
+          <Toaster richColors position="top-right" />
+        </NotificationsProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

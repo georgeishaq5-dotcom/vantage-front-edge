@@ -41,3 +41,7 @@ supabase/.branches/
 
 # Apple Sign in with Apple private keys — never commit (Apple issues the .p8 once)
 *.p8
+
+# Claude Code / Superpowers scratch (worktrees, task briefs, review diffs, progress ledger)
+.claude/worktrees/
+.superpowers/

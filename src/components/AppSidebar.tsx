@@ -26,12 +26,12 @@ import { supabase } from "@/integrations/supabase/client";
 // the canonical design, rather than a generic robot glyph.
 const OPERATIONS_NAV = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
-  { label: "Van's AI Hub", to: "/ai-hub", icon: Truck },
   { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
   { label: "Calendar", to: "/calendar", icon: Calendar },
   { label: "Estimates", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
+  { label: "Van's AI Hub", to: "/ai-hub", icon: Truck },
 ] as const;
 
 const ACCOUNT_NAV = [
