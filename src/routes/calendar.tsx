@@ -95,6 +95,18 @@ const VIEW_OPTIONS: { value: ViewMode; label: string; icon: typeof List }[] = [
   { value: "agenda", label: "Agenda", icon: List },
 ];
 
+// Week time-grid ruler (7 AM – 5 PM), matching the canonical Calendar frame.
+const WEEK_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+const ROW_H = 52; // px per hour row
+const GRID_HEIGHT = WEEK_HOURS.length * ROW_H; // 572px
+const HOUR_LINES_BG =
+  "repeating-linear-gradient(to bottom, transparent 0 51px, var(--border) 51px 52px)";
+
+function hourLabel(h: number): string {
+  const hr = ((h + 11) % 12) + 1;
+  return `${hr} ${h < 12 ? "AM" : "PM"}`;
+}
+
 function CalendarPage() {
   const queryClient = useQueryClient();
 
@@ -247,6 +259,14 @@ function CalendarPage() {
     day: "numeric",
     year: "numeric",
   })}`;
+
+  // Live "now" indicator position within the 7 AM – 5 PM ruler.
+  const now = new Date();
+  const nowDecimal = now.getHours() + now.getMinutes() / 60;
+  const showNowLine = nowDecimal >= 7 && nowDecimal <= 17;
+  const nowTop = (nowDecimal - 7) * ROW_H;
+  const nowLabel = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const crews = members.slice(0, 8);
 
   function shiftWeek(dir: number) {
     setCursor((c) => {
@@ -551,42 +571,110 @@ function CalendarPage() {
                 </span>
               </div>
 
+              {/* Crew filter pills (drive the personnel filter) */}
+              <div
+                className={cn("flex flex-wrap items-center gap-1.5 border-b px-4 py-2.5", DIVIDER)}
+              >
+                <span className="mr-1 text-[9px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground">
+                  Crews
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPersonnel("all")}
+                  className={cn(
+                    "border px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] transition-colors",
+                    personnel === "all"
+                      ? "border-revenue bg-revenue/[0.12] text-revenue"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  All crews
+                </button>
+                {crews.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setPersonnel(m.id)}
+                    className={cn(
+                      "border px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] transition-colors",
+                      personnel === m.id
+                        ? "border-revenue bg-revenue/[0.12] text-revenue"
+                        : "border-border text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {m.full_name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Hourly week grid — 7 AM–5 PM ruler with per-day job columns.
+                  Jobs are date-only, so blocks flow within their day column over
+                  the hour ruler rather than being pinned to a clock time. */}
               <div className="overflow-x-auto">
-                <div className="flex min-w-[840px]">
+                <div className="flex min-w-[900px]">
+                  {/* Time axis */}
+                  <div className="w-[52px] shrink-0">
+                    <div className={cn("h-[54px] border-b", DIVIDER)} />
+                    <div>
+                      {WEEK_HOURS.map((h) => (
+                        <div
+                          key={h}
+                          style={{ height: ROW_H }}
+                          className="pr-2 pt-1 text-right text-[9px] font-bold uppercase tracking-wide text-muted-foreground/70"
+                        >
+                          {hourLabel(h)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Day columns */}
                   {weekDays.map((d) => {
                     const iso = isoOf(d);
                     const isToday = iso === todayIso;
                     const f = forecast[iso];
                     const dayJobs = jobsByDay.get(iso) ?? [];
+                    const WeatherIcon = f ? WORKABILITY_ICON[f.level] : null;
                     return (
                       <div
                         key={iso}
-                        {...dragProps(iso)}
                         className={cn(
-                          "flex min-w-[120px] flex-1 flex-col border-r last:border-r-0",
+                          "min-w-[130px] flex-1 border-l",
                           DIVIDER,
-                          dragOverDay === iso && "bg-revenue/[0.06] ring-2 ring-inset ring-revenue",
+                          isToday && "bg-brand/[0.03]",
                         )}
                       >
+                        {/* Day header */}
                         <div
                           className={cn(
-                            "border-b px-3 py-2",
+                            "flex h-[54px] flex-col justify-center border-b px-3",
                             DIVIDER,
                             isToday && "bg-brand/[0.07]",
                           )}
                         >
-                          <p
-                            className={cn(
-                              "text-[9px] font-extrabold uppercase tracking-[0.18em]",
-                              isToday ? "text-brand" : "text-muted-foreground",
+                          <div className="flex items-center justify-between gap-1">
+                            <p
+                              className={cn(
+                                "text-[9px] font-extrabold uppercase tracking-[0.18em]",
+                                isToday ? "text-brand" : "text-muted-foreground",
+                              )}
+                            >
+                              {d.toLocaleDateString("en-US", { weekday: "short" })}
+                              {isToday && " · Today"}
+                            </p>
+                            {f && WeatherIcon && (
+                              <span
+                                title={f.condition}
+                                className="inline-flex items-center gap-1 text-[8.5px] font-bold uppercase tracking-wide text-muted-foreground"
+                              >
+                                <WeatherIcon className="h-3 w-3" />
+                                {f.label}
+                              </span>
                             )}
-                          >
-                            {d.toLocaleDateString("en-US", { weekday: "short" })}
-                            {isToday && " · Today"}
-                          </p>
+                          </div>
                           <p
                             className={cn(
-                              "mt-0.5 text-[15px] font-extrabold",
+                              "text-[15px] font-extrabold leading-tight",
                               isToday ? "text-brand" : "text-foreground",
                             )}
                           >
@@ -594,31 +682,32 @@ function CalendarPage() {
                           </p>
                         </div>
 
-                        {f && (
-                          <div
-                            className={cn(
-                              "flex items-center gap-1.5 px-3 py-1.5",
-                              WORKABILITY_META[f.level].tint,
-                            )}
-                          >
-                            {(() => {
-                              const Icon = WORKABILITY_ICON[f.level];
-                              return <Icon className="h-3 w-3 text-muted-foreground" />;
-                            })()}
-                            <span className="truncate text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                              {f.label}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex min-h-[140px] flex-1 flex-col gap-1.5 p-1.5">
-                          {dayJobs.length === 0 ? (
-                            <span className="mt-2 text-center text-[10px] text-muted-foreground/60">
-                              —
-                            </span>
-                          ) : (
-                            dayJobs.map((job) => <JobBlock key={job.id} job={job} />)
+                        {/* Hour-ruled body with flowing job blocks */}
+                        <div
+                          {...dragProps(iso)}
+                          style={{ height: GRID_HEIGHT, backgroundImage: HOUR_LINES_BG }}
+                          className={cn(
+                            "relative",
+                            dragOverDay === iso && "ring-2 ring-inset ring-revenue",
                           )}
+                        >
+                          {isToday && showNowLine && (
+                            <div
+                              className="pointer-events-none absolute inset-x-0 z-10"
+                              style={{ top: nowTop }}
+                            >
+                              <div className="border-t-[1.5px] border-brand" />
+                              <span className="absolute -left-[3px] -top-[4px] h-2 w-2 rounded-full bg-brand" />
+                              <span className="absolute right-1 -top-[15px] text-[8px] font-extrabold uppercase tracking-wide text-brand">
+                                {nowLabel}
+                              </span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex flex-col gap-1.5 overflow-y-auto p-1.5">
+                            {dayJobs.map((job) => (
+                              <JobBlock key={job.id} job={job} />
+                            ))}
+                          </div>
                         </div>
                       </div>
                     );
