@@ -84,11 +84,7 @@ function weeklyRevenueSeries(jobs: JobWithCustomer[]): number[] {
 
 /** Card shell matching the canonical design: sharp corners, hairline border. */
 function DashCard({ className, children }: { className?: string; children: React.ReactNode }) {
-  return (
-    <div className={`border border-[oklch(0.2_0.02_262/10%)] bg-card ${className ?? ""}`}>
-      {children}
-    </div>
-  );
+  return <div className={`border border-border bg-card ${className ?? ""}`}>{children}</div>;
 }
 
 function CardSectionHeader({
@@ -105,7 +101,7 @@ function CardSectionHeader({
   badge?: string;
 }) {
   return (
-    <div className="flex items-start gap-[11px] border-b border-[oklch(0.2_0.02_262/8%)] px-[18px] py-3.5">
+    <div className="flex items-start gap-[11px] border-b border-border px-[18px] py-3.5">
       <span
         className={`flex h-7 w-7 shrink-0 items-center justify-center ${
           iconEmerald ? "bg-revenue/15 text-revenue" : "bg-muted text-muted-foreground"
@@ -239,7 +235,7 @@ function RevenueChartCard({ series }: { series: number[] }) {
           Avg <span className="text-revenue">{formatCurrency(avg)}</span> / wk
         </p>
       </div>
-      <div className="mt-4 flex h-[120px] items-end gap-1.5 border-b border-[oklch(0.2_0.02_262/11%)]">
+      <div className="mt-4 flex h-[120px] items-end gap-1.5 border-b border-border">
         {series.map((value, i) => {
           const isLast = i === series.length - 1;
           const heightPct = Math.max((value / max) * 100, 3);
@@ -359,7 +355,7 @@ function Dashboard() {
         <button
           type="button"
           onClick={() => setRadiusOpen(true)}
-          className="mt-3.5 flex h-11 w-full items-stretch self-start bg-[oklch(0.22_0.02_262)] text-white transition-transform active:scale-[0.97] md:mt-4 md:h-[38px] md:w-auto"
+          className="mt-3.5 flex h-11 w-full items-stretch self-start bg-foreground text-background transition-transform active:scale-[0.97] md:mt-4 md:h-[38px] md:w-auto"
         >
           <span className="block w-1 bg-revenue" />
           <span className="flex flex-1 items-center justify-center gap-2 px-4 text-[10.5px] font-extrabold uppercase tracking-[0.18em] md:flex-initial">
@@ -374,7 +370,7 @@ function Dashboard() {
             <PendingActionsCard />
 
             <DashCard>
-              <div className="flex items-center justify-between border-b border-[oklch(0.2_0.02_262/8%)] px-[18px] py-3.5">
+              <div className="flex items-center justify-between border-b border-border px-[18px] py-3.5">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-foreground">
                   Today's Jobs
                 </p>
@@ -435,7 +431,7 @@ function RoiAuditCard({
           {rows.map((r) => (
             <li
               key={r.label}
-              className="flex items-center justify-between border-t border-[oklch(0.2_0.02_262/8%)] py-[11px] text-[12.5px]"
+              className="flex items-center justify-between border-t border-border py-[11px] text-[12.5px]"
             >
               <span className="text-muted-foreground">{r.label}</span>
               <span className="font-bold text-foreground">{formatCurrency(r.value)}</span>
@@ -483,10 +479,7 @@ function MarketingActivityCard() {
         {drafts.map((d) => {
           const Icon = d.icon;
           return (
-            <li
-              key={d.trigger}
-              className="border border-[oklch(0.2_0.02_262/10%)] bg-background px-[13px] py-[11px]"
-            >
+            <li key={d.trigger} className="border border-border bg-background px-[13px] py-[11px]">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-foreground">
                   <Icon className={`h-3.5 w-3.5 ${d.color}`} />
@@ -522,7 +515,7 @@ function JobsTable({ jobs, loading }: { jobs: JobWithCustomer[]; loading: boolea
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="bg-[oklch(0.965_0.004_247)] text-left">
+          <tr className="bg-muted text-left">
             <th className="px-[18px] py-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">
               Customer
             </th>
@@ -542,7 +535,7 @@ function JobsTable({ jobs, loading }: { jobs: JobWithCustomer[]; loading: boolea
         </thead>
         <tbody>
           {jobs.map((job) => (
-            <tr key={job.id} className="border-t border-[oklch(0.2_0.02_262/8%)]">
+            <tr key={job.id} className="border-t border-border">
               <td className="px-[18px] py-[13px] font-bold text-foreground">{job.customer_name}</td>
               <td className="px-[18px] py-[13px] text-muted-foreground">{job.title}</td>
               <td className="px-[18px] py-[13px] text-muted-foreground">
