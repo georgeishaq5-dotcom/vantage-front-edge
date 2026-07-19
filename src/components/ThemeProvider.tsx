@@ -13,7 +13,7 @@ export const THEME_STORAGE_KEY = "vantage:theme";
  * on <html> before first paint (no flash-of-wrong-theme). Scoped to the app
  * subdomain — the marketing site keeps its own fixed palette.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{if(!location.hostname.startsWith('app.'))return;var m=localStorage.getItem('${THEME_STORAGE_KEY}');if(m!=='light'&&m!=='dark'&&m!=='system')m='system';var dark=m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);}catch(e){}})();`;
+export const THEME_INIT_SCRIPT = `(function(){try{if(!location.hostname.startsWith('app.')&&!location.hostname.endsWith('.vercel.app'))return;var m=localStorage.getItem('${THEME_STORAGE_KEY}');if(m!=='light'&&m!=='dark'&&m!=='system')m='system';var dark=m==='dark'||(m==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark);}catch(e){}})();`;
 
 type ThemeContextValue = {
   mode: ThemeMode;

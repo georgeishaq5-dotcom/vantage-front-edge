@@ -109,6 +109,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const ctx = await resolveHostContext();
     if (!ctx) return;
 
+    // Vercel preview deployments get a single `*.vercel.app` host with no `app.`
+    // subdomain variant, so the marketing/app split can't work — a redirect to
+    // `app.<preview>.vercel.app` just hits a domain that doesn't resolve. Serve
+    // every route on the preview host instead. Production custom domains
+    // (vantage-fsm.com / app.vantage-fsm.com) keep the split below.
+    if (ctx.hostname.endsWith(".vercel.app")) return;
+
     const onAppHost = isAppHost(ctx.hostname);
     const isMarketingPath = MARKETING_PATHS.has(location.pathname);
 
