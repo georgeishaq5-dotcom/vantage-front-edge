@@ -920,23 +920,33 @@ function AgendaView({ jobs, isLoading }: { jobs: JobWithFullCustomer[]; isLoadin
 }
 
 function WeatherLegend() {
-  const items: { level: WorkabilityLevel; icon: typeof Sun }[] = [
-    { level: 1, icon: Sun },
-    { level: 2, icon: CloudSun },
-    { level: 3, icon: CloudRain },
-    { level: 4, icon: CloudLightning },
+  // A small colored swatch + accent icon reads cleanly on both light and dark
+  // card backgrounds — unlike the full-row pastel tints, which washed out under
+  // light text in dark mode. Hues match the month-grid weather cell tints.
+  const items: {
+    level: WorkabilityLevel;
+    icon: typeof Sun;
+    accent: string;
+    swatch: string;
+  }[] = [
+    { level: 1, icon: Sun, accent: "text-emerald-500", swatch: "bg-emerald-500/20" },
+    { level: 2, icon: CloudSun, accent: "text-sky-500", swatch: "bg-sky-500/20" },
+    { level: 3, icon: CloudRain, accent: "text-amber-500", swatch: "bg-amber-500/20" },
+    { level: 4, icon: CloudLightning, accent: "text-rose-500", swatch: "bg-rose-500/20" },
   ];
   return (
     <div className={cn("mt-3.5 p-3", CARD)}>
       <h3 className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground">
         Workability (7-day)
       </h3>
-      <ul className="flex flex-col gap-1.5">
-        {items.map(({ level, icon: Icon }) => {
+      <ul className="flex flex-col gap-1">
+        {items.map(({ level, icon: Icon, accent, swatch }) => {
           const meta = WORKABILITY_META[level];
           return (
-            <li key={level} className={cn("flex items-center gap-2 px-2 py-1", meta.tint)}>
-              <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+            <li key={level} className="flex items-center gap-2 py-1">
+              <span className={cn("grid h-5 w-5 shrink-0 place-items-center", swatch)}>
+                <Icon className={cn("h-3 w-3", accent)} />
+              </span>
               <span className="text-[11px] font-bold text-foreground">{meta.label}</span>
               <span className="ml-auto text-[10px] text-muted-foreground">{meta.condition}</span>
             </li>
