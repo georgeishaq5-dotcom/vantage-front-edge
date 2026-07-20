@@ -22,7 +22,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { VantageLogo } from "@/components/VantageLogo";
 
 const PRIMARY = [
-  { label: "Home", to: "/", icon: LayoutDashboard },
+  { label: "Home", to: "/dashboard", icon: LayoutDashboard },
   { label: "Schedule", to: "/calendar", icon: CalendarDays },
   { label: "Estimates", to: "/quotes", icon: FileText },
   { label: "Time", to: "/timesheets", icon: Clock },

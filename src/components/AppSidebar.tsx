@@ -25,7 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Van's AI Hub is branded with a vehicle icon (matching the "Van" persona) in
 // the canonical design, rather than a generic robot glyph.
 const OPERATIONS_NAV = [
-  { label: "Dashboard", to: "/", icon: LayoutDashboard },
+  { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
   { label: "Dispatch Board", to: "/jobs", icon: KanbanSquare },
   { label: "Calendar", to: "/calendar", icon: Calendar },
   { label: "Estimates", to: "/estimates", icon: FileText },
