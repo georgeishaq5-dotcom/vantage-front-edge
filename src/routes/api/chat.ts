@@ -19,9 +19,17 @@ export const Route = createFileRoute("/api/chat")({
             return new Response("Unauthorized", { status: 401 });
           }
           const token = authHeader.slice(7);
-          const SUPABASE_URL = process.env.SUPABASE_URL;
-          const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+          // Resolve Supabase config the same way the shared client does: prefer
+          // the VITE_-prefixed vars (build-time inlined, always present in the
+          // deployed bundle) and fall back to the bare server names. Using only
+          // the bare names here 500'd on deployments that set just the VITE_ ones.
+          const SUPABASE_URL =
+            import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+          const SUPABASE_PUBLISHABLE_KEY =
+            import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+            process.env.SUPABASE_PUBLISHABLE_KEY;
           if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+            console.error("[api/chat] Supabase auth env not configured");
             return new Response("Server auth not configured", { status: 500 });
           }
           const { createClient } = await import("@supabase/supabase-js");
@@ -53,6 +61,7 @@ export const Route = createFileRoute("/api/chat")({
 
           const key = process.env.LOVABLE_API_KEY;
           if (!key) {
+            console.error("[api/chat] LOVABLE_API_KEY is not set");
             return new Response("Missing LOVABLE_API_KEY", { status: 500 });
           }
 
