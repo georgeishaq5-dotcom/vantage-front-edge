@@ -4,7 +4,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
-const TWILIO_GATEWAY = "https://connector-gateway.lovable.dev/twilio";
 
 const RADIUS_MILES = 5;
 
@@ -138,26 +137,21 @@ export const blastNeighbors = createServerFn({ method: "POST" })
     const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
     assertFeature(effectivePlan, "radius_campaigns");
 
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
-    const twilioApiKey = process.env.TWILIO_API_KEY;
-    if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!twilioApiKey) throw new Error("TWILIO_API_KEY is not configured");
+    // Twilio auth via an API Key (SID + Secret) scoped to the account — not the
+    // main Auth Token. Loaded dynamically so the Node SDK stays out of the
+    // client bundle (*.functions.ts ships to the client).
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const apiKeySid = process.env.TWILIO_API_KEY_SID;
+    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+    if (!accountSid) throw new Error("TWILIO_ACCOUNT_SID is not configured");
+    if (!apiKeySid) throw new Error("TWILIO_API_KEY_SID is not configured");
+    if (!apiKeySecret) throw new Error("TWILIO_API_KEY_SECRET is not configured");
 
-    const headers = {
-      Authorization: `Bearer ${lovableApiKey}`,
-      "X-Connection-Api-Key": twilioApiKey,
-    };
+    const { default: twilio } = await import("twilio");
+    const client = twilio(apiKeySid, apiKeySecret, { accountSid });
 
-    const numbersRes = await fetch(
-      `${TWILIO_GATEWAY}/IncomingPhoneNumbers.json?PageSize=1`,
-      { method: "GET", headers },
-    );
-    const numbersData = await numbersRes.json();
-    if (!numbersRes.ok) {
-      throw new Error(`Failed to resolve Twilio sender number [${numbersRes.status}]`);
-    }
-    const from: string | undefined =
-      numbersData?.incoming_phone_numbers?.[0]?.phone_number;
+    const numbers = await client.incomingPhoneNumbers.list({ limit: 1 });
+    const from = numbers[0]?.phoneNumber;
     if (!from) throw new Error("No Twilio phone number is available to send from.");
 
     let sent = 0;
@@ -166,17 +160,12 @@ export const blastNeighbors = createServerFn({ method: "POST" })
       const firstName = r.firstName.trim().split(/\s+/)[0] || "there";
       const message = `Hi ${firstName}, it's ${data.company}. We are doing a job right down the street from you today. Let us know if you want us to swing by for a quick check-up or quote while our crew is in the area!`;
       try {
-        const res = await fetch(`${TWILIO_GATEWAY}/Messages.json`, {
-          method: "POST",
-          headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            To: normalizeE164(r.phone),
-            From: from,
-            Body: message,
-          }),
+        await client.messages.create({
+          to: normalizeE164(r.phone),
+          from,
+          body: message,
         });
-        if (res.ok) sent += 1;
-        else failures.push(r.phone);
+        sent += 1;
       } catch {
         failures.push(r.phone);
       }
