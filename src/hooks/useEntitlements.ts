@@ -2,17 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ACTIVE_JOB_CAPS,
-  CREW_SEAT_LIMITS,
-  CUSTOMER_CAPS,
+  can,
+  featureState,
   isInTrial,
   isSubscribed,
-  planAllows,
+  limitFor,
   resolveEffectivePlan,
   trialDaysRemaining,
   type CompanyTier,
   type Plan,
-  type PremiumFeature,
+  type PlanFeature,
+  type PlanResource,
 } from "@/lib/entitlements";
 
 const db = supabase as unknown as { from: (t: string) => any };
@@ -47,7 +47,8 @@ async function fetchCompanyTier(): Promise<CompanyTier | null> {
 /**
  * Central hook for the three-plan entitlement model. Exposes the workspace's
  * *effective* plan (the higher of its paid tier and the Crew-level reverse
- * trial) along with the per-plan caps and a feature-access helper.
+ * trial) plus the config-driven feature/limit helpers. Reads only the billing
+ * tier; usage counts (seats/active jobs) live in {@link usePlan}.
  */
 export function useEntitlements() {
   const query = useQuery({
@@ -57,23 +58,30 @@ export function useEntitlements() {
   });
 
   const tier = query.data ?? null;
+  /** Effective plan right now (accounts for the reverse trial). */
   const plan = resolveEffectivePlan(tier);
+  /** The paid tier the workspace falls back to when the trial ends. */
+  const paidPlan: Plan = isSubscribed(tier) ? (tier?.plan ?? "free") : "free";
 
   return {
     tier,
     isLoading: query.isLoading,
-    /** Effective plan right now (accounts for the reverse trial). */
     plan,
+    paidPlan,
     subscribed: isSubscribed(tier),
     isTrial: isInTrial(tier),
     trialDaysRemaining: trialDaysRemaining(tier),
-    /** True when the current plan may use the given premium feature. */
-    canUseFeature: (feature: PremiumFeature) => planAllows(plan, feature),
-    /** Crew seats included on the current plan (Infinity = unlimited). */
-    seatLimit: CREW_SEAT_LIMITS[plan],
-    /** Customer storage cap on the current plan (Infinity = unlimited). */
-    customerCap: CUSTOMER_CAPS[plan],
-    /** Active-job cap on the current plan (Infinity = unlimited). */
-    activeJobCap: ACTIVE_JOB_CAPS[plan],
+    /** True when the effective plan may actually use the feature. */
+    can: (feature: PlanFeature) => can(plan, feature),
+    /** "available" | "locked" | "coming_soon" for the effective plan. */
+    featureState: (feature: PlanFeature) => featureState(plan, feature),
+    /** Numeric cap for a resource on the effective plan (Infinity = unlimited). */
+    limit: (resource: PlanResource) => limitFor(plan, resource),
+    /** @deprecated use {@link can}. Retained for back-compat. */
+    canUseFeature: (feature: PlanFeature) => can(plan, feature),
+    /** Crew seats included on the effective plan (Infinity = unlimited). */
+    seatLimit: limitFor(plan, "seats"),
+    /** Active-job cap on the effective plan (Infinity = unlimited). */
+    activeJobCap: limitFor(plan, "activeJobs"),
   };
 }

@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
+import { PlanUsageCard } from "@/components/PlanUsageCard";
+import { TrialStatusBanner } from "@/components/TrialStatusBanner";
 import { RadiusCampaignModal } from "@/components/RadiusCampaignModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PendingActionsCard } from "@/components/PendingActionsCard";
@@ -311,6 +313,10 @@ function Dashboard() {
         <div className="mt-4 md:mt-4">
           <AskVanBanner />
         </div>
+
+        <TrialStatusBanner className="mt-3.5" />
+
+        <PlanUsageCard className="mt-3.5" />
 
         <div className="mt-3.5 md:mt-3.5">
           <RevenueChartCard series={revenueSeries} />

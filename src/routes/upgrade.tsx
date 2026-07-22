@@ -41,18 +41,21 @@ type PlanCardData = {
 
 // Copy tracks the canonical App UI.dc.html Upgrade frame; prices/tiers stay in
 // sync with src/lib/entitlements.ts (Starter free / Growth $49 / Crew $99).
+// Copy tracks the decided entitlements matrix (src/lib/entitlements.ts).
+// Features that aren't built yet carry a "(coming soon)" suffix so a plan is
+// described honestly without advertising un-built features as available.
 const PLANS: PlanCardData[] = [
   {
     key: "free",
     name: "Starter",
     price: "Free",
-    period: "For your first 30 days",
-    tagline: "Run Vantage on real jobs before you pay a cent.",
+    period: "Free forever for solo operators",
+    tagline: "Everything you need to run Vantage on real jobs.",
     benefits: [
       "Up to 25 active jobs",
-      "Quoting & digital approval",
-      "Basic dispatch calendar",
-      "1 crew member",
+      "Quote → schedule → dispatch → track",
+      "Send invoices & accept card payments",
+      "1 crew seat",
     ],
   },
   {
@@ -60,13 +63,16 @@ const PLANS: PlanCardData[] = [
     name: "Growth",
     price: "$49",
     period: "Per month",
-    tagline: "Vantage books more work for your one-truck operation.",
+    tagline: "Book more work and add your first crew.",
     benefits: [
       "Unlimited active jobs",
-      "Weather-triggered outreach",
+      "Up to 5 crew seats",
       "Radius marketing campaigns",
-      "Stripe payments & deposits",
-      "Up to 5 crew members",
+      "Deposits & automated payment reminders (coming soon)",
+      "Automated & two-way SMS reminders (coming soon)",
+      "Online booking & client self-serve (coming soon)",
+      "Recurring jobs & maintenance contracts (coming soon)",
+      "Weather-triggered outreach (coming soon)",
     ],
     popular: true,
   },
@@ -75,24 +81,27 @@ const PLANS: PlanCardData[] = [
     name: "Crew",
     price: "$99",
     period: "Per month",
-    tagline: "Vantage runs the schedule across every crew at once.",
+    tagline: "Run multiple crews with margins and reporting.",
     benefits: [
       "Everything in Growth",
-      "Unlimited crew members",
-      "Advanced financial reports",
+      "Unlimited crew seats",
+      "Job costing & profitability (coming soon)",
+      "Advanced reports (coming soon)",
       "Priority support",
     ],
   },
 ];
 
 function UpgradePage() {
-  const { tier, subscribed, isTrial, trialDaysRemaining, isLoading } = useEntitlements();
+  const { plan, paidPlan, subscribed, isTrial, trialDaysRemaining, isLoading } =
+    useEntitlements();
   const [busy, setBusy] = useState<Plan | null>(null);
 
-  // The plan the workspace is actually billed at (what it falls back to when the
-  // reverse trial ends). During the trial the *effective* plan is Crew, but the
-  // "current plan" shown here is the paid tier so the upgrade CTAs make sense.
-  const currentPlan: Plan = subscribed ? (tier?.plan ?? "free") : "free";
+  // "Current plan" is the EFFECTIVE plan (reverse-trial aware) so this page can
+  // never contradict the trial banner — a trialing workspace sees Crew-level.
+  // CTAs are computed against the PAID plan (what billing falls back to) so a
+  // trialing user can still subscribe to lock a plan in before the trial ends.
+  const currentPlan: Plan = plan;
 
   async function authHeader(): Promise<Record<string, string>> {
     const {
@@ -150,24 +159,28 @@ function UpgradePage() {
 
       <p className="mt-3.5 text-[13px] text-muted-foreground">
         You're currently on the{" "}
-        <b className="font-extrabold text-revenue">{PLAN_META[currentPlan].name}</b> plan.
+        <b className="font-extrabold text-revenue">{PLAN_META[currentPlan].name}</b> plan
+        {isTrial ? " — included in your trial" : ""}.
       </p>
 
       <div className="mt-4 grid grid-cols-1 items-stretch gap-4 md:mt-5 md:grid-cols-3">
         {PLANS.map((p) => {
-          const isCurrent = p.key === currentPlan;
-          const isUpgrade = PLAN_RANK[p.key] > PLAN_RANK[currentPlan];
+          // Badge tracks the effective plan; CTA tracks the paid plan so a
+          // trialing (paid=free) user can still subscribe.
+          const isEffective = p.key === currentPlan;
+          const isPaidCurrent = subscribed && p.key === paidPlan;
+          const isUpgrade = PLAN_RANK[p.key] > PLAN_RANK[paidPlan];
 
           let label: string;
           let onClick: (() => void) | undefined;
           let variant: "primary" | "outline" | "current";
 
-          if (isCurrent) {
+          if (isPaidCurrent) {
             label = "Current plan";
             onClick = undefined;
             variant = "current";
           } else if (isUpgrade) {
-            label = `Upgrade to ${p.name}`;
+            label = isTrial ? `Subscribe to ${p.name}` : `Upgrade to ${p.name}`;
             onClick = () => startCheckout(p.key);
             variant = p.popular ? "primary" : "outline";
           } else {
@@ -180,7 +193,7 @@ function UpgradePage() {
             <PlanCard
               key={p.key}
               data={p}
-              current={isCurrent}
+              current={isEffective}
               label={label}
               onClick={onClick}
               variant={variant}

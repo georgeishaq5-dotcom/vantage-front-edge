@@ -434,7 +434,7 @@ function AuditorPanel({ overdue }: { overdue: ReturnType<typeof collectOverdue> 
   const { requireFeature } = useFeatureGate();
 
   function sendFollowUp(id: string, name: string) {
-    if (!requireFeature("auto_collections")) return;
+    if (!requireFeature("deposits_reminders")) return;
     setSent((s) => ({ ...s, [id]: true }));
     toast.success("Follow-up sent", {
       description: `A polite collection SMS was simulated to ${name}.`,

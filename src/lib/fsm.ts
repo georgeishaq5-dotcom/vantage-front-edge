@@ -176,24 +176,11 @@ export interface NewJob {
   total_amount?: number;
 }
 
-export async function createJob(input: NewJob): Promise<Job> {
-  try {
-    const company_id = await getCurrentCompanyId();
-    const row = {
-      ...input,
-      company_id,
-      description: input.description ?? input.title,
-      // Mirror the legacy `quote_amount` into the canonical `total_amount`.
-      total_amount: input.total_amount ?? input.quote_amount,
-    };
-    const { data, error } = await db.from("jobs").insert(row).select().single();
-    if (error) throw error;
-    return data as Job;
-  } catch (err) {
-    console.error("[fsm] createJob failed:", err);
-    throw err;
-  }
-}
+// NOTE: Job creation is NOT done here. Direct client inserts into `jobs` are
+// blocked by RLS so the active-jobs cap can't be bypassed — the sole writer is
+// the `createJob` TanStack server function in src/lib/jobs.functions.ts. Import
+// that (via useServerFn) to create a job. `NewJob` above is the shared input
+// shape used by both.
 
 export async function updateJobStatus(id: string, status: JobStatus): Promise<void> {
   const { error } = await db.from("jobs").update({ status }).eq("id", id);

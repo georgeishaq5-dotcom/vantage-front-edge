@@ -6,9 +6,18 @@ import {
   type ReactNode,
 } from "react";
 
+import { toast } from "sonner";
+
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { PremiumPaywall } from "@/components/PremiumPaywall";
-import { planAllows, type Plan, type PremiumFeature } from "@/lib/entitlements";
+import {
+  can,
+  featureState,
+  FEATURES,
+  type FeatureState,
+  type Plan,
+  type PlanFeature,
+} from "@/lib/entitlements";
 
 type FeatureGateContextValue = {
   /** The workspace's effective plan (accounts for the reverse trial). */
@@ -19,19 +28,22 @@ type FeatureGateContextValue = {
   isLoading: boolean;
   /** Crew seats included on the current plan (Infinity = unlimited). */
   seatLimit: number;
-  /** Customer storage cap on the current plan (Infinity = unlimited). */
-  customerCap: number;
   /** Active-job cap on the current plan (Infinity = unlimited). */
   activeJobCap: number;
+  /** True when the effective plan may use the feature. */
+  can: (feature: PlanFeature) => boolean;
+  /** "available" | "locked" | "coming_soon" for the effective plan. */
+  featureState: (feature: PlanFeature) => FeatureState;
   /**
    * Returns true if the current plan may use the feature. Otherwise opens the
-   * upgrade paywall and returns false. Use to wrap premium click handlers.
+   * upgrade paywall (or a coming-soon notice) and returns false. Use to wrap
+   * premium click handlers.
    */
-  requireFeature: (feature: PremiumFeature) => boolean;
+  requireFeature: (feature: PlanFeature) => boolean;
   /** @deprecated Use {@link requireFeature}. Retained for back-compat. */
-  requirePro: (feature: PremiumFeature) => boolean;
+  requirePro: (feature: PlanFeature) => boolean;
   /** Force-open the paywall for a feature (e.g. from a locked tab or a cap). */
-  openPaywall: (feature?: PremiumFeature) => void;
+  openPaywall: (feature?: PlanFeature) => void;
 };
 
 const FeatureGateContext = createContext<FeatureGateContextValue | null>(null);
@@ -43,27 +55,26 @@ export function useFeatureGate() {
 }
 
 export function FeatureGateProvider({ children }: { children: ReactNode }) {
-  const {
-    plan,
-    subscribed,
-    isTrial,
-    trialDaysRemaining,
-    isLoading,
-    seatLimit,
-    customerCap,
-    activeJobCap,
-  } = useEntitlements();
-  const [activeFeature, setActiveFeature] = useState<PremiumFeature | null>(null);
+  const { plan, subscribed, isTrial, trialDaysRemaining, isLoading, seatLimit, activeJobCap } =
+    useEntitlements();
+  const [activeFeature, setActiveFeature] = useState<PlanFeature | null>(null);
   const [open, setOpen] = useState(false);
 
-  const openPaywall = useCallback((feature?: PremiumFeature) => {
+  const openPaywall = useCallback((feature?: PlanFeature) => {
     setActiveFeature(feature ?? null);
     setOpen(true);
   }, []);
 
   const requireFeature = useCallback(
-    (feature: PremiumFeature) => {
-      if (planAllows(plan, feature)) return true;
+    (feature: PlanFeature) => {
+      const state = featureState(plan, feature);
+      if (state === "available") return true;
+      if (state === "coming_soon") {
+        toast.info(`${FEATURES[feature].label} is coming soon`, {
+          description: "We're building this — it isn't available on any plan yet.",
+        });
+        return false;
+      }
       openPaywall(feature);
       return false;
     },
@@ -79,8 +90,9 @@ export function FeatureGateProvider({ children }: { children: ReactNode }) {
         trialDaysRemaining,
         isLoading,
         seatLimit,
-        customerCap,
         activeJobCap,
+        can: (feature) => can(plan, feature),
+        featureState: (feature) => featureState(plan, feature),
         requireFeature,
         requirePro: requireFeature,
         openPaywall,

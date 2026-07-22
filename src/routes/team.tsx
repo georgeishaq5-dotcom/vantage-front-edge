@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, ShieldCheck, UserPlus, Mail, Users, Lock } from "lucide-react";
+import { Building2, ShieldCheck, Mail, Users } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
-import { useFeatureGate } from "@/components/FeatureGate";
 import { MemberAvatar } from "@/components/CrewAssignment";
+import { UsageMeter } from "@/components/UsageMeter";
+import { LimitReachedCallout } from "@/components/UpgradeCallout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,27 +21,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useCurrentMember } from "@/hooks/useCurrentMember";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { usePlan } from "@/hooks/usePlan";
 import { inviteTeammate } from "@/lib/team.functions";
+import { parseEntitlementError, type LimitReachedError } from "@/lib/entitlements";
 import { cn } from "@/lib/utils";
 import {
   COMPANY_ID,
-  createTeamMember,
   fetchTeamMembers,
   ROLE_BADGE_STYLES,
   STATUS_DOT_STYLES,
-  TEAM_ROLES,
   type MemberStatus,
   type TeamMember,
-  type TeamRole,
 } from "@/lib/fsm";
 
 export const Route = createFileRoute("/team")({
@@ -73,10 +66,7 @@ function TeamPage() {
     queryFn: fetchTeamMembers,
   });
   const me = useCurrentMember();
-  const { seatLimit } = useFeatureGate();
-  const seatLabel = Number.isFinite(seatLimit)
-    ? `${members.length} / ${seatLimit} crew seats`
-    : `${members.length} crew seats · unlimited`;
+  const { usage } = usePlan();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-5 md:px-8 md:py-8">
@@ -95,16 +85,21 @@ function TeamPage() {
           <ShieldCheck className="h-3.5 w-3.5 text-revenue" />
           RBAC: Owner/Admin · Dispatcher · Field Tech
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          <Users className="h-3.5 w-3.5" />
-          {seatLabel}
-        </span>
         {me && (
           <span className="inline-flex items-center gap-2 rounded-full border border-revenue/30 bg-revenue-muted px-3 py-1.5 text-xs font-medium text-revenue">
             <MemberAvatar member={me} />
             Viewing as {me.full_name}
           </span>
         )}
+      </div>
+
+      {/* Seats = real login accounts in the workspace (the metered resource). */}
+      <div className="mt-4 max-w-xs rounded-xl border border-border bg-card p-4">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          Crew seats
+        </div>
+        <UsageMeter label="Login accounts" usage={usage.seats} />
       </div>
 
       {isLoading ? (
@@ -169,43 +164,27 @@ function MemberCard({ member, isMe }: { member: TeamMember; isMe: boolean }) {
 
 function TeamActions() {
   const isAdmin = useIsAdmin();
-  const { seatLimit, openPaywall } = useFeatureGate();
-  const { data: members = [] } = useQuery({
-    queryKey: ["team_members"],
-    queryFn: fetchTeamMembers,
-  });
 
   if (!isAdmin) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5" />
-        Admin access required to invite or add staff
+        Admin access required to invite staff
       </span>
     );
   }
 
-  // Crew = unlimited; lower plans cap the workspace at seatLimit members.
-  if (members.length >= seatLimit) {
-    return (
-      <Button variant="revenue" onClick={() => openPaywall()}>
-        <Lock className="h-4 w-4" />
-        Add more seats
-      </Button>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <InviteUserDialog />
-      <AddTeammateDialog />
-    </div>
-  );
+  // Inviting a user is the single, seat-gated way to add crew. The seat cap is
+  // enforced server-side in inviteTeammate.
+  return <InviteUserDialog />;
 }
 
 function InviteUserDialog() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [limitError, setLimitError] = useState<LimitReachedError | null>(null);
   const invite = useServerFn(inviteTeammate);
+  const { refetchUsage } = usePlan();
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -214,17 +193,31 @@ function InviteUserDialog() {
       toast.success("Invitation sent", {
         description: `An account-creation email is on its way to ${email.trim()}.`,
       });
+      refetchUsage();
       setOpen(false);
       setEmail("");
+      setLimitError(null);
     },
-    onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Could not send invite"),
+    onError: (err) => {
+      const ent = parseEntitlementError(err);
+      if (ent && ent.type === "LIMIT_REACHED") {
+        setLimitError(ent);
+        return;
+      }
+      toast.error(err instanceof Error ? err.message : "Could not send invite");
+    },
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setLimitError(null);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="revenue">
           <Mail className="h-4 w-4" />
           Invite User
         </Button>
@@ -234,9 +227,12 @@ function InviteUserDialog() {
           <DialogTitle>Invite a new user</DialogTitle>
           <DialogDescription>
             Sign-ups are invite-only. We'll email an account-creation link so they can
-            set a password and join the workspace.
+            set a password and join the workspace. Each invited user takes a crew seat.
           </DialogDescription>
         </DialogHeader>
+
+        {limitError && <LimitReachedCallout error={limitError} />}
+
         <div className="space-y-1.5">
           <Label htmlFor="invite-email">Email address</Label>
           <Input
@@ -254,114 +250,6 @@ function InviteUserDialog() {
             onClick={() => mutation.mutate()}
           >
             {mutation.isPending ? "Sending…" : "Send Invite"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function AddTeammateDialog() {
-  const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<TeamRole>("Field Tech");
-  const [status, setStatus] = useState<MemberStatus>("Active");
-  const [skills, setSkills] = useState("");
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      createTeamMember({
-        full_name: name.trim(),
-        role,
-        status,
-        skills: skills
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["team_members"] });
-      toast.success("Teammate added");
-      setOpen(false);
-      setName("");
-      setSkills("");
-      setRole("Field Tech");
-      setStatus("Active");
-    },
-    onError: () => toast.error("Could not add teammate"),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="revenue">
-          <UserPlus className="h-4 w-4" />
-          Add Teammate
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Teammate</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="tm-name">Full Name</Label>
-            <Input
-              id="tm-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Sam Rivera"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as TeamRole)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TEAM_ROLES.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {r}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as MemberStatus)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Busy">On Job</SelectItem>
-                  <SelectItem value="Offline">Offline</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="tm-skills">Skill Tags</Label>
-            <Input
-              id="tm-skills"
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-              placeholder="Master Electrician, HVAC"
-            />
-            <p className="text-xs text-muted-foreground">Separate skills with commas.</p>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            variant="revenue"
-            disabled={!name.trim() || mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
-            {mutation.isPending ? "Adding…" : "Add Teammate"}
           </Button>
         </DialogFooter>
       </DialogContent>

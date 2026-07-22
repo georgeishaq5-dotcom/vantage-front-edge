@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 const TWILIO_GATEWAY = "https://connector-gateway.lovable.dev/twilio";
@@ -60,6 +61,10 @@ export const findNeighbors = createServerFn({ method: "POST" })
     if (roleError || !canManage) {
       throw new Error("Forbidden: manager or admin role required");
     }
+
+    // Radius marketing is a Growth+ feature — enforce on the effective plan.
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
 
     const lovableApiKey = process.env.LOVABLE_API_KEY;
     const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -128,6 +133,10 @@ export const blastNeighbors = createServerFn({ method: "POST" })
     if (roleError || !canManage) {
       throw new Error("Forbidden: manager or admin role required");
     }
+
+    // Radius marketing is a Growth+ feature — enforce on the effective plan.
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
 
     const lovableApiKey = process.env.LOVABLE_API_KEY;
     const twilioApiKey = process.env.TWILIO_API_KEY;

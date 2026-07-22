@@ -73,17 +73,19 @@ function WireframeFloor({
   );
 }
 
+// Copy tracks the decided entitlements matrix. Features that aren't built yet
+// carry a "(coming soon)" suffix so nothing un-built is advertised as available.
 const PLANS = [
   {
     name: "Starter",
     price: "Free",
-    period: "for your first 30 days",
-    description: "Everything you need to try Vantage on real jobs.",
+    period: "free forever for solo operators",
+    description: "Everything you need to run Vantage on real jobs.",
     features: [
       "Up to 25 active jobs",
-      "Quoting & digital approval",
-      "Basic dispatch calendar",
-      "1 crew member",
+      "Quote → schedule → dispatch → track",
+      "Send invoices & accept card payments",
+      "1 crew seat",
     ],
     cta: "Start free trial",
     highlighted: false,
@@ -95,10 +97,13 @@ const PLANS = [
     description: "For a one-truck operation ready to book more work.",
     features: [
       "Unlimited active jobs",
-      "Weather-triggered outreach",
+      "Up to 5 crew seats",
       "Radius marketing campaigns",
-      "Stripe payments & deposits",
-      "Up to 5 crew members",
+      "Deposits & automated payment reminders (coming soon)",
+      "Automated & two-way SMS reminders (coming soon)",
+      "Online booking & client self-serve (coming soon)",
+      "Recurring jobs & maintenance contracts (coming soon)",
+      "Weather-triggered outreach (coming soon)",
     ],
     cta: "Start free trial",
     highlighted: true,
@@ -107,11 +112,12 @@ const PLANS = [
     name: "Crew",
     price: "$99",
     period: "per month",
-    description: "For growing teams managing multiple crews at once.",
+    description: "For growing teams running multiple crews at once.",
     features: [
       "Everything in Growth",
-      "Unlimited crew members",
-      "Advanced financial reports",
+      "Unlimited crew seats",
+      "Job costing & profitability (coming soon)",
+      "Advanced reports (coming soon)",
       "Priority support",
     ],
     cta: "Start free trial",

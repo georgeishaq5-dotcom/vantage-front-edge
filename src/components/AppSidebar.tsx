@@ -16,6 +16,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkle,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import vantageLogo from "@/assets/vantage-logo.png";
@@ -32,6 +33,8 @@ const OPERATIONS_NAV = [
   { label: "Customers", to: "/customers", icon: Contact },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
   { label: "Van's AI Hub", to: "/ai-hub", icon: Truck },
+  // Premium module — visible but not built yet (renders a coming-soon teaser).
+  { label: "Financials", to: "/financials", icon: BarChart3, badge: "Soon" },
 ] as const;
 
 const ACCOUNT_NAV = [
@@ -171,7 +174,7 @@ function SidebarNavLink({
   pathname,
   collapsed,
 }: {
-  item: { label: string; to: string; icon: typeof LayoutDashboard };
+  item: { label: string; to: string; icon: typeof LayoutDashboard; badge?: string };
   pathname: string;
   collapsed: boolean;
 }) {
@@ -191,6 +194,11 @@ function SidebarNavLink({
     >
       <item.icon className="h-[15px] w-[15px] shrink-0" />
       {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+      {!collapsed && item.badge && (
+        <span className="rounded bg-[oklch(1_0_0/8%)] px-1.5 py-0.5 text-[8.5px] font-extrabold uppercase tracking-wider text-[oklch(0.6_0.02_257)]">
+          {item.badge}
+        </span>
+      )}
     </Link>
   );
 }

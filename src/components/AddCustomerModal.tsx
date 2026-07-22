@@ -2,11 +2,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-import { useFeatureGate } from "@/components/FeatureGate";
-import { fetchCustomers } from "@/lib/fsm";
 
 import {
   Dialog,
@@ -45,14 +42,8 @@ type FormValues = z.infer<typeof schema>;
 export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { customerCap, openPaywall } = useFeatureGate();
-  const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
 
   function handleOpenChange(o: boolean) {
-    if (o && customers.length >= customerCap) {
-      openPaywall("customer_storage");
-      return;
-    }
     setOpen(o);
     if (!o) reset();
   }

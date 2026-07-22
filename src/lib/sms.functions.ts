@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
 
@@ -30,6 +31,10 @@ export const sendPromoSms = createServerFn({ method: "POST" })
     if (roleError || !canManage) {
       throw new Error("Forbidden: manager or admin role required");
     }
+
+    // Proximity/neighbor promo SMS is part of radius marketing (Growth+).
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
 
     const lovableApiKey = process.env.LOVABLE_API_KEY;
     const twilioApiKey = process.env.TWILIO_API_KEY;
