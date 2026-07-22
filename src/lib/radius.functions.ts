@@ -3,8 +3,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
-
 const RADIUS_MILES = 5;
 
 function haversineMiles(
@@ -26,14 +24,15 @@ function haversineMiles(
 
 async function geocode(
   address: string,
-  headers: Record<string, string>,
+  apiKey: string,
 ): Promise<{ lat: number; lng: number } | null> {
+  // Google Geocoding API directly (server key passed as a query param).
   const res = await fetch(
-    `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(address)}`,
-    { headers },
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`,
   );
   if (!res.ok) return null;
   const data = await res.json();
+  if (data?.status !== "OK") return null; // ZERO_RESULTS / REQUEST_DENIED / etc.
   const loc = data?.results?.[0]?.geometry?.location;
   if (!loc || typeof loc.lat !== "number") return null;
   return { lat: loc.lat, lng: loc.lng };
@@ -65,17 +64,10 @@ export const findNeighbors = createServerFn({ method: "POST" })
     const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
     assertFeature(effectivePlan, "radius_campaigns");
 
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
     const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
-    if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!mapsKey) throw new Error("Google Maps connector is not configured");
+    if (!mapsKey) throw new Error("GOOGLE_MAPS_API_KEY is not configured");
 
-    const headers = {
-      Authorization: `Bearer ${lovableApiKey}`,
-      "X-Connection-Api-Key": mapsKey,
-    };
-
-    const origin = await geocode(data.jobAddress, headers);
+    const origin = await geocode(data.jobAddress, mapsKey);
     if (!origin) {
       throw new Error("Could not locate the job address on the map.");
     }
@@ -90,7 +82,7 @@ export const findNeighbors = createServerFn({ method: "POST" })
 
     for (const c of data.candidates) {
       if (!c.address) continue;
-      const loc = await geocode(c.address, headers);
+      const loc = await geocode(c.address, mapsKey);
       if (!loc) continue;
       const distanceMiles = haversineMiles(origin.lat, origin.lng, loc.lat, loc.lng);
       if (distanceMiles <= RADIUS_MILES) {

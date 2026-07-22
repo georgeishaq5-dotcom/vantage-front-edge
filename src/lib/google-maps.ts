@@ -1,11 +1,10 @@
 /// <reference types="google.maps" />
 // Lightweight loader for the Google Maps JavaScript API (Places library).
-// Uses the referrer-restricted browser key injected by the connector.
+// Uses a referrer-restricted browser key. Prefer VITE_GOOGLE_MAPS_BROWSER_KEY;
+// the old Lovable connector var name is still read as a fallback.
 
-const BROWSER_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as
-  | string
-  | undefined;
-const TRACKING_ID = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID as
+const BROWSER_KEY = (import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY ??
+  import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY) as
   | string
   | undefined;
 
@@ -40,7 +39,6 @@ export function loadGoogleMaps(): Promise<typeof google> {
       loading: "async",
       callback: callbackName,
     });
-    if (TRACKING_ID) params.set("channel", TRACKING_ID);
     script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
     script.async = true;
     script.onerror = () => reject(new Error("Failed to load Google Maps"));

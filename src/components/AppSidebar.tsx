@@ -10,6 +10,7 @@ import {
   FileText,
   Clock,
   Contact,
+  Receipt,
   Users,
   Settings,
   LogOut,
@@ -31,6 +32,7 @@ const OPERATIONS_NAV = [
   { label: "Calendar", to: "/calendar", icon: Calendar },
   { label: "Estimates", to: "/estimates", icon: FileText },
   { label: "Customers", to: "/customers", icon: Contact },
+  { label: "Client Ledger", to: "/ledger", icon: Receipt },
   { label: "Time & Timesheets", to: "/timesheets", icon: Clock },
   { label: "Van's AI Hub", to: "/ai-hub", icon: Truck },
   // Premium module — visible but not built yet (renders a coming-soon teaser).

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
@@ -35,6 +35,7 @@ const TYPE_STYLES: Record<string, string> = {
 };
 
 function CustomersPage() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
@@ -102,12 +103,21 @@ function CustomersPage() {
                 </tr>
               ) : (
                 filtered.map((c, i) => (
-                  <tr key={c.id} className={i % 2 === 1 ? "bg-secondary/30" : "bg-card"}>
+                  <tr
+                    key={c.id}
+                    onClick={() =>
+                      navigate({ to: "/customers/$customerId", params: { customerId: c.id } })
+                    }
+                    className={`cursor-pointer transition-colors hover:bg-secondary/60 ${
+                      i % 2 === 1 ? "bg-secondary/30" : "bg-card"
+                    }`}
+                  >
                     <td className="px-6 py-3.5 font-medium text-foreground">
                       <Link
                         to="/customers/$customerId"
                         params={{ customerId: c.id }}
                         className="hover:text-revenue hover:underline"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {c.full_name}
                       </Link>
@@ -131,7 +141,10 @@ function CustomersPage() {
                     </td>
                     <td className="px-6 py-3.5 text-muted-foreground">{c.service_address || "—"}</td>
                     <td className="px-6 py-3.5 text-muted-foreground">{formatDate(c.created_at)}</td>
-                    <td className="px-6 py-3.5 text-right">
+                    <td
+                      className="px-6 py-3.5 text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <EditCustomerModal
                         customer={c}
                         trigger={
