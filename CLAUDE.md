@@ -53,7 +53,7 @@ The canonical domain types (`Customer`, `Job`, `JobStatus`, etc.) and all pure D
 
 ### AI — "Van"
 
-`POST /api/chat` (`src/routes/api/chat.ts`) streams responses via the Vercel AI SDK (`ai` package) using the **Lovable AI Gateway** (`src/lib/ai-gateway.server.ts`). The gateway is OpenAI-compatible; the chat route verifies the Supabase Bearer token before processing. The chat UI component is `src/components/VanChat.tsx`.
+`POST /api/chat` (`src/routes/api/chat.ts`) streams responses via the Vercel AI SDK (`ai` package) calling **Gemini directly** (`gemini-3-flash-preview`) through the Google provider (`src/lib/google-ai.server.ts`, using `@ai-sdk/google` + `GEMINI_API_KEY`). The chat route verifies the Supabase Bearer token before processing. The chat UI component is `src/components/VanChat.tsx`. Trade-preset generation (`configureTradePresets` in `src/lib/presets.functions.ts`) uses the same Google provider via `generateObject`.
 
 ### Server entry
 
@@ -76,7 +76,8 @@ Required at runtime:
 | `VITE_SUPABASE_URL` / `SUPABASE_URL` | Supabase client (client/server) |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_PUBLISHABLE_KEY` | Supabase client (client/server) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server admin client (`client.server.ts`), Stripe webhook |
-| `LOVABLE_API_KEY` | Van AI gateway (`/api/chat`) |
+| `GEMINI_API_KEY` | Van AI — chat (`/api/chat`) + trade presets (`configureTradePresets`) |
+| `LOVABLE_API_KEY` | Inbound auth + Lovable email service for the `/lovable/email/*` routes |
 | `STRIPE_SECRET_KEY` | Stripe checkout / portal / webhook |
 | `STRIPE_WEBHOOK_SECRET` | Verifies `/api/billing/webhook` signatures |
 | `STRIPE_PRICE_GROWTH` / `STRIPE_PRICE_CREW` | Stripe Price IDs per paid plan (`/api/billing/checkout`) |

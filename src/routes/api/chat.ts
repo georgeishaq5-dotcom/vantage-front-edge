@@ -1,4 +1,4 @@
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createGoogleProvider, GEMINI_CHAT_MODEL } from "@/lib/google-ai.server";
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
@@ -23,11 +23,9 @@ export const Route = createFileRoute("/api/chat")({
           // the VITE_-prefixed vars (build-time inlined, always present in the
           // deployed bundle) and fall back to the bare server names. Using only
           // the bare names here 500'd on deployments that set just the VITE_ ones.
-          const SUPABASE_URL =
-            import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+          const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
           const SUPABASE_PUBLISHABLE_KEY =
-            import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-            process.env.SUPABASE_PUBLISHABLE_KEY;
+            import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
           if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
             console.error("[api/chat] Supabase auth env not configured");
             return new Response("Server auth not configured", { status: 500 });
@@ -36,8 +34,7 @@ export const Route = createFileRoute("/api/chat")({
           const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
             auth: { persistSession: false, autoRefreshToken: false },
           });
-          const { data: claims, error: authError } =
-            await supabase.auth.getClaims(token);
+          const { data: claims, error: authError } = await supabase.auth.getClaims(token);
           if (authError || !claims?.claims?.sub) {
             return new Response("Unauthorized", { status: 401 });
           }
@@ -59,15 +56,15 @@ export const Route = createFileRoute("/api/chat")({
             return new Response("Messages are required", { status: 400 });
           }
 
-          const key = process.env.LOVABLE_API_KEY;
+          const key = process.env.GEMINI_API_KEY;
           if (!key) {
-            console.error("[api/chat] LOVABLE_API_KEY is not set");
-            return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+            console.error("[api/chat] GEMINI_API_KEY is not set");
+            return new Response("Missing GEMINI_API_KEY", { status: 500 });
           }
 
-          const gateway = createLovableAiGatewayProvider(key);
+          const google = createGoogleProvider(key);
           const result = streamText({
-            model: gateway("google/gemini-3-flash-preview"),
+            model: google(GEMINI_CHAT_MODEL),
             system: SYSTEM_PROMPT,
             messages: await convertToModelMessages(messages as UIMessage[]),
           });
