@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
-const TWILIO_GATEWAY = "https://connector-gateway.lovable.dev/twilio";
+import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
 const RADIUS_MILES = 5;
 
@@ -26,14 +24,15 @@ function haversineMiles(
 
 async function geocode(
   address: string,
-  headers: Record<string, string>,
+  apiKey: string,
 ): Promise<{ lat: number; lng: number } | null> {
+  // Google Geocoding API directly (server key passed as a query param).
   const res = await fetch(
-    `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(address)}`,
-    { headers },
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`,
   );
   if (!res.ok) return null;
   const data = await res.json();
+  if (data?.status !== "OK") return null; // ZERO_RESULTS / REQUEST_DENIED / etc.
   const loc = data?.results?.[0]?.geometry?.location;
   if (!loc || typeof loc.lat !== "number") return null;
   return { lat: loc.lat, lng: loc.lng };
@@ -61,17 +60,14 @@ export const findNeighbors = createServerFn({ method: "POST" })
       throw new Error("Forbidden: manager or admin role required");
     }
 
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
+    // Radius marketing is a Growth+ feature — enforce on the effective plan.
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
+
     const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
-    if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!mapsKey) throw new Error("Google Maps connector is not configured");
+    if (!mapsKey) throw new Error("GOOGLE_MAPS_API_KEY is not configured");
 
-    const headers = {
-      Authorization: `Bearer ${lovableApiKey}`,
-      "X-Connection-Api-Key": mapsKey,
-    };
-
-    const origin = await geocode(data.jobAddress, headers);
+    const origin = await geocode(data.jobAddress, mapsKey);
     if (!origin) {
       throw new Error("Could not locate the job address on the map.");
     }
@@ -86,7 +82,7 @@ export const findNeighbors = createServerFn({ method: "POST" })
 
     for (const c of data.candidates) {
       if (!c.address) continue;
-      const loc = await geocode(c.address, headers);
+      const loc = await geocode(c.address, mapsKey);
       if (!loc) continue;
       const distanceMiles = haversineMiles(origin.lat, origin.lng, loc.lat, loc.lng);
       if (distanceMiles <= RADIUS_MILES) {
@@ -129,26 +125,25 @@ export const blastNeighbors = createServerFn({ method: "POST" })
       throw new Error("Forbidden: manager or admin role required");
     }
 
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
-    const twilioApiKey = process.env.TWILIO_API_KEY;
-    if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!twilioApiKey) throw new Error("TWILIO_API_KEY is not configured");
+    // Radius marketing is a Growth+ feature — enforce on the effective plan.
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
 
-    const headers = {
-      Authorization: `Bearer ${lovableApiKey}`,
-      "X-Connection-Api-Key": twilioApiKey,
-    };
+    // Twilio auth via an API Key (SID + Secret) scoped to the account — not the
+    // main Auth Token. Loaded dynamically so the Node SDK stays out of the
+    // client bundle (*.functions.ts ships to the client).
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const apiKeySid = process.env.TWILIO_API_KEY_SID;
+    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+    if (!accountSid) throw new Error("TWILIO_ACCOUNT_SID is not configured");
+    if (!apiKeySid) throw new Error("TWILIO_API_KEY_SID is not configured");
+    if (!apiKeySecret) throw new Error("TWILIO_API_KEY_SECRET is not configured");
 
-    const numbersRes = await fetch(
-      `${TWILIO_GATEWAY}/IncomingPhoneNumbers.json?PageSize=1`,
-      { method: "GET", headers },
-    );
-    const numbersData = await numbersRes.json();
-    if (!numbersRes.ok) {
-      throw new Error(`Failed to resolve Twilio sender number [${numbersRes.status}]`);
-    }
-    const from: string | undefined =
-      numbersData?.incoming_phone_numbers?.[0]?.phone_number;
+    const { default: twilio } = await import("twilio");
+    const client = twilio(apiKeySid, apiKeySecret, { accountSid });
+
+    const numbers = await client.incomingPhoneNumbers.list({ limit: 1 });
+    const from = numbers[0]?.phoneNumber;
     if (!from) throw new Error("No Twilio phone number is available to send from.");
 
     let sent = 0;
@@ -157,17 +152,12 @@ export const blastNeighbors = createServerFn({ method: "POST" })
       const firstName = r.firstName.trim().split(/\s+/)[0] || "there";
       const message = `Hi ${firstName}, it's ${data.company}. We are doing a job right down the street from you today. Let us know if you want us to swing by for a quick check-up or quote while our crew is in the area!`;
       try {
-        const res = await fetch(`${TWILIO_GATEWAY}/Messages.json`, {
-          method: "POST",
-          headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            To: normalizeE164(r.phone),
-            From: from,
-            Body: message,
-          }),
+        await client.messages.create({
+          to: normalizeE164(r.phone),
+          from,
+          body: message,
         });
-        if (res.ok) sent += 1;
-        else failures.push(r.phone);
+        sent += 1;
       } catch {
         failures.push(r.phone);
       }

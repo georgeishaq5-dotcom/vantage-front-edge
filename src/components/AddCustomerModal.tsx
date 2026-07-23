@@ -3,10 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-
-import { useFeatureGate } from "@/components/FeatureGate";
-import { fetchCustomers } from "@/lib/fsm";
 
 import {
   Dialog,
@@ -29,7 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/AddressAutocomplete";
-import { createCustomer, CUSTOMER_TYPES, formatUSPhoneInput, toE164US, type CustomerType } from "@/lib/fsm";
+import { SmsConsentCheckbox, smsConsentText } from "@/components/SmsConsentCheckbox";
+import { recordSmsConsent } from "@/lib/consent.functions";
+import {
+  createCustomer,
+  CUSTOMER_TYPES,
+  fetchMyProfile,
+  formatUSPhoneInput,
+  toE164US,
+  type CustomerType,
+} from "@/lib/fsm";
 
 const schema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(120),
@@ -44,17 +51,18 @@ type FormValues = z.infer<typeof schema>;
 
 export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
   const queryClient = useQueryClient();
-  const { customerCap, openPaywall } = useFeatureGate();
-  const { data: customers = [] } = useQuery({ queryKey: ["customers"], queryFn: fetchCustomers });
+  const recordConsent = useServerFn(recordSmsConsent);
+  const { data: profile } = useQuery({ queryKey: ["my_profile"], queryFn: fetchMyProfile });
+  const company = profile?.company_name?.trim() || "your service provider";
 
   function handleOpenChange(o: boolean) {
-    if (o && customers.length >= customerCap) {
-      openPaywall("customer_storage");
-      return;
-    }
     setOpen(o);
-    if (!o) reset();
+    if (!o) {
+      reset();
+      setSmsConsent(false);
+    }
   }
 
   const {
@@ -67,19 +75,38 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) =>
-      createCustomer({
+    mutationFn: async (values: FormValues) => {
+      const phoneE164 = values.phone ? toE164US(values.phone) : null;
+      const customer = await createCustomer({
         full_name: values.full_name,
         email: values.email || null,
-        phone: values.phone ? toE164US(values.phone) : null,
+        phone: phoneE164,
         customer_type: (values.customer_type as CustomerType) || null,
         service_address: values.service_address || null,
         site_notes: values.site_notes || null,
-      }),
+      });
+      // Store an immutable proof-of-consent record for the SMS opt-in.
+      if (phoneE164 && smsConsent) {
+        try {
+          await recordConsent({
+            data: {
+              customerId: customer.id,
+              phone: phoneE164,
+              consentTextShown: smsConsentText(company),
+              source: "add_customer",
+            },
+          });
+        } catch {
+          toast.warning("Customer saved, but the SMS consent record failed to save.");
+        }
+      }
+      return customer;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("Customer added successfully");
       reset();
+      setSmsConsent(false);
       setOpen(false);
     },
     onError: () => toast.error("Could not add customer. Please try again."),
@@ -99,7 +126,15 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit((v) => mutation.mutate(v))}
+          onSubmit={handleSubmit((v) => {
+            // A phone number may only be saved with SMS consent; the rest of
+            // the form is unaffected.
+            if (v.phone?.trim() && !smsConsent) {
+              toast.error("Confirm SMS consent to save a phone number, or clear the number.");
+              return;
+            }
+            mutation.mutate(v);
+          })}
           className="grid grid-cols-2 gap-x-4 gap-y-5 py-2"
         >
           <div className="col-span-2 space-y-1.5">
@@ -169,6 +204,17 @@ export function AddCustomerModal({ trigger }: { trigger?: React.ReactNode }) {
               {...register("site_notes")}
             />
           </div>
+
+          {watch("phone")?.trim() ? (
+            <div className="col-span-2 rounded-lg border border-border bg-muted/30 p-3">
+              <SmsConsentCheckbox
+                checked={smsConsent}
+                onCheckedChange={setSmsConsent}
+                company={company}
+                id="add-customer-sms-consent"
+              />
+            </div>
+          ) : null}
 
           <DialogFooter className="col-span-2 mt-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

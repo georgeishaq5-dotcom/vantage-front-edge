@@ -90,6 +90,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 // of the product and should only ever be served from app.vantage-fsm.com.
 const MARKETING_PATHS = new Set(["/", "/features", "/pricing", "/about"]);
 
+// Public content pages that must render on any host without auth — e.g. the SMS
+// terms page a customer opens from the opt-in checkbox "View terms" link. Not
+// marketing paths (no host redirect), and never wrapped in AuthGate.
+const PUBLIC_CONTENT_PATHS = new Set(["/sms-terms"]);
+
 // Server/infrastructure routes that must work identically on every
 // hostname and should never be redirected (API endpoints, sitemap, etc).
 function isInfrastructureRoute(pathname: string): boolean {
@@ -105,6 +110,7 @@ function isInfrastructureRoute(pathname: string): boolean {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async ({ location }) => {
     if (isInfrastructureRoute(location.pathname)) return;
+    if (PUBLIC_CONTENT_PATHS.has(location.pathname)) return;
 
     const ctx = await resolveHostContext();
     if (!ctx) return;
@@ -238,7 +244,9 @@ function RootComponent() {
   const location = useLocation();
   const isMarketingRoute = MARKETING_PATHS.has(location.pathname);
   const isPublicRoute =
-    location.pathname === "/unsubscribe" || location.pathname === "/reset-password";
+    location.pathname === "/unsubscribe" ||
+    location.pathname === "/reset-password" ||
+    PUBLIC_CONTENT_PATHS.has(location.pathname);
 
   // The marketing site (home, features, pricing, about) is public and has
   // its own nav/footer per-page — it must never be wrapped in AuthGate,

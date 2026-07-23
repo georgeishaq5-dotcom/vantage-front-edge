@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  FEATURE_LABELS,
+  FEATURES,
   PLAN_META,
   requiredPlanFor,
-  type PremiumFeature,
+  type PlanFeature,
 } from "@/lib/entitlements";
 import {
   isAdaptyAvailable,
@@ -20,7 +20,7 @@ import {
 
 type PremiumPaywallProps = {
   /** Which locked feature triggered the paywall (tailors plan + headline). */
-  feature?: PremiumFeature;
+  feature?: PlanFeature;
   /** When provided, renders a close button (modal usage). */
   onClose?: () => void;
 };
@@ -130,7 +130,7 @@ export function PremiumPaywall({ feature, onClose }: PremiumPaywallProps) {
         </h2>
         {feature ? (
           <p className="relative mt-3 text-sm font-medium text-white/90">
-            {FEATURE_LABELS[feature]} is a {meta.name} feature. Upgrade to keep
+            {FEATURES[feature].label} is a {meta.name} feature. Upgrade to keep
             your operation running on autopilot.
           </p>
         ) : (

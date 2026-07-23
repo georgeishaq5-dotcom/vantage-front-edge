@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/twilio";
+import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
 
 const SendPromoSmsInput = z.object({
   to: z
@@ -31,53 +30,39 @@ export const sendPromoSms = createServerFn({ method: "POST" })
       throw new Error("Forbidden: manager or admin role required");
     }
 
-    const lovableApiKey = process.env.LOVABLE_API_KEY;
-    const twilioApiKey = process.env.TWILIO_API_KEY;
-    if (!lovableApiKey) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!twilioApiKey) throw new Error("TWILIO_API_KEY is not configured");
+    // Proximity/neighbor promo SMS is part of radius marketing (Growth+).
+    const { effectivePlan } = await resolveWorkspace(context.supabase, context.userId);
+    assertFeature(effectivePlan, "radius_campaigns");
 
-    const headers = {
-      Authorization: `Bearer ${lovableApiKey}`,
-      "X-Connection-Api-Key": twilioApiKey,
-    };
+    // Twilio auth via an API Key (SID + Secret) scoped to the account — not the
+    // main Auth Token. Loaded dynamically so the Node SDK stays out of the
+    // client bundle (*.functions.ts ships to the client).
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const apiKeySid = process.env.TWILIO_API_KEY_SID;
+    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET;
+    if (!accountSid) throw new Error("TWILIO_ACCOUNT_SID is not configured");
+    if (!apiKeySid) throw new Error("TWILIO_API_KEY_SID is not configured");
+    if (!apiKeySecret) throw new Error("TWILIO_API_KEY_SECRET is not configured");
+
+    const { default: twilio } = await import("twilio");
+    const client = twilio(apiKeySid, apiKeySecret, { accountSid });
 
     // Resolve a verified Twilio sender number from the account.
-    const numbersRes = await fetch(
-      `${GATEWAY_URL}/IncomingPhoneNumbers.json?PageSize=1`,
-      { method: "GET", headers },
-    );
-    const numbersData = await numbersRes.json();
-    if (!numbersRes.ok) {
-      throw new Error(
-        `Failed to resolve Twilio sender number [${numbersRes.status}]`,
-      );
-    }
-    const from: string | undefined =
-      numbersData?.incoming_phone_numbers?.[0]?.phone_number;
+    const numbers = await client.incomingPhoneNumbers.list({ limit: 1 });
+    const from = numbers[0]?.phoneNumber;
     if (!from) {
       throw new Error("No Twilio phone number is available to send from.");
     }
 
-    const res = await fetch(`${GATEWAY_URL}/Messages.json`, {
-      method: "POST",
-      headers: {
-        ...headers,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        To: normalizeE164(data.to),
-        From: from,
-        Body: data.message,
-      }),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      throw new Error(
-        result?.message
-          ? `Twilio error: ${result.message}`
-          : `Twilio request failed [${res.status}]`,
-      );
+    try {
+      const result = await client.messages.create({
+        to: normalizeE164(data.to),
+        from,
+        body: data.message,
+      });
+      return { sid: result.sid, status: result.status };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown error";
+      throw new Error(`Twilio error: ${message}`);
     }
-
-    return { sid: result.sid as string, status: result.status as string };
   });

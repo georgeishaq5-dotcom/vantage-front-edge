@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Satellite, Check, Plus, Ruler, Sparkles } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import {
@@ -28,9 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { createJob, fetchCustomers, fetchJobs, formatCurrency, updateCustomer } from "@/lib/fsm";
+import { fetchCustomers, formatCurrency, updateCustomer } from "@/lib/fsm";
+import { createJob } from "@/lib/jobs.functions";
+import { parseEntitlementError, type LimitReachedError } from "@/lib/entitlements";
 import { SatelliteMeasure, type MeasureResult } from "@/components/SatelliteMeasure";
-import { useFeatureGate } from "@/components/FeatureGate";
+import { LimitReachedCallout } from "@/components/UpgradeCallout";
+import { usePlan } from "@/hooks/usePlan";
 
 interface Upgrade {
   key: string;
@@ -57,21 +61,20 @@ export function CreateJobModal() {
     queryKey: ["customers"],
     queryFn: fetchCustomers,
   });
-  const { data: jobs = [] } = useQuery({ queryKey: ["jobs"], queryFn: fetchJobs });
-  const { activeJobCap, openPaywall } = useFeatureGate();
+  const createJobFn = useServerFn(createJob);
+  const { refetchUsage } = usePlan();
 
-  // Active jobs = not yet completed/paid. Starter plans are capped; Growth/Crew
-  // are unlimited (cap is Infinity). Returns false and shows the paywall when
-  // creating another job would exceed the plan's cap.
-  function withinJobCap(): boolean {
-    const activeJobs = jobs.filter(
-      (j) => j.status === "Quoted" || j.status === "Scheduled",
-    ).length;
-    if (activeJobs >= activeJobCap) {
-      openPaywall("unlimited_jobs");
-      return false;
+  // The active-jobs cap is enforced server-side in the createJob server fn,
+  // which returns a typed LIMIT_REACHED error we surface as a contextual card.
+  const [limitError, setLimitError] = useState<LimitReachedError | null>(null);
+
+  function handleCreateError(err: unknown, fallback: string) {
+    const ent = parseEntitlementError(err);
+    if (ent && ent.type === "LIMIT_REACHED") {
+      setLimitError(ent);
+      return;
     }
-    return true;
+    toast.error(fallback);
   }
 
   // ---- Create Job tab state ----
@@ -110,6 +113,7 @@ export function CreateJobModal() {
     setBasePrice("480");
     setSelected({});
     setMeasure(null);
+    setLimitError(null);
   }
 
   const jobMutation = useMutation({
@@ -118,12 +122,14 @@ export function CreateJobModal() {
       const serviceDate = date ? format(date, "yyyy-MM-dd") : null;
       const jobTitle =
         title.trim() || (customer ? `${customer.full_name} — Service` : "Service Job");
-      await createJob({
-        title: jobTitle,
-        customer_id: customerId || null,
-        status: serviceDate ? "Scheduled" : "Quoted",
-        service_date: serviceDate,
-        quote_amount: 0,
+      await createJobFn({
+        data: {
+          title: jobTitle,
+          customer_id: customerId || null,
+          status: serviceDate ? "Scheduled" : "Quoted",
+          service_date: serviceDate,
+          quote_amount: 0,
+        },
       });
       if (customer && siteNotes.trim()) {
         await updateCustomer(customer.id, { site_notes: siteNotes.trim() });
@@ -132,31 +138,35 @@ export function CreateJobModal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
+      refetchUsage();
       toast.success("Job created and added to the dispatch board");
       resetForms();
       setOpen(false);
     },
-    onError: () => toast.error("Could not create job. Please try again."),
+    onError: (err) => handleCreateError(err, "Could not create job. Please try again."),
   });
 
   const estimateMutation = useMutation({
     mutationFn: async () => {
       const customer = customers.find((c) => c.id === estCustomerId) || null;
-      await createJob({
-        title: customer ? `${customer.full_name} — Estimate` : "New Estimate",
-        customer_id: estCustomerId || null,
-        status: "Quoted",
-        service_date: null,
-        quote_amount: estimateTotal,
+      await createJobFn({
+        data: {
+          title: customer ? `${customer.full_name} — Estimate` : "New Estimate",
+          customer_id: estCustomerId || null,
+          status: "Quoted",
+          service_date: null,
+          quote_amount: estimateTotal,
+        },
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      refetchUsage();
       toast.success("Estimate created");
       resetForms();
       setOpen(false);
     },
-    onError: () => toast.error("Could not create estimate. Please try again."),
+    onError: (err) => handleCreateError(err, "Could not create estimate. Please try again."),
   });
 
   const toggle = (key: string) => setSelected((s) => ({ ...s, [key]: !s[key] }));
@@ -179,6 +189,8 @@ export function CreateJobModal() {
             Build a customer estimate or dispatch a job to the board.
           </DialogDescription>
         </DialogHeader>
+
+        {limitError && <LimitReachedCallout error={limitError} className="mt-2" />}
 
         <Tabs defaultValue="estimate" className="mt-2">
           <TabsList className="grid w-full grid-cols-2">
@@ -297,7 +309,6 @@ export function CreateJobModal() {
                     toast.error("Base price must be between $0 and $999,999");
                     return;
                   }
-                  if (!withinJobCap()) return;
                   estimateMutation.mutate();
                 }}
               >
@@ -323,7 +334,6 @@ export function CreateJobModal() {
                   toast.error("Site notes must be 2000 characters or fewer");
                   return;
                 }
-                if (!withinJobCap()) return;
                 jobMutation.mutate();
               }}
               className="space-y-5"

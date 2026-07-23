@@ -3,11 +3,14 @@ import { CreditCard, ExternalLink, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { PLAN_META } from "@/lib/entitlements";
 
 const PORTAL_FALLBACK = "https://billing.stripe.com/p/login";
 
 export function ManageSubscriptionSection() {
   const [loading, setLoading] = useState(false);
+  const { plan, paidPlan, subscribed, isTrial, trialDaysRemaining } = useEntitlements();
 
   async function handleManage() {
     setLoading(true);
@@ -43,8 +46,29 @@ export function ManageSubscriptionSection() {
       </div>
       <div className="mt-5 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Your subscription is billed at <span className="font-medium text-foreground">$99.00 / month</span> and
-          auto-renews. Cancel any time — no need to contact support.
+          {isTrial ? (
+            <>
+              You're on a{" "}
+              <span className="font-medium text-foreground">Crew trial</span> —{" "}
+              {trialDaysRemaining} day{trialDaysRemaining === 1 ? "" : "s"} left. It falls back
+              to the <span className="font-medium text-foreground">{PLAN_META[paidPlan].name}</span>{" "}
+              plan when the trial ends.
+            </>
+          ) : subscribed ? (
+            <>
+              You're on the{" "}
+              <span className="font-medium text-foreground">{PLAN_META[plan].name}</span> plan,
+              billed at{" "}
+              <span className="font-medium text-foreground">{PLAN_META[plan].price}</span> and
+              auto-renews. Cancel any time — no need to contact support.
+            </>
+          ) : (
+            <>
+              You're on the{" "}
+              <span className="font-medium text-foreground">{PLAN_META[plan].name}</span> (free)
+              plan. Upgrade any time from the Upgrade page.
+            </>
+          )}
         </p>
         <Button
           variant="revenue"
