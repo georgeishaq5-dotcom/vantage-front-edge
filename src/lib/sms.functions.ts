@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertFeature, resolveWorkspace } from "@/lib/entitlements.server";
+import { isPhoneSuppressed } from "@/lib/sms-suppression.server";
 
 const SendPromoSmsInput = z.object({
   to: z
@@ -47,6 +48,12 @@ export const sendPromoSms = createServerFn({ method: "POST" })
     const { default: twilio } = await import("twilio");
     const client = twilio(apiKeySid, apiKeySecret, { accountSid });
 
+    // Honor STOP opt-outs: never text a suppressed number.
+    const to = normalizeE164(data.to);
+    if (await isPhoneSuppressed(to)) {
+      throw new Error("This number has opted out of SMS (replied STOP) and cannot be texted.");
+    }
+
     // Resolve a verified Twilio sender number from the account.
     const numbers = await client.incomingPhoneNumbers.list({ limit: 1 });
     const from = numbers[0]?.phoneNumber;
@@ -56,7 +63,7 @@ export const sendPromoSms = createServerFn({ method: "POST" })
 
     try {
       const result = await client.messages.create({
-        to: normalizeE164(data.to),
+        to,
         from,
         body: data.message,
       });
