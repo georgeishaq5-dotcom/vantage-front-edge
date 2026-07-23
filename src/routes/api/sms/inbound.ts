@@ -29,7 +29,7 @@ const STOP_KEYWORDS = new Set([
 const START_KEYWORDS = new Set(["START", "YES", "UNSTOP", "OPTIN"]);
 const HELP_KEYWORDS = new Set(["HELP", "INFO"]);
 
-const SUPPORT_EMAIL = "noreply@vantage-fsm.com";
+const SUPPORT_EMAIL = "support@vantage-fsm.com";
 
 function escapeXml(s: string): string {
   return s

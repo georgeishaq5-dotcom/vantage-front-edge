@@ -4,7 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { HomeNav } from "@/components/marketing/home/HomeNav";
 import { HomeFooter } from "@/components/marketing/home/HomeFooter";
 
-const SUPPORT_EMAIL = "noreply@vantage-fsm.com";
+const SUPPORT_EMAIL = "support@vantage-fsm.com";
 
 // Note: /sms-terms is registered as public content in __root.tsx so it renders
 // on any host without auth (customers open it from the opt-in checkbox link).
