@@ -269,7 +269,11 @@ export async function fetchJobsWithFullCustomers(): Promise<JobWithFullCustomer[
 
 // Frontend mask: format raw digits into US (XXX) XXX-XXXX as the user types.
 export function formatUSPhoneInput(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  let digits = raw.replace(/\D/g, "");
+  // Drop a leading US country code so stored E.164 numbers (+1XXXXXXXXXX)
+  // round-trip correctly through the mask instead of losing the last digit.
+  if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
   const len = digits.length;
   if (len === 0) return "";
   if (len < 4) return `(${digits}`;
