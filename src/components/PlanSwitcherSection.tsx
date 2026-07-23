@@ -44,7 +44,15 @@ export function PlanSwitcherSection() {
       toast.error(err instanceof Error ? err.message : "Could not change plan"),
   });
 
-  if (!isAdmin) return null;
+  // QA-only tool: hidden on the production host (server also blocks the
+  // override in production). Visible on preview/local for testing.
+  const qaEnabled =
+    typeof window !== "undefined" &&
+    (/\.vercel\.app$/i.test(window.location.hostname) ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+
+  if (!isAdmin || !qaEnabled) return null;
 
   return (
     <div className="rounded-xl border border-dashed border-amber-400/50 bg-amber-50/10 p-3 md:p-6 shadow-sm">

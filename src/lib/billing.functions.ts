@@ -28,6 +28,14 @@ export const setCompanyPlan = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    // Hard block in production: real plan changes must go through Stripe
+    // Checkout + the webhook. This direct override exists only for QA on
+    // preview/staging, so a workspace admin can never self-assign a paid plan
+    // for free in production.
+    if (process.env.VERCEL_ENV === "production") {
+      throw new Error("Direct plan changes are disabled in production.");
+    }
+
     const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
       _role: "admin",
