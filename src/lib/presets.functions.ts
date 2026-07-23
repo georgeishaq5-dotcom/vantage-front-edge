@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
+import { generateObject } from "ai";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createGoogleProvider, GEMINI_CHAT_MODEL } from "@/lib/google-ai.server";
 
 const ConfigureInput = z.object({
   prompt: z.string().trim().min(3).max(2000),
@@ -45,39 +47,27 @@ export const configureTradePresets = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => ConfigureInput.parse(d))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error("AI is not configured");
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: data.prompt },
-        ],
-      }),
-    });
+    const google = createGoogleProvider(apiKey);
 
-    if (res.status === 429) throw new Error("Van is busy (rate limited). Try again shortly.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Add credits to continue.");
-    if (!res.ok) throw new Error(`Van could not generate presets [${res.status}]`);
-
-    const json = await res.json();
-    const content: string = json?.choices?.[0]?.message?.content ?? "";
-    let parsed: unknown;
+    let preset: z.infer<typeof PresetSchema>;
     try {
-      parsed = JSON.parse(content);
-    } catch {
+      const result = await generateObject({
+        model: google(GEMINI_CHAT_MODEL),
+        schema: PresetSchema,
+        system: SYSTEM_PROMPT,
+        prompt: data.prompt,
+      });
+      preset = result.object;
+    } catch (err) {
+      const status = (err as { statusCode?: number }).statusCode;
+      if (status === 429) {
+        throw new Error("Van is busy (rate limited). Try again shortly.");
+      }
       throw new Error("Van returned an unexpected response. Please try again.");
     }
-
-    const preset = PresetSchema.parse(parsed);
 
     // Persist to the singleton presets row using the caller's RLS context.
     const { data: existing } = await context.supabase
