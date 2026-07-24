@@ -21,6 +21,12 @@ HOW YOU ACT — this is critical:
   operator must confirm; do not claim it was sent.
 - If the operator asks for something you have no tool for, say so honestly instead of pretending.
 
+SCHEDULING DATES:
+- Resolve relative dates ("today", "tomorrow", "this Friday", "next week") against the operator's
+  CURRENT LOCAL DATE given below, and always pass dates to tools as YYYY-MM-DD.
+- "Book" or "schedule" a job means it needs a service_date — always include one (the calendar only
+  shows jobs that have a date). If the operator gives no date, ask for one or default to today.
+
 Be concise and practical. Use markdown (bold, bullet lists) — it renders properly in the chat.`;
 
 export const Route = createFileRoute("/api/chat")({
@@ -76,10 +82,18 @@ export const Route = createFileRoute("/api/chat")({
             return new Response("Missing GEMINI_API_KEY", { status: 500 });
           }
 
+          // The model has no inherent sense of "now". Feed it the operator's
+          // real local date/time (sent by the client) so it can resolve
+          // "tomorrow"/"this Friday" to the right YYYY-MM-DD the calendar buckets on.
+          const clientNow = request.headers.get("x-client-datetime");
+          const system = clientNow
+            ? `${SYSTEM_PROMPT}\n\nThe operator's current local date and time is: ${clientNow}.`
+            : SYSTEM_PROMPT;
+
           const google = createGoogleProvider(key);
           const result = streamText({
             model: google(GEMINI_CHAT_MODEL),
-            system: SYSTEM_PROMPT,
+            system,
             messages: await convertToModelMessages(messages as UIMessage[]),
             // Client-side tools (no `execute`): the browser fulfils each call and
             // sends the result back, so Van can chain read → act in one turn.

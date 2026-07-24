@@ -112,7 +112,13 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
       headers: async (): Promise<Record<string, string>> => {
         const { data } = await supabase.auth.getSession();
         const token = data.session?.access_token;
-        return token ? { Authorization: `Bearer ${token}` } : {};
+        // Send the operator's real local date/time so Van can resolve
+        // "tomorrow"/"this Friday" into the correct calendar date.
+        const headers: Record<string, string> = {
+          "x-client-datetime": new Date().toString(),
+        };
+        if (token) headers.Authorization = `Bearer ${token}`;
+        return headers;
       },
     }),
     messages: [INTRO],

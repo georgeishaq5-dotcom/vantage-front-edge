@@ -42,6 +42,24 @@ type ToolResult = Record<string, unknown>;
 
 const norm = (s: string) => s.trim().toLowerCase();
 
+/**
+ * Coerce whatever date string the model produces into the exact `YYYY-MM-DD`
+ * the calendar buckets on (`calendar.tsx` groups by an exact service_date
+ * string). Accepts "2026-07-24", "2026-07-24T14:00", "July 24 2026", etc.
+ */
+function toISODate(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  const direct = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (direct) return direct[1];
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  return null;
+}
+
 async function resolveJob(input: { job_id?: string; job_title?: string }) {
   if (input.job_id) return { id: input.job_id };
   if (!input.job_title) return null;
@@ -153,7 +171,8 @@ export async function executeVanTool(
         if ((input.customer_name || input.customer_id) && !customer) {
           return { ok: false, error: `No customer found matching "${input.customer_name}".` };
         }
-        const status: JobStatus = input.status ?? (input.service_date ? "Scheduled" : "Quoted");
+        const serviceDate = toISODate(input.service_date);
+        const status: JobStatus = input.status ?? (serviceDate ? "Scheduled" : "Quoted");
         const title =
           input.title?.trim() ||
           (customer?.name ? `${customer.name} — Service` : "Service Job");
@@ -162,15 +181,15 @@ export async function executeVanTool(
             title,
             customer_id: customer?.id ?? null,
             status,
-            service_date: input.service_date ?? null,
+            service_date: serviceDate,
             quote_amount: Number(input.quote_amount ?? 0),
           },
         });
         ctx.invalidate(["jobs", "customers"]);
         return {
           ok: true,
-          created: { id: job.id, title, status, service_date: input.service_date ?? null },
-          message: `Created job "${title}"${input.service_date ? ` scheduled for ${input.service_date}` : ""}.`,
+          created: { id: job.id, title, status, service_date: serviceDate },
+          message: `Created job "${title}"${serviceDate ? ` scheduled for ${serviceDate}` : " (unscheduled — no date given)"}.`,
         };
       }
       case "update_job_status": {
@@ -185,7 +204,9 @@ export async function executeVanTool(
         if (!job) return { ok: false, error: "Could not find that job." };
         await updateJob(job.id, {
           ...(input.title !== undefined ? { title: input.title } : {}),
-          ...(input.service_date !== undefined ? { service_date: input.service_date } : {}),
+          ...(input.service_date !== undefined
+            ? { service_date: input.service_date === null ? null : toISODate(input.service_date) }
+            : {}),
           ...(input.status !== undefined ? { status: input.status as JobStatus } : {}),
         });
         ctx.invalidate(["jobs"]);
