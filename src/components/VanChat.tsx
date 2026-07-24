@@ -116,23 +116,48 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
       },
     }),
     messages: [INTRO],
-    // When Van calls a tool, execute it here in the browser and hand the result
-    // back. `sendAutomaticallyWhen` (below) then resumes the model so it can
-    // narrate what actually happened.
-    onToolCall: async ({ toolCall }) => {
-      const output = await executeVanTool(toolCall.toolName, toolCall.input, toolCtx.current);
-      await addToolResult({
-        tool: toolCall.toolName,
-        toolCallId: toolCall.toolCallId,
-        output,
-      });
-    },
+    // NOTE: tool execution is intentionally NOT done in `onToolCall`. That
+    // callback is awaited inside the stream's serial job executor, and
+    // `addToolResult` schedules on that same executor — awaiting it there
+    // deadlocks the stream (status pins to "streaming" forever). Instead we
+    // detect pending tool calls after the stream settles (effect below) and
+    // execute them then; `sendAutomaticallyWhen` resumes the model to narrate.
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onError: (err) => {
       console.error("[VanChat] stream error:", err);
       toast.error("Van couldn't respond. Please try again.");
     },
   });
+
+  // Execute Van's tool calls once the stream settles (status "ready"), outside
+  // the stream job so `addToolResult` can run and trigger the auto-resume.
+  const executedToolCalls = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (status !== "ready") return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    for (const part of last.parts) {
+      const type = part.type;
+      const isTool =
+        typeof type === "string" && (type.startsWith("tool-") || type === "dynamic-tool");
+      if (!isTool) continue;
+      const p = part as unknown as {
+        state?: string;
+        toolCallId?: string;
+        toolName?: string;
+        input?: unknown;
+      };
+      if (p.state !== "input-available" || !p.toolCallId) continue;
+      if (executedToolCalls.current.has(p.toolCallId)) continue;
+      executedToolCalls.current.add(p.toolCallId);
+      const toolName = type === "dynamic-tool" ? (p.toolName ?? "") : type.slice("tool-".length);
+      const toolCallId = p.toolCallId;
+      void (async () => {
+        const output = await executeVanTool(toolName, p.input, toolCtx.current);
+        await addToolResult({ tool: toolName, toolCallId, output });
+      })();
+    }
+  }, [messages, status, addToolResult]);
 
   const isLoading = status === "submitted" || status === "streaming";
   const { ensureConsent, granted } = useAiConsent();
