@@ -15,6 +15,7 @@ import {
   Snowflake,
   Megaphone,
   Truck,
+  Mic,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -197,27 +198,35 @@ function MetricCard({
 function AskVanBanner() {
   const van = useVanChat();
   return (
-    <button
-      type="button"
-      onClick={() => van.open()}
-      className="flex w-full items-center gap-[13px] border border-revenue/35 bg-revenue/[0.08] p-3.5 text-left transition-colors hover:bg-revenue/[0.12] active:scale-[0.99] md:p-4"
-    >
-      <span className="grid h-9 w-9 shrink-0 place-items-center bg-revenue text-[oklch(0.16_0.04_158)]">
-        <Truck className="h-[17px] w-[17px]" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[13.5px] font-extrabold text-foreground">
-          Talk or type — Van will handle it
-        </p>
-        <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-          No need to click around the app. Tell Van what you need — a quote, a reschedule, a
-          reminder — and it gets done.
-        </p>
-      </div>
-      <span className="shrink-0 text-[10px] font-extrabold uppercase tracking-[0.12em] text-revenue">
-        Ask Van →
-      </span>
-    </button>
+    <div className="flex w-full items-center gap-[13px] border border-revenue/35 bg-revenue/[0.08] p-3.5 transition-colors hover:bg-revenue/[0.12] md:p-4">
+      <button
+        type="button"
+        onClick={() => van.open()}
+        className="flex min-w-0 flex-1 items-center gap-[13px] text-left active:scale-[0.99]"
+      >
+        <span className="grid h-9 w-9 shrink-0 place-items-center bg-revenue text-[oklch(0.16_0.04_158)]">
+          <Truck className="h-[17px] w-[17px]" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[13.5px] font-extrabold text-foreground">
+            Talk or type — Van will handle it
+          </p>
+          <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+            No need to click around the app. Tell Van what you need — a quote, a reschedule, a
+            reminder — and it gets done.
+          </p>
+        </div>
+      </button>
+      {/* Dedicated click-to-talk entry point: opens Van and starts the mic. */}
+      <button
+        type="button"
+        onClick={() => van.open(undefined, { voice: true })}
+        aria-label="Talk to Van"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-revenue text-[oklch(0.16_0.04_158)] transition-transform hover:scale-105 active:scale-95"
+      >
+        <Mic className="h-[18px] w-[18px]" />
+      </button>
+    </div>
   );
 }
 

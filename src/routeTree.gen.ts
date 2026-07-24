@@ -14,6 +14,7 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
 import { Route as TeamRouteImport } from './routes/team'
+import { Route as SmsTermsRouteImport } from './routes/sms-terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -23,6 +24,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as JobsRouteImport } from './routes/jobs'
+import { Route as FinancialsRouteImport } from './routes/financials'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as EulaRouteImport } from './routes/eula'
 import { Route as EstimatesRouteImport } from './routes/estimates'
@@ -38,6 +40,8 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as CustomersCustomerIdRouteImport } from './routes/customers.$customerId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as ApiSmsInboundRouteImport } from './routes/api/sms/inbound'
+import { Route as ApiEmailInboundRouteImport } from './routes/api/email/inbound'
 import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
 import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
@@ -68,6 +72,11 @@ const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmsTermsRoute = SmsTermsRouteImport.update({
+  id: '/sms-terms',
+  path: '/sms-terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -113,6 +122,11 @@ const LedgerRoute = LedgerRouteImport.update({
 const JobsRoute = JobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialsRoute = FinancialsRouteImport.update({
+  id: '/financials',
+  path: '/financials',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -190,6 +204,16 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
   path: '/lovable/email/suppression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSmsInboundRoute = ApiSmsInboundRouteImport.update({
+  id: '/api/sms/inbound',
+  path: '/api/sms/inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailInboundRoute = ApiEmailInboundRouteImport.update({
+  id: '/api/email/inbound',
+  path: '/api/email/inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
   id: '/api/billing/webhook',
   path: '/api/billing/webhook',
@@ -236,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
   '/features': typeof FeaturesRoute
+  '/financials': typeof FinancialsRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/pricing': typeof PricingRoute
@@ -245,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
@@ -256,6 +282,8 @@ export interface FileRoutesByFullPath {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
+  '/api/email/inbound': typeof ApiEmailInboundRoute
+  '/api/sms/inbound': typeof ApiSmsInboundRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -273,6 +301,7 @@ export interface FileRoutesByTo {
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
   '/features': typeof FeaturesRoute
+  '/financials': typeof FinancialsRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/pricing': typeof PricingRoute
@@ -282,6 +311,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
@@ -293,6 +323,8 @@ export interface FileRoutesByTo {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
+  '/api/email/inbound': typeof ApiEmailInboundRoute
+  '/api/sms/inbound': typeof ApiSmsInboundRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -311,6 +343,7 @@ export interface FileRoutesById {
   '/estimates': typeof EstimatesRoute
   '/eula': typeof EulaRoute
   '/features': typeof FeaturesRoute
+  '/financials': typeof FinancialsRoute
   '/jobs': typeof JobsRoute
   '/ledger': typeof LedgerRoute
   '/pricing': typeof PricingRoute
@@ -320,6 +353,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sms-terms': typeof SmsTermsRoute
   '/team': typeof TeamRoute
   '/terms-of-service': typeof TermsOfServiceRoute
   '/timesheets': typeof TimesheetsRoute
@@ -331,6 +365,8 @@ export interface FileRoutesById {
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/portal': typeof ApiBillingPortalRoute
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
+  '/api/email/inbound': typeof ApiEmailInboundRoute
+  '/api/sms/inbound': typeof ApiSmsInboundRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -350,6 +386,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/eula'
     | '/features'
+    | '/financials'
     | '/jobs'
     | '/ledger'
     | '/pricing'
@@ -359,6 +396,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
@@ -370,6 +408,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/portal'
     | '/api/billing/webhook'
+    | '/api/email/inbound'
+    | '/api/sms/inbound'
     | '/lovable/email/suppression'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -387,6 +427,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/eula'
     | '/features'
+    | '/financials'
     | '/jobs'
     | '/ledger'
     | '/pricing'
@@ -396,6 +437,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
@@ -407,6 +449,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/portal'
     | '/api/billing/webhook'
+    | '/api/email/inbound'
+    | '/api/sms/inbound'
     | '/lovable/email/suppression'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -424,6 +468,7 @@ export interface FileRouteTypes {
     | '/estimates'
     | '/eula'
     | '/features'
+    | '/financials'
     | '/jobs'
     | '/ledger'
     | '/pricing'
@@ -433,6 +478,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/settings'
     | '/sitemap.xml'
+    | '/sms-terms'
     | '/team'
     | '/terms-of-service'
     | '/timesheets'
@@ -444,6 +490,8 @@ export interface FileRouteTypes {
     | '/api/billing/checkout'
     | '/api/billing/portal'
     | '/api/billing/webhook'
+    | '/api/email/inbound'
+    | '/api/sms/inbound'
     | '/lovable/email/suppression'
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
@@ -462,6 +510,7 @@ export interface RootRouteChildren {
   EstimatesRoute: typeof EstimatesRoute
   EulaRoute: typeof EulaRoute
   FeaturesRoute: typeof FeaturesRoute
+  FinancialsRoute: typeof FinancialsRoute
   JobsRoute: typeof JobsRoute
   LedgerRoute: typeof LedgerRoute
   PricingRoute: typeof PricingRoute
@@ -471,6 +520,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SmsTermsRoute: typeof SmsTermsRoute
   TeamRoute: typeof TeamRoute
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   TimesheetsRoute: typeof TimesheetsRoute
@@ -481,6 +531,8 @@ export interface RootRouteChildren {
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingPortalRoute: typeof ApiBillingPortalRoute
   ApiBillingWebhookRoute: typeof ApiBillingWebhookRoute
+  ApiEmailInboundRoute: typeof ApiEmailInboundRoute
+  ApiSmsInboundRoute: typeof ApiSmsInboundRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -522,6 +574,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/team'
       preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sms-terms': {
+      id: '/sms-terms'
+      path: '/sms-terms'
+      fullPath: '/sms-terms'
+      preLoaderRoute: typeof SmsTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -585,6 +644,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs'
       fullPath: '/jobs'
       preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financials': {
+      id: '/financials'
+      path: '/financials'
+      fullPath: '/financials'
+      preLoaderRoute: typeof FinancialsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -692,6 +758,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailSuppressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/sms/inbound': {
+      id: '/api/sms/inbound'
+      path: '/api/sms/inbound'
+      fullPath: '/api/sms/inbound'
+      preLoaderRoute: typeof ApiSmsInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/inbound': {
+      id: '/api/email/inbound'
+      path: '/api/email/inbound'
+      fullPath: '/api/email/inbound'
+      preLoaderRoute: typeof ApiEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/webhook': {
       id: '/api/billing/webhook'
       path: '/api/billing/webhook'
@@ -761,6 +841,7 @@ const rootRouteChildren: RootRouteChildren = {
   EstimatesRoute: EstimatesRoute,
   EulaRoute: EulaRoute,
   FeaturesRoute: FeaturesRoute,
+  FinancialsRoute: FinancialsRoute,
   JobsRoute: JobsRoute,
   LedgerRoute: LedgerRoute,
   PricingRoute: PricingRoute,
@@ -770,6 +851,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SmsTermsRoute: SmsTermsRoute,
   TeamRoute: TeamRoute,
   TermsOfServiceRoute: TermsOfServiceRoute,
   TimesheetsRoute: TimesheetsRoute,
@@ -780,6 +862,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingPortalRoute: ApiBillingPortalRoute,
   ApiBillingWebhookRoute: ApiBillingWebhookRoute,
+  ApiEmailInboundRoute: ApiEmailInboundRoute,
+  ApiSmsInboundRoute: ApiSmsInboundRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

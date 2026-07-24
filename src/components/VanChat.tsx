@@ -7,18 +7,30 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Bot, Send, X } from "lucide-react";
+import { Bot, Mic, Send, X } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls,
+  type UIMessage,
+} from "ai";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAiConsent } from "@/components/AiConsentGate";
 import { supabase } from "@/integrations/supabase/client";
+import { createJob } from "@/lib/jobs.functions";
+import { executeVanTool, type VanToolContext } from "@/lib/van-tools.actions";
+import { useSpeechInput } from "@/hooks/useSpeechInput";
+
+type OpenOptions = { voice?: boolean };
 
 type VanChatContextValue = {
-  open: (prefill?: string) => void;
+  open: (prefill?: string, opts?: OpenOptions) => void;
   close: () => void;
 };
 
@@ -47,13 +59,54 @@ function messageText(message: UIMessage): string {
     .join("");
 }
 
+// Renders Van's replies as markdown so **bold**, bullet lists, etc. display
+// formatted instead of showing raw asterisks. Element styles are kept tight to
+// fit the narrow chat bubble.
+function VanMarkdown({ children }: { children: string }) {
+  return (
+    <div className="space-y-2 [&_a]:underline [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.85em]">
+      <ReactMarkdown
+        components={{
+          p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+          ul: ({ children }) => <ul className="list-disc space-y-1 pl-4">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal space-y-1 pl-4">{children}</ol>,
+          li: ({ children }) => <li className="marker:text-muted-foreground">{children}</li>,
+          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+          a: ({ children, href }) => (
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          ),
+        }}
+      >
+        {children}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
 export function VanChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, sendMessage, status, error } = useChat({
+  // Van's tools run in the browser as the signed-in user. `createJob` goes
+  // through its server fn (RLS + active-job cap); `invalidate` refreshes the
+  // React Query caches so the UI reflects Van's changes instantly.
+  const createJobFn = useServerFn(createJob);
+  const queryClient = useQueryClient();
+  // Held in a ref so the tool callback always sees the latest closures without
+  // re-subscribing useChat on every render.
+  const toolCtx = useRef<VanToolContext>(undefined as unknown as VanToolContext);
+  toolCtx.current = {
+    createJob: (args) => createJobFn(args) as Promise<{ id: string; title: string }>,
+    invalidate: (keys) => {
+      for (const key of keys) queryClient.invalidateQueries({ queryKey: [key] });
+    },
+  };
+
+  const { messages, sendMessage, addToolResult, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
       headers: async (): Promise<Record<string, string>> => {
@@ -63,6 +116,18 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
       },
     }),
     messages: [INTRO],
+    // When Van calls a tool, execute it here in the browser and hand the result
+    // back. `sendAutomaticallyWhen` (below) then resumes the model so it can
+    // narrate what actually happened.
+    onToolCall: async ({ toolCall }) => {
+      const output = await executeVanTool(toolCall.toolName, toolCall.input, toolCtx.current);
+      await addToolResult({
+        tool: toolCall.toolName,
+        toolCallId: toolCall.toolCallId,
+        output,
+      });
+    },
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onError: (err) => {
       console.error("[VanChat] stream error:", err);
       toast.error("Van couldn't respond. Please try again.");
@@ -71,18 +136,38 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
 
   const isLoading = status === "submitted" || status === "streaming";
   const { ensureConsent, granted } = useAiConsent();
+  const [wantVoice, setWantVoice] = useState(false);
+
+  // Click-to-talk: dictated text lands in the input for the operator to review
+  // and send (so a mis-hear never fires an action on its own).
+  const {
+    supported: micSupported,
+    listening,
+    start: startMic,
+    stop: stopMic,
+    toggle: toggleMic,
+  } = useSpeechInput({
+    onResult: (t) => {
+      setInput((prev) => (prev.trim() ? `${prev.trim()} ${t}` : t));
+      inputRef.current?.focus();
+    },
+  });
 
   const open = useCallback(
-    (prefill?: string) => {
+    (prefill?: string, opts?: OpenOptions) => {
       // Gate the AI agent behind explicit consent before opening the chat.
       if (!ensureConsent()) return;
       setIsOpen(true);
       if (prefill) setInput(prefill);
+      if (opts?.voice) setWantVoice(true);
     },
     [ensureConsent],
   );
 
-  const close = useCallback(() => setIsOpen(false), []);
+  const close = useCallback(() => {
+    stopMic();
+    setIsOpen(false);
+  }, [stopMic]);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,6 +175,16 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
       return () => clearTimeout(t);
     }
   }, [isOpen]);
+
+  // Auto-start the mic when Van was opened via a "Talk" entry point.
+  useEffect(() => {
+    if (isOpen && wantVoice && micSupported) {
+      const t = setTimeout(() => startMic(), 250);
+      setWantVoice(false);
+      return () => clearTimeout(t);
+    }
+    if (!isOpen && wantVoice) setWantVoice(false);
+  }, [isOpen, wantVoice, micSupported, startMic]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -148,11 +243,21 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
               >
                 <div
                   className={cn(
-                    "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm",
-                    m.role === "user" ? "bg-revenue text-white" : "bg-secondary text-foreground",
+                    "max-w-[85%] rounded-2xl px-3.5 py-2 text-sm",
+                    m.role === "user"
+                      ? "whitespace-pre-wrap bg-revenue text-white"
+                      : "bg-secondary text-foreground",
                   )}
                 >
-                  {text || "…"}
+                  {m.role === "assistant" ? (
+                    text ? (
+                      <VanMarkdown>{text}</VanMarkdown>
+                    ) : (
+                      "…"
+                    )
+                  ) : (
+                    text || "…"
+                  )}
                 </div>
               </div>
             );
@@ -189,9 +294,22 @@ export function VanChatProvider({ children }: { children: ReactNode }) {
                   send();
                 }
               }}
-              placeholder="Give Van a command…"
+              placeholder={listening ? "Listening… speak now" : "Talk or type a command…"}
               className="flex-1 rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
             />
+            {micSupported && (
+              <Button
+                type="button"
+                size="icon"
+                variant={listening ? "destructive" : "outline"}
+                aria-label={listening ? "Stop listening" : "Talk to Van"}
+                aria-pressed={listening}
+                onClick={toggleMic}
+                className={cn(listening && "animate-pulse")}
+              >
+                <Mic className="h-5 w-5" />
+              </Button>
+            )}
             <Button
               type="button"
               size="icon"
